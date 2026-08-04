@@ -1,0 +1,141 @@
+services:
+  # PHP Application with FrankenPHP (Laravel Octane)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/conf.d:/etc/php/8.4/fpm/conf.d
+    networks:
+      - fiberloop-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=fiberloop_secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+    ports:
+      - "8000:8000"
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "php", "-r", "echo 'OK';"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL 18
+  postgres:
+    image: postgres:18-alpine
+    container_name: fiberloop-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=fiberloop
+      - POSTGRES_USER=fiberloop
+      - POSTGRES_PASSWORD=fiberloop_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - fiberloop-network
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiberloop -d fiberloop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: fiberloop-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - fiberloop-network
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FreeRADIUS stub (placeholder for Phase 7)
+  freeradius:
+    image: freeradius/freeradius-server:3.2.10
+    container_name: fiberloop-freeradius
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    ports:
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+    volumes:
+      - ./docker/freeradius:/etc/raddb
+
+  # FrankenPHP (for Laravel Octane) - runs as separate service
+  frankenphp:
+    image: dunglas/frankenphp:php8.4
+    container_name: fiberloop-frankenphp
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./docker/frankenphp/Caddyfile:/etc/caddy/Caddyfile
+      - ./docker/frankenphp/workers.php:/var/www/html/workers.php
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - APP_ENV=local
+      - FRANKENPHP_CONFIG=/var/www/html/workers.php
+
+  # Queue worker (Horizon)
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: php artisan horizon
+    environment:
+      - APP_ENV=local
+
+networks:
+  fiberloop-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
