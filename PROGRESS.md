@@ -9,8 +9,7 @@ Current phase: Phase 1
 | Phase | Status | Notes |
 |---|---|---|
 | 0 — Foundation & Environment | Done | All tasks completed, verified working |
-| 1 — Database Architecture | Not started | |
-| 1 — Database Architecture | Not started | |
+| 1 — Database Architecture | In progress | Factories, seeders, CHECK constraints added. Verifying Definition of Done |
 | 2 — Auth & RBAC | Not started | |
 | 3 — Customer/Subscriber Management | Not started | |
 | 4 — Package & Pricing | Not started | |
@@ -46,3 +45,4 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 0: Multi-tenancy enabled via stancl/tenancy v3.10.0 with PostgreSQL database manager (separate DB per tenant). Redis tenancy bootstrapper enabled.
 - Phase 0: Pest PHP v5.0.3 with pest-plugin-laravel v5.0.1 adopted (supports Laravel 13.23+). PHPUnit kept as dev dependency for compatibility.
 - Phase 0: Laravel Pint configured with PSR-12 preset + ordered_imports and no_unused_imports rules. Pre-commit/CI integration via composer scripts.
+- Phase 1: Removed HasUuids trait from all models to prevent UUID/primary-key conflicts. Models now manually generate UUIDs for separate uuid columns while keeping bigint primary keys per AGENTS.md spec.

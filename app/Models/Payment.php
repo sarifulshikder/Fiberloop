@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Models;
+
+use App\Enums\PaymentMethod;
+use App\Enums\PaymentStatus;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Payment extends Model
+{
+  use HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'tenant_id',
+        'uuid',
+        'invoice_id',
+        'customer_id',
+        'reseller_id',
+        'created_by',
+        'updated_by',
+        'collected_by',
+        'amount',
+        'fee_amount',
+        'net_amount',
+        'method',
+        'status',
+        'gateway_reference',
+        'gateway_response',
+        'paid_at',
+        'notes',
+        'failure_reason',
+        'receipt_path',
+    ];
+
+    protected $casts = [
+        'amount' => 'integer',
+        'fee_amount' => 'integer',
+        'net_amount' => 'integer',
+        'method' => PaymentMethod::class,
+        'status' => PaymentStatus::class,
+        'paid_at' => 'datetime',
+    ];
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function reseller(): BelongsTo
+    {
+        return $this->belongsTo(Reseller::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function collectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'collected_by');
+    }
+}

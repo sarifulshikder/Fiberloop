@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class () extends Migration {
+return new class extends Migration
+{
     /**
      * Run the migrations.
      */
@@ -12,12 +13,47 @@ return new class () extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->uuid('uuid')->unique();
+            $table->unsignedBigInteger('tenant_id')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
+
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+
+            // Profile
+            $table->string('phone')->nullable()->unique();
+            $table->string('avatar')->nullable();
+
+            // Status
+            $table->boolean('is_active')->default(true);
+            $table->boolean('is_super_admin')->default(false);
+
+            // Last login
+            $table->dateTime('last_login_at')->nullable();
+            $table->string('last_login_ip')->nullable();
+
+            // Two-factor authentication
+            $table->string('two_factor_secret')->nullable();
+            $table->string('two_factor_recovery_codes')->nullable();
+            $table->boolean('two_factor_enabled')->default(false);
+
+            // Preferences
+            $table->string('locale')->default('en');
+            $table->string('timezone')->default('Asia/Dhaka');
+
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
+
+            // Indexes
+            $table->index('tenant_id');
+            $table->index('is_active');
+            $table->index('email');
+            $table->index('phone');
+            $table->index('uuid');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
