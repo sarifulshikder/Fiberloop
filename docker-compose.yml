@@ -1,5 +1,5 @@
 services:
-  # PHP Application with FrankenPHP (Laravel Octane)
+  # PHP Application with Laravel
   app:
     build:
       context: .
@@ -9,7 +9,6 @@ services:
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html
-      - ./docker/php/conf.d:/etc/php/8.4/fpm/conf.d
     networks:
       - fiberloop-network
     depends_on:
@@ -33,14 +32,8 @@ services:
       - SESSION_DRIVER=redis
     ports:
       - "8000:8000"
-      - "8080:80"
-    healthcheck:
-      test: ["CMD", "php", "-r", "echo 'OK';"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # PostgreSQL 18
+  # PostgreSQL 18 - using /var/lib/postgresql for PG 18+ compatibility
   postgres:
     image: postgres:18-alpine
     container_name: fiberloop-postgres
@@ -50,7 +43,7 @@ services:
       - POSTGRES_USER=fiberloop
       - POSTGRES_PASSWORD=fiberloop_secret
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - fiberloop-network
@@ -93,26 +86,6 @@ services:
     volumes:
       - ./docker/freeradius:/etc/raddb
 
-  # FrankenPHP (for Laravel Octane) - runs as separate service
-  frankenphp:
-    image: dunglas/frankenphp:php8.4
-    container_name: fiberloop-frankenphp
-    restart: unless-stopped
-    volumes:
-      - .:/var/www/html
-      - ./docker/frankenphp/Caddyfile:/etc/caddy/Caddyfile
-      - ./docker/frankenphp/workers.php:/var/www/html/workers.php
-    networks:
-      - fiberloop-network
-    depends_on:
-      - app
-    ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      - APP_ENV=local
-      - FRANKENPHP_CONFIG=/var/www/html/workers.php
-
   # Queue worker (Horizon)
   queue:
     build:
@@ -131,6 +104,11 @@ services:
     command: php artisan horizon
     environment:
       - APP_ENV=local
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=fiberloop_secret
+      - REDIS_HOST=redis
 
 networks:
   fiberloop-network:

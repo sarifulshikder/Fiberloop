@@ -1,7 +1,8 @@
-# PHP 8.4 with Laravel dependencies
-FROM php:8.4-fpm-alpine
+# PHP 8.4 with Laravel dependencies for CLI
+# For web serving, we use Octane (which uses FrankenPHP via artisan octane:start)
+FROM php:8.4-cli-alpine
 
-# Install system dependencies
+# Install system dependencies for building extensions
 RUN apk add --no-cache \
     git \
     curl \
@@ -13,25 +14,25 @@ RUN apk add --no-cache \
     supervisor \
     zip \
     unzip \
-    oniguruma-dev \
-    pcre-dev
+    autoconf \
+    g++ \
+    make \
+    pcre-dev \
+    freetype-dev \
+    libjpeg-turbo-dev \
+    libwebp-dev
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-png
-RUN docker-php-ext-install \
-    pdo \
-    pdo_pgsql \
-    redis \
-    zip \
-    bcmath \
-    ctype \
-    fileinfo \
-    gd \
-    mbstring \
-    tokenizer \
-    xml \
-    dom \
-    simplexml
+# Install PHP extensions that are bundled with PHP
+RUN docker-php-ext-install -j1 pdo_pgsql
+RUN docker-php-ext-install -j1 zip
+RUN docker-php-ext-install -j1 bcmath
+RUN docker-php-ext-install -j1 gd
+
+# Install Redis extension via PECL (requires hiredis-dev)
+RUN apk add --no-cache hiredis-dev && \
+    pecl install redis && \
+    docker-php-ext-enable redis && \
+    apk del hiredis-dev autoconf g++ make
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -39,20 +40,13 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Create working directory
 WORKDIR /var/www/html
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 775 /var/www/html/storage
-RUN chmod -R 775 /var/www/html/bootstrap/cache
+# Set permissions (www-data group/user may already exist)
+RUN addgroup -S -g 1000 www-data 2>/dev/null || true && \
+    adduser -S -u 1000 -G www-data www-data 2>/dev/null || true && \
+    mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chown -R www-data:www-data /var/www/html
 
-# Copy existing application directory contents
-COPY . .
-
-# Install PHP dependencies
-RUN if [ -f "composer.json" ]; then \
-    composer install --no-interaction --optimize-autoloader --no-dev; \
-    fi
-
-# Expose port 9000 for FPM
+# Expose port 9000
 EXPOSE 9000
 
 # Start supervisor to manage processes
