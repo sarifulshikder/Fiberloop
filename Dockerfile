@@ -20,13 +20,17 @@ RUN apk add --no-cache \
     pcre-dev \
     freetype-dev \
     libjpeg-turbo-dev \
-    libwebp-dev
+    libwebp-dev \
+    icu-dev \
+    oniguruma-dev
 
 # Install PHP extensions that are bundled with PHP
 RUN docker-php-ext-install -j1 pdo_pgsql
 RUN docker-php-ext-install -j1 zip
 RUN docker-php-ext-install -j1 bcmath
 RUN docker-php-ext-install -j1 gd
+RUN docker-php-ext-install -j1 intl
+RUN docker-php-ext-install -j1 pcntl
 
 # Install Redis extension via PECL (requires hiredis-dev)
 RUN apk add --no-cache hiredis-dev && \
