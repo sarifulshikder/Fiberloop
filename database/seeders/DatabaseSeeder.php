@@ -28,6 +28,7 @@ use App\Models\Reseller;
 use App\Models\Subscription;
 use App\Models\Ticket;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -38,6 +39,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed roles and permissions first
+        $this->call(RolesAndPermissionsSeeder::class);
+
         // Create admin user
         $adminUser = User::factory()->create([
             'name' => 'Super Admin',

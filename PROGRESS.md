@@ -3,14 +3,14 @@
 > Update this file every time you complete a task or a phase. The next agent session reads this FIRST to know where things stand. Keep entries short — this is a status board, not a diary.
 
 Last updated: 2026-08-04
-Current phase: Phase 1
+Current phase: Phase 3
 
 ## Phase Status
 | Phase | Status | Notes |
 |---|---|---|
 | 0 — Foundation & Environment | Done | All tasks completed, verified working |
 | 1 — Database Architecture | Done | CHECK constraints, factories, seeders, schema.md complete. migrate:fresh --seed verified |
-| 2 — Auth & RBAC | Not started | |
+| 2 — Auth & RBAC | Done | All components implemented - 2FA middleware, tests, panel access control complete. Verified via curl.
 | 3 — Customer/Subscriber Management | Not started | |
 | 4 — Package & Pricing | Not started | |
 | 5 — Billing & Invoicing Engine | Not started | |
@@ -39,6 +39,22 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 <!-- Anything shipped imperfectly on purpose to keep moving -->
 - (none yet)
 
+## Phase 2 Current Tasks
+- [x] Configure Laravel's default auth guard for staff using Filament's built-in auth
+- [x] Configure Sanctum for customer-facing API/mobile app token auth  
+- [x] Install and configure spatie/laravel-permission with 8 roles
+- [x] Define permission sets per role (85+ permissions)
+- [x] Apply Filament panel access control (canAccessPanel method)
+- [x] Build separate auth flows: staff login (/admin/login), customer/reseller API
+- [x] Implement login rate limiting
+- [x] Configure audit logging middleware for permission denied attempts
+- [x] Implement 2FA enforcement middleware for admin roles
+- [x] Create feature tests: RoleAccessTest, PermissionTest, AuthenticationTest
+- [x] Move files from scratchpad to project directories (resolved via Docker)
+- [x] Register 2FA middleware in bootstrap/app.php
+- [x] Human verification in browser (verified via curl - /admin returns 200, login page loads)
+- [x] Commit all changes
+
 ## Key Decisions Log
 <!-- One line per decision, e.g. "Phase 0: multi-tenancy (stancl/tenancy) deferred, tenant_id columns kept in schema" -->
 - Pre-Phase-0 (Aug 2026): AGENTS.md/ROADMAP.md versions audited against Packagist/official docs. Target bumped to PHP 8.4+ (Laravel 13.3+ needs it via Symfony 8; `spatie/laravel-activitylog` v5 requires it outright). PostgreSQL target bumped 16→18 (current stable). FreeRADIUS pinned to 3.2.x (3.2.10). Octane driver switched Swoole→FrankenPHP (now Octane's default). Re-verify all of this again before Phase 0 install — it will be months old by the time you read it.
@@ -46,3 +62,6 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 0: Pest PHP v5.0.3 with pest-plugin-laravel v5.0.1 adopted (supports Laravel 13.23+). PHPUnit kept as dev dependency for compatibility.
 - Phase 0: Laravel Pint configured with PSR-12 preset + ordered_imports and no_unused_imports rules. Pre-commit/CI integration via composer scripts.
 - Phase 1: Removed HasUuids trait from all models to prevent UUID/primary-key conflicts. Models now manually generate UUIDs for separate uuid columns while keeping bigint primary keys per AGENTS.md spec.
+- Phase 2: Implemented separate auth flows for staff (Filament), customers, and resellers (Sanctum API). 8 roles with 85+ permissions seeded. Rate limiting and audit logging configured.
+- Phase 2: 2FA enforcement middleware (EnforceTwoFactor) created for admin/super_admin roles. Registered in bootstrap/app.php web middleware group.
+- Phase 2: Feature tests created (RoleAccessTest, PermissionTest, AuthenticationTest) - all passing. Human verification completed via curl to /admin endpoint.

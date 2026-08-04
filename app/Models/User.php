@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable([
     'tenant_id',
@@ -31,12 +34,13 @@ use Laravel\Sanctum\HasApiTokens;
     'timezone',
 ])]
 #[Hidden(['password', 'remember_token', 'two_factor_secret'])]
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
   use HasApiTokens;
   use HasFactory;
   use SoftDeletes;
   use Notifiable;
+  use HasRoles;
 
     /**
      * Get the attributes that should be cast.
@@ -90,5 +94,17 @@ class User extends Authenticatable
     public function hasTwoFactorEnabled(): bool
     {
         return $this->two_factor_enabled;
+    }
+
+    /**
+     * Determine if the user can access the Filament admin panel.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Allow access to staff roles only
+        // Customers and resellers should NOT access /admin
+        $staffRoles = ['super_admin', 'admin', 'noc_engineer', 'support_agent', 'billing_agent', 'field_technician'];
+        
+        return $this->hasAnyRole($staffRoles);
     }
 }
