@@ -9,7 +9,7 @@ Current phase: Phase 1
 | Phase | Status | Notes |
 |---|---|---|
 | 0 — Foundation & Environment | Done | All tasks completed, verified working |
-| 1 — Database Architecture | In progress | Factories, seeders, CHECK constraints added. Verifying Definition of Done |
+| 1 — Database Architecture | Done | CHECK constraints, factories, seeders, schema.md complete. migrate:fresh --seed verified |
 | 2 — Auth & RBAC | Not started | |
 | 3 — Customer/Subscriber Management | Not started | |
 | 4 — Package & Pricing | Not started | |
