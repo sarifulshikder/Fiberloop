@@ -273,10 +273,6 @@ class InvoiceResource extends Resource
                 TernaryFilter::make('is_prorated')
                     ->label('Prorated')
                     ->nullable(),
-                DateRangeFilter::make('period_start')
-                    ->label('Period Start Range'),
-                DateRangeFilter::make('due_date')
-                    ->label('Due Date Range'),
             ])
             ->actions([
                 ViewAction::make(),
