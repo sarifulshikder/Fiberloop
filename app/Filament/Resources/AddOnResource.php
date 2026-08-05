@@ -5,7 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AddOnResource\Pages;
 use App\Models\AddOn;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
