@@ -13,7 +13,7 @@ Current phase: Phase 5
 | 2 — Auth & RBAC | Done | All components implemented - 2FA middleware, tests, panel access control complete. Verified via curl.
 | 3 — Customer/Subscriber Management | Done | All tasks completed and verified in browser
 | 4 — Package & Pricing | Done | All tasks completed, migrations run, Filament v5 compatibility fixes applied
-| 5 — Billing & Invoicing Engine | Not started | |
+| 5 — Billing & Invoicing Engine | In progress | BillingRunService, GenerateInvoices job, AutoSuspend, AutoReactivate, TaxRate, WalletTransaction, Filament resources created |
 | 6 — Payment Gateways | Not started | |
 | 7 — FreeRADIUS Integration | Not started | |
 | 8 — Network Device Management | Not started | |
@@ -80,6 +80,25 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - [x] Human check: /admin/packages CRUD working (verified after Filament v5 fixes)
 - [x] Run migrations for new tables
 - [x] Commit all Phase 4 changes
+
+## Phase 5 Current Tasks
+- [x] Create BillingRunService - orchestrates queued job per subscription, idempotent
+- [x] Fix GenerateInvoices Job - use InvoiceNumberGenerator service, add proration, fire InvoiceGenerated event
+- [x] Create AutoSuspend Job - suspend overdue customers past grace period, fire SubscriptionSuspended event
+- [x] Create AutoReactivateOnPayment listener - hook into PaymentReceived, reactivate subscriptions
+- [x] Create TaxRate model + migration + config for per-tenant tax rates
+- [x] Create invoice PDF Blade template (updated existing template)
+- [x] Create wallet_transactions table + WalletTransaction model + WalletTransactionType enum
+- [x] Integrate PrepaidService with WalletTransaction logging (AGENTS.md rule 7)
+- [x] Create ProrationService unit tests (15 tests covering all scenarios)
+- [x] Create InvoiceNumberGenerator concurrency tests (11 tests)
+- [x] Create GenerateInvoices idempotency tests (7 tests)
+- [x] Create Filament InvoiceResource with full CRUD
+- [x] Create Filament PaymentResource with full CRUD
+- [x] Create Filament CreditNoteResource and RefundResource
+- [ ] Run migrations and verify
+- [ ] Run tests and verify
+- [ ] Verify events fire and can be consumed
 
 ## Phase 3 Verification Checklist
 - [x] Database seeded with users having proper roles (admin@fiberloop.com: super_admin, admin; billing@fiberloop.com: billing_agent; noc@fiberloop.com: noc_engineer)
