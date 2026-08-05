@@ -97,7 +97,9 @@ class InvoiceResource extends Resource
                                 Select::make('customer_id')
                                     ->label('Customer')
                                     ->required()
-                                    ->relationship('customer', 'full_name')
+                                    ->options(function () {
+                                        return \App\Models\Customer::all()->pluck('full_name', 'id');
+                                    })
                                     ->searchable()
                                     ->preload(),
                                 Select::make('subscription_id')
