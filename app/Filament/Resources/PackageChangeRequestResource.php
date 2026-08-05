@@ -59,7 +59,7 @@ class PackageChangeRequestResource extends Resource
                     ->schema([
                         Select::make('customer_id')
                             ->label('Customer')
-                            ->options(Customer::query()->pluck('full_name', 'id'))
+                            ->options(Customer::query()->get()->pluck('full_name', 'id'))
                             ->searchable()
                             ->required(),
                         Select::make('subscription_id')
@@ -191,7 +191,7 @@ class PackageChangeRequestResource extends Resource
                     ->multiple(),
                 SelectFilter::make('customer_id')
                     ->label('Customer')
-                    ->options(Customer::query()->pluck('full_name', 'id'))
+                    ->options(Customer::query()->get()->pluck('full_name', 'id'))
                     ->multiple()
                     ->searchable(),
             ])

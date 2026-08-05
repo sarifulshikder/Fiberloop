@@ -54,7 +54,7 @@ class CustomerNoteResource extends Resource
             ->schema([
                 Select::make('customer_id')
                     ->label('Customer')
-                    ->options(Customer::query()->pluck('full_name', 'id'))
+                    ->options(Customer::query()->get()->pluck('full_name', 'id'))
                     ->searchable()
                     ->required(),
                 Select::make('type')
