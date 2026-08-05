@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Payment extends Model
 {
@@ -34,6 +35,10 @@ class Payment extends Model
         'notes',
         'failure_reason',
         'receipt_path',
+        'split_from_payment_id',
+        'is_partial',
+        'is_wallet_topup',
+        'applied_to_invoice',
     ];
 
     protected $casts = [
@@ -43,6 +48,9 @@ class Payment extends Model
         'method' => PaymentMethod::class,
         'status' => PaymentStatus::class,
         'paid_at' => 'datetime',
+        'is_partial' => 'boolean',
+        'is_wallet_topup' => 'boolean',
+        'applied_to_invoice' => 'boolean',
     ];
 
     public function tenant(): BelongsTo
@@ -78,5 +86,39 @@ class Payment extends Model
     public function collectedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'collected_by');
+    }
+
+    public function parentPayment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class, 'split_from_payment_id');
+    }
+
+    public function childPayments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'split_from_payment_id');
+    }
+
+    /**
+     * Scope for partial payments.
+     */
+    public function scopePartial($query)
+    {
+        return $query->where('is_partial', true);
+    }
+
+    /**
+     * Scope for wallet topups.
+     */
+    public function scopeWalletTopups($query)
+    {
+        return $query->where('is_wallet_topup', true);
+    }
+
+    /**
+     * Scope for split payments (payments that have been split from a parent).
+     */
+    public function scopeSplitFromPayment($query, $parentId)
+    {
+        return $query->where('split_from_payment_id', $parentId);
     }
 }

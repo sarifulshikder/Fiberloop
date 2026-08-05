@@ -2,10 +2,12 @@
 
 > Update this file every time you complete a task or a phase. The next agent session reads this FIRST to know where things stand. Keep entries short — this is a status board, not a diary.
 
-Last updated: 2026-08-05
-Current phase: Phase 5
+Last updated: 2026-08-06
+Current phase: Phase 6
 
 **Phase 5 Summary**: Core billing infrastructure implemented. 69 files changed, 6307 insertions. All models, services, jobs, events, listeners, migrations, and Filament resources created. Unit tests for proration (15 tests), invoice numbering (11 tests), and idempotency (7 tests) created and passing. Verified Definition of Done: billing run scales, invoice numbers are gapless and duplicate-free under concurrency, proration covers all scenarios, suspend/reactivate events fire and are consumed, and invoices are immutable snapshots.
+
+**Phase 6 Summary**: Payment Gateway Integration in progress. Gateway services (bKash, Nagad, SSLCommerz) implemented with sandbox API support, webhook handlers with signature verification, manual payment entry for field agents, payment reconciliation system, partial/split payment handling, idempotency protection, refund flow with CreditNote integration, and wallet top-up flow completed.
 
 ## Phase Status
 | Phase | Status | Notes |
@@ -16,7 +18,7 @@ Current phase: Phase 5
 | 3 — Customer/Subscriber Management | Done | All tasks completed and verified in browser
 | 4 — Package & Pricing | Done | All tasks completed, migrations run, Filament v5 compatibility fixes applied
 | 5 — Billing & Invoicing Engine | Done | BillingRunService, GenerateInvoices job, AutoSuspend, AutoReactivate, TaxRate, WalletTransaction, Filament resources created. All migrations run, 47 tests pass, events verified firing. Scale test (100k subscriptions) code in place but not fully tested.
-| 6 — Payment Gateways | Not started | |
+| 6 — Payment Gateways | In progress | Payment gateway services, webhook handlers, manual payment entry, reconciliation, partial payments, idempotency, refunds, wallet top-up implemented. Migrations and APIs created.
 | 7 — FreeRADIUS Integration | Not started | |
 | 8 — Network Device Management | Not started | |
 | 9 — Reseller/Franchise Management | Not started | |
@@ -83,6 +85,16 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - [x] Run migrations for new tables
 - [x] Commit all Phase 4 changes
 
+## Phase 6 Current Tasks
+- [x] Integrate bKash, Nagad, and SSLCommerz via official APIs with PaymentGatewayContract implementation
+- [x] Build webhook/callback handlers with signature verification for all three gateways
+- [x] Add manual/cash payment entry with field agent attribution and receipt management
+- [x] Implement payment reconciliation service with settlement matching and discrepancy flagging
+- [x] Add partial payments and split payments handling with oldest-invoice-first allocation
+- [x] Add idempotency keys to payment initiation to prevent double-charging
+- [x] Build refund flow with CreditNote integration for audit trail
+- [x] Complete wallet/prepaid balance top-up flow with gateway integration
+
 ## Phase 5 Current Tasks
 - [x] Create BillingRunService - orchestrates queued job per subscription, idempotent
 - [x] Fix GenerateInvoices Job - use InvoiceNumberGenerator service, add proration, fire InvoiceGenerated event
@@ -116,6 +128,7 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 <!-- One line per decision, e.g. "Phase 0: multi-tenancy (stancl/tenancy) deferred, tenant_id columns kept in schema" -->
 - Pre-Phase-0 (Aug 2026): AGENTS.md/ROADMAP.md versions audited against Packagist/official docs. Target bumped to PHP 8.4+ (Laravel 13.3+ needs it via Symfony 8; `spatie/laravel-activitylog` v5 requires it outright). PostgreSQL target bumped 16→18 (current stable). FreeRADIUS pinned to 3.2.x (3.2.10). Octane driver switched Swoole→FrankenPHP (now Octane's default). Re-verify all of this again before Phase 0 install — it will be months old by the time you read it.
 - Phase 5: Changed phpunit.xml to use PostgreSQL instead of SQLite for tests, to support InvoiceNumberSequence model with multi-tenant stancl/tenancy. Pest-based unit tests for database-dependent code fail with stancl/tenancy due to connection resolver being null in test context. Converting to PHPUnit TestCase-based tests resolves the issue.
+- Phase 6: Payment allocation strategy for partial/split payments set to oldest-invoice-first (standard accounting practice). Multi-invoice payments are automatically allocated to oldest outstanding invoices first, with each allocation creating a separate payment record linked via split_from_payment_id.
 - Phase 0: Multi-tenancy enabled via stancl/tenancy v3.10.0 with PostgreSQL database manager (separate DB per tenant). Redis tenancy bootstrapper enabled.
 - Phase 0: Pest PHP v5.0.3 with pest-plugin-laravel v5.0.1 adopted (supports Laravel 13.23+). PHPUnit kept as dev dependency for compatibility.
 - Phase 0: Laravel Pint configured with PSR-12 preset + ordered_imports and no_unused_imports rules. Pre-commit/CI integration via composer scripts.

@@ -61,6 +61,41 @@ Route::prefix('v1')->group(function () {
     });
 });
 
+// Payment gateway webhooks
+Route::prefix('webhooks')->group(function () {
+    Route::post('/bkash', [\App\Http\Controllers\Api\Payments\WebhookController::class, 'handleBkash'])->name('api.webhooks.bkash');
+    Route::post('/nagad', [\App\Http\Controllers\Api\Payments\WebhookController::class, 'handleNagad'])->name('api.webhooks.nagad');
+    Route::post('/sslcommerz', [\App\Http\Controllers\Api\Payments\WebhookController::class, 'handleSSLCommerz'])->name('api.webhooks.sslcommerz');
+});
+
+// Manual payment routes for field agents
+Route::prefix('payments')->middleware(['auth:sanctum'])->group(function () {
+    // Manual/cash payment routes
+    Route::prefix('manual')->group(function () {
+        Route::get('/outstanding-customers', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'getOutstandingCustomers']);
+        Route::post('/record', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'recordPayment']);
+        Route::post('/multi-invoice', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'recordMultiInvoicePayment']);
+        Route::get('/receipt-number', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'generateReceiptNumber']);
+        });
+
+        // Refund routes
+        Route::prefix('refunds')->group(function () {
+            Route::get('/{payment}/check-eligibility', [\App\Http\Controllers\Api\Payments\RefundController::class, 'checkRefundEligibility']);
+            Route::post('/{payment}/process', [\App\Http\Controllers\Api\Payments\RefundController::class, 'processRefund']);
+            Route::post('/manual', [\App\Http\Controllers\Api\Payments\RefundController::class, 'processManualRefund']);
+            Route::get('/customer/{customer}', [\App\Http\Controllers\Api\Payments\RefundController::class, 'getCustomerRefunds']);
+        });
+
+        // Wallet top-up routes
+        Route::prefix('wallet')->group(function () {
+            Route::get('/balance', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getMyBalance']);
+            Route::get('/balance/{customer}', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getBalance']);
+            Route::post('/topup', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'initiateTopUp']);
+            Route::get('/transactions/{customer}', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getTransactionHistory']);
+            Route::get('/minimum-balance', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getMinimumBalance']);
+        });
+    });
+
 // Test route
 Route::get('/', function (Request $request) {
     return response()->json(['message' => 'Fiberloop API', 'version' => '1.0.0']);
