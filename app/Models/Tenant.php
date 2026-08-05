@@ -6,6 +6,10 @@ use Stancl\Tenancy\Database\Models\Tenant as BaseTenant;
 
 class Tenant extends BaseTenant
 {
+    protected $fillable = [
+        'name',
+    ];
+
     protected static function booted(): void
     {
         static::creating(function (Tenant $tenant) {
