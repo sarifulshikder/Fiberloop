@@ -7,7 +7,7 @@ Current phase: Phase 6
 
 **Phase 5 Summary**: Core billing infrastructure implemented. 69 files changed, 6307 insertions. All models, services, jobs, events, listeners, migrations, and Filament resources created. Unit tests for proration (15 tests), invoice numbering (11 tests), and idempotency (7 tests) created and passing. Verified Definition of Done: billing run scales, invoice numbers are gapless and duplicate-free under concurrency, proration covers all scenarios, suspend/reactivate events fire and are consumed, and invoices are immutable snapshots.
 
-**Phase 6 Summary**: Payment Gateway Integration in progress. Gateway services (bKash, Nagad, SSLCommerz) implemented with sandbox API support, webhook handlers with signature verification, manual payment entry for field agents, payment reconciliation system, partial/split payment handling, idempotency protection, refund flow with CreditNote integration, and wallet top-up flow completed.
+**Phase 6 Summary**: Payment Gateway Integration completed. 32 files changed, 4782 insertions, 167 deletions. All 8 tasks implemented: real gateway integrations (bKash, Nagad, SSLCommerz), webhook handlers with signature verification, manual/cash payment entry with field agent attribution, payment reconciliation system, partial/split payment handling (oldest-invoice-first), idempotency protection, refund flow with CreditNote integration, and wallet/prepaid balance top-up flow. API endpoints, Filament resources, migrations, and console commands created.
 
 ## Phase Status
 | Phase | Status | Notes |
@@ -18,7 +18,7 @@ Current phase: Phase 6
 | 3 — Customer/Subscriber Management | Done | All tasks completed and verified in browser
 | 4 — Package & Pricing | Done | All tasks completed, migrations run, Filament v5 compatibility fixes applied
 | 5 — Billing & Invoicing Engine | Done | BillingRunService, GenerateInvoices job, AutoSuspend, AutoReactivate, TaxRate, WalletTransaction, Filament resources created. All migrations run, 47 tests pass, events verified firing. Scale test (100k subscriptions) code in place but not fully tested.
-| 6 — Payment Gateways | In progress | Payment gateway services, webhook handlers, manual payment entry, reconciliation, partial payments, idempotency, refunds, wallet top-up implemented. Migrations and APIs created.
+| 6 — Payment Gateways | Done | Gateway integrations (bKash, Nagad, SSLCommerz), webhook handlers with signature verification, manual/cash payment entry with field agent attribution, payment reconciliation system with settlement matching, partial/split payments (oldest-invoice-first), idempotency keys, refund flow with CreditNote integration, wallet/prepaid balance top-up flow. All migrations, APIs, services, and Filament resources created.
 | 7 — FreeRADIUS Integration | Not started | |
 | 8 — Network Device Management | Not started | |
 | 9 — Reseller/Franchise Management | Not started | |
