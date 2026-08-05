@@ -141,7 +141,7 @@ class AddOnResource extends Resource
                     ->sortable(),
                 TextColumn::make('price')
                     ->label('Price')
-                    ->format(fn ($record) => 'BDT ' . number_format($record->price / 100, 2))
+                    ->state(fn ($record) => 'BDT ' . number_format($record->price / 100, 2))
                     ->sortable(),
                 SelectColumn::make('billing_cycle')
                     ->label('Billing Cycle')

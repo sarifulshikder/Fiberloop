@@ -139,7 +139,7 @@ class PackageZoneResource extends Resource
                     ->sortable(),
                 TextColumn::make('custom_price')
                     ->label('Custom Price')
-                    ->format(fn ($record) => $record->custom_price ? 'BDT ' . number_format($record->custom_price / 100, 2) : 'Default')
+                    ->state(fn ($record) => $record->custom_price ? 'BDT ' . number_format($record->custom_price / 100, 2) : 'Default')
                     ->sortable(),
                 TextColumn::make('current_connections')
                     ->label('Connections')
