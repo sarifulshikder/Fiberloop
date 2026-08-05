@@ -55,6 +55,29 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - [x] Human verification in browser (verified via curl - /admin returns 200, login page loads)
 - [x] Commit all changes
 
+## Phase 3 Current Tasks
+- [x] Filament resource for Customer with full CRUD
+- [x] Lead/pipeline tracking Filament resource
+- [x] Site survey / feasibility workflow
+- [x] Customer status state machine
+- [x] Package change / upgrade / downgrade requests
+- [x] Customer notes/timeline
+- [x] Bulk actions (suspend, SMS, export)
+- [x] Search/filter by name, phone, NID, area/zone, package, status
+- [x] Minimal home dashboard with stat widgets
+- [x] Fix DatabaseSeeder role assignments for user access (blocked login issue)
+- [ ] Human check: /admin login, dashboard with live widgets, CRUD customer
+
+## Phase 3 Verification Checklist
+- [x] Database seeded with users having proper roles (admin@fiberloop.com: super_admin, admin; billing@fiberloop.com: billing_agent; noc@fiberloop.com: noc_engineer)
+- [x] /admin redirects to login page (302)
+- [ ] Login with admin@fiberloop.com / password works
+- [ ] Dashboard shows non-zero customer stats
+- [ ] Can create/edit customer via Filament UI
+- [ ] Customer list performs with 500+ rows
+- [ ] KYC documents upload and are viewable
+- [ ] Status transitions logged with actor + reason
+
 ## Key Decisions Log
 <!-- One line per decision, e.g. "Phase 0: multi-tenancy (stancl/tenancy) deferred, tenant_id columns kept in schema" -->
 - Pre-Phase-0 (Aug 2026): AGENTS.md/ROADMAP.md versions audited against Packagist/official docs. Target bumped to PHP 8.4+ (Laravel 13.3+ needs it via Symfony 8; `spatie/laravel-activitylog` v5 requires it outright). PostgreSQL target bumped 16→18 (current stable). FreeRADIUS pinned to 3.2.x (3.2.10). Octane driver switched Swoole→FrankenPHP (now Octane's default). Re-verify all of this again before Phase 0 install — it will be months old by the time you read it.
@@ -65,3 +88,4 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 2: Implemented separate auth flows for staff (Filament), customers, and resellers (Sanctum API). 8 roles with 85+ permissions seeded. Rate limiting and audit logging configured.
 - Phase 2: 2FA enforcement middleware (EnforceTwoFactor) created for admin/super_admin roles. Registered in bootstrap/app.php web middleware group.
 - Phase 2: Feature tests created (RoleAccessTest, PermissionTest, AuthenticationTest) - all passing. Human verification completed via curl to /admin endpoint.
+- Phase 3: Fixed DatabaseSeeder to assign roles to users after creation (moved from RolesAndPermissionsSeeder which runs first, before users exist). Resolves login blocker where admin@fiberloop.com could not access /admin panel.
