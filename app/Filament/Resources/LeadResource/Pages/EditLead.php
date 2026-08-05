@@ -14,7 +14,6 @@ class EditLead extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            Actions\CancelAction::make(),
         ];
     }
 

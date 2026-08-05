@@ -14,7 +14,6 @@ class EditPackageChangeRequest extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            Actions\CancelAction::make(),
         ];
     }
 

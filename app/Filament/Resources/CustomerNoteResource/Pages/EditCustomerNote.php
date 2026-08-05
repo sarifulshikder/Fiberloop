@@ -14,7 +14,6 @@ class EditCustomerNote extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            Actions\CancelAction::make(),
         ];
     }
 

@@ -14,7 +14,6 @@ class EditCustomer extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            Actions\CancelAction::make(),
         ];
     }
 
