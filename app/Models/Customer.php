@@ -17,6 +17,7 @@ class Customer extends Model
 
     protected $fillable = [
         'tenant_id',
+        'lead_id',
         'uuid',
         'created_by',
         'updated_by',
@@ -35,6 +36,8 @@ class Customer extends Model
         'service_latitude',
         'service_longitude',
         'billing_address',
+        'area',
+        'zone',
         'connection_type',
         'radius_username',
         'radius_password',
@@ -70,7 +73,8 @@ class Customer extends Model
 
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Tenant::class, 'tenant_id', 'id');
+        return $this->belongsTo(Tenant::class, 'tenant_id',
+        'lead_id', 'id');
     }
 
     public function createdBy(): BelongsTo
@@ -118,6 +122,21 @@ class Customer extends Model
         return $this->hasMany(Onu::class);
     }
 
+    public function notes(): HasMany
+    {
+        return $this->hasMany(CustomerNote::class);
+    }
+
+    public function packageChangeRequests(): HasMany
+    {
+        return $this->hasMany(PackageChangeRequest::class);
+    }
+
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class, 'lead_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', CustomerStatus::ACTIVE);
@@ -125,11 +144,37 @@ class Customer extends Model
 
     public function scopeByTenant($query, $tenantId)
     {
-        return $query->where('tenant_id', $tenantId);
+        return $query->where('tenant_id',
+        'lead_id', $tenantId);
     }
 
     public function scopeByStatus($query, CustomerStatus $status)
     {
         return $query->where('status', $status);
+    }
+
+    public function scopeByArea($query, $area)
+    {
+        return $query->where('area', $area);
+    }
+
+    public function scopeByZone($query, $zone)
+    {
+        return $query->where('zone', $zone);
+    }
+
+    public function scopePending($query)
+    {
+        return $query->where('status', CustomerStatus::PENDING);
+    }
+
+    public function scopeSuspended($query)
+    {
+        return $query->where('status', CustomerStatus::SUSPENDED);
+    }
+
+    public function scopeTerminated($query)
+    {
+        return $query->where('status', CustomerStatus::TERMINATED);
     }
 }

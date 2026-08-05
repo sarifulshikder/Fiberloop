@@ -60,6 +60,14 @@ return [
             'report' => false,
         ],
 
+        'encrypted' => [
+            'driver' => 'local',
+            'root' => storage_path('app/encrypted'),
+            'visibility' => 'private',
+            'encrypt' => true,
+            'throw' => false,
+        ],
+
     ],
 
     /*
