@@ -248,11 +248,11 @@ class CustomerResource extends Resource
                     ->multiple(),
                 SelectFilter::make('area')
                     ->label('Area')
-                    ->options(fn () => \App\Models\Customer::query()->distinct('area')->pluck('area', 'area')->toArray())
+                    ->options(fn () => \App\Models\Customer::query()->distinct('area')->pluck('area', 'area')->filter()->toArray())
                     ->multiple(),
                 SelectFilter::make('zone')
                     ->label('Zone')
-                    ->options(fn () => \App\Models\Customer::query()->distinct('zone')->pluck('zone', 'zone')->toArray())
+                    ->options(fn () => \App\Models\Customer::query()->distinct('zone')->pluck('zone', 'zone')->filter()->toArray())
                     ->multiple(),
                 SelectFilter::make('nid_number')
                     ->label('NID Number')
