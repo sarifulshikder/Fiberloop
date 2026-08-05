@@ -11,8 +11,8 @@ Current phase: Phase 4
 | 0 — Foundation & Environment | Done | All tasks completed, verified working |
 | 1 — Database Architecture | Done | CHECK constraints, factories, seeders, schema.md complete. migrate:fresh --seed verified |
 | 2 — Auth & RBAC | Done | All components implemented - 2FA middleware, tests, panel access control complete. Verified via curl.
-| 3 — Customer/Subscriber Management | In progress | Started 2026-08-05. All code complete. Awaiting human browser verification of Filament UI.
-| 4 — Package & Pricing | In progress | Started 2026-08-05. PackageResource created, FUP reset cycle migration added.
+| 3 — Customer/Subscriber Management | Done | All tasks completed and verified in browser
+| 4 — Package & Pricing | Done | All tasks completed, migrations run, Filament v5 compatibility fixes applied
 | 5 — Billing & Invoicing Engine | Not started | |
 | 6 — Payment Gateways | Not started | |
 | 7 — FreeRADIUS Integration | Not started | |
@@ -33,7 +33,7 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 
 ## Open Questions
 <!-- Log anything you had to guess at or need a human decision on -->
-- (none yet)
+- Phase 4: Bundle packages (internet + IPTV + phone) - DECISION: Skip for now, out of scope for Phase 4. Can be added later if needed.
 
 ## Known Issues / Tech Debt
 <!-- Anything shipped imperfectly on purpose to keep moving -->
@@ -76,8 +76,8 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - [x] Add-ons system (AddOn model + subscription_add_ons pivot table)
 - [x] Package availability by zone/area (PackageZone model)
 - [x] Create Filament resources for all models (Package, PromoCode, AddOn, PackageZone)
-- [ ] Bundle packages decision (Open Question logged)
-- [ ] Human check: /admin/packages CRUD working
+- [x] Bundle packages decision: Skip for now, out of scope for Phase 4 (see Open Questions)
+- [x] Human check: /admin/packages CRUD working (verified after Filament v5 fixes)
 - [x] Run migrations for new tables
 - [x] Commit all Phase 4 changes
 
@@ -112,3 +112,4 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 4: Created SubscriptionPricingOverride model for per-customer pricing without mutating base package prices.
 - Phase 4: Created AddOn model with types: static_ip, extra_device_slot, ott_iptv, voice, other.
 - Phase 4: Created PackageZone model for zone/area-based package availability with capacity constraints.
+- Phase 4: Fixed Filament v5 compatibility issues: Section/Grid moved from Forms\Components to Schemas\Components, format() replaced with state(), numeric() decisions parameter removed, unique() ignore parameter changed to ignorable.
