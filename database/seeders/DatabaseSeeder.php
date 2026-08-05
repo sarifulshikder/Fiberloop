@@ -75,6 +75,9 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        $adminUser->syncRoles(['super_admin', 'admin']);
+        $billingAgent->syncRoles(['billing_agent']);
+        $nocEngineer->syncRoles(['noc_engineer']);
         echo "Created users\n";
 
         // Create packages

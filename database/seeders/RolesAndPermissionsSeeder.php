@@ -337,25 +337,6 @@ class RolesAndPermissionsSeeder extends Seeder
         $customerRole->syncPermissions($customerPermissions);
         $this->command->info("Created customer role");
 
-        // Assign roles to existing users
-        $adminUser = User::where('email', 'admin@fiberloop.com')->first();
-        if ($adminUser) {
-            $adminUser->syncRoles(['super_admin', 'admin']);
-            $this->command->info("Assigned super_admin and admin roles to admin@fiberloop.com");
-        }
-
-        $billingUser = User::where('email', 'billing@fiberloop.com')->first();
-        if ($billingUser) {
-            $billingUser->syncRoles(['billing_agent']);
-            $this->command->info("Assigned billing_agent role to billing@fiberloop.com");
-        }
-
-        $nocUser = User::where('email', 'noc@fiberloop.com')->first();
-        if ($nocUser) {
-            $nocUser->syncRoles(['noc_engineer']);
-            $this->command->info("Assigned noc_engineer role to noc@fiberloop.com");
-        }
-
         $this->command->info("\nRoles and permissions seeding complete!");
     }
 }
