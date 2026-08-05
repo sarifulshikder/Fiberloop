@@ -110,6 +110,11 @@ class ProrationService
         CarbonInterface $cycleStart,
         CarbonInterface $cycleEnd
     ): int {
+        // If suspended after cycle end, return 0 (no prorated charge)
+        if ($suspensionDate->isAfter($cycleEnd)) {
+            return 0;
+        }
+        
         $totalDays = $cycleStart->diffInDays($cycleEnd) + 1;
         $usedDays = $cycleStart->diffInDays($suspensionDate) + 1;
         
