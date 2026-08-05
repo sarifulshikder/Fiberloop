@@ -22,8 +22,8 @@ class PackageFactory extends Factory
         return [
             'tenant_id' => null,
             'uuid' => fake()->uuid(),
-            'created_by' => 1,
-            'updated_by' => 1,
+            'created_by' => null,
+            'updated_by' => null,
             'name' => fake()->words(2, true),
             'description' => fake()->sentence(),
             'code' => fake()->unique()->bothify('PKG-????'),

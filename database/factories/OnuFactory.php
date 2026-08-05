@@ -31,7 +31,7 @@ class OnuFactory extends Factory
             'ONU_id' => fake()->numberBetween(1, 255),
             'pon_port' => fake()->numberBetween(1, 4),
             'pon_port_name' => fake()->bothify('PON-?/?'),
-            'registration_id' => fake()->bothify('REG-????'),
+            'registration_id' => fake()->unique()->bothify('REG-????'),
             'registered_at' => now(),
             'is_registered' => true,
             'optical_signal_db' => fake()->numberBetween(-2500, -1500) / 100, // -25.00 to -15.00
