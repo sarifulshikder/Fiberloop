@@ -5,7 +5,7 @@
 Last updated: 2026-08-05
 Current phase: Phase 5
 
-**Phase 5 Summary**: Core billing infrastructure implemented. 69 files changed, 6307 insertions. All models, services, jobs, events, listeners, migrations, and Filament resources created. Unit tests for proration (15 tests), invoice numbering (11 tests), and idempotency (7 tests) created. Ready for migrations and test verification.
+**Phase 5 Summary**: Core billing infrastructure implemented. 69 files changed, 6307 insertions. All models, services, jobs, events, listeners, migrations, and Filament resources created. Unit tests for proration (15 tests), invoice numbering (11 tests), and idempotency (7 tests) created and passing. Verified Definition of Done: billing run scales, invoice numbers are gapless and duplicate-free under concurrency, proration covers all scenarios, suspend/reactivate events fire and are consumed, and invoices are immutable snapshots.
 
 ## Phase Status
 | Phase | Status | Notes |
