@@ -20,19 +20,19 @@ class CustomerStatusManager
      * Allowed transitions map: from_status => [allowed_to_statuses]
      */
     private array $allowedTransitions = [
-        CustomerStatus::PENDING => [
+        'pending' => [
             CustomerStatus::ACTIVE,
             CustomerStatus::TERMINATED,
         ],
-        CustomerStatus::ACTIVE => [
+        'active' => [
             CustomerStatus::SUSPENDED,
             CustomerStatus::TERMINATED,
         ],
-        CustomerStatus::SUSPENDED => [
+        'suspended' => [
             CustomerStatus::ACTIVE,
             CustomerStatus::TERMINATED,
         ],
-        CustomerStatus::TERMINATED => [
+        'terminated' => [
             // Cannot transition out of terminated
         ],
     ];
@@ -84,7 +84,7 @@ class CustomerStatusManager
      */
     public function isTransitionAllowed(CustomerStatus $from, CustomerStatus $to): bool
     {
-        return in_array($to, $this->allowedTransitions[$from] ?? []);
+        return in_array($to, $this->allowedTransitions[$from->value] ?? []);
     }
 
     /**
@@ -92,7 +92,7 @@ class CustomerStatusManager
      */
     public function getAllowedTransitions(CustomerStatus $from): array
     {
-        return $this->allowedTransitions[$from] ?? [];
+        return $this->allowedTransitions[$from->value] ?? [];
     }
 
     /**
