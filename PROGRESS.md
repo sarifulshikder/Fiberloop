@@ -78,8 +78,8 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - [x] Create Filament resources for all models (Package, PromoCode, AddOn, PackageZone)
 - [ ] Bundle packages decision (Open Question logged)
 - [ ] Human check: /admin/packages CRUD working
-- [ ] Run migrations for new tables
-- [ ] Commit all Phase 4 changes
+- [x] Run migrations for new tables
+- [x] Commit all Phase 4 changes
 
 ## Phase 3 Verification Checklist
 - [x] Database seeded with users having proper roles (admin@fiberloop.com: super_admin, admin; billing@fiberloop.com: billing_agent; noc@fiberloop.com: noc_engineer)
