@@ -110,7 +110,7 @@ class CustomerNoteResource extends Resource
                     ->multiple(),
                 SelectFilter::make('customer_id')
                     ->label('Customer')
-                    ->options(Customer::query()->pluck('full_name', 'id'))
+                    ->options(Customer::query()->get()->pluck('full_name', 'id'))
                     ->multiple()
                     ->searchable(),
             ])
