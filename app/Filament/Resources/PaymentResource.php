@@ -207,10 +207,6 @@ class PaymentResource extends Resource
                     ->label('Status')
                     ->options(PaymentStatus::class)
                     ->multiple(),
-                DateRangeFilter::make('paid_at')
-                    ->label('Paid Date Range'),
-                DateRangeFilter::make('created_at')
-                    ->label('Created Date Range'),
             ])
             ->actions([
                 ViewAction::make(),
