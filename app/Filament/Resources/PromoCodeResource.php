@@ -61,7 +61,7 @@ class PromoCodeResource extends Resource
                                     ->label('Promo Code')
                                     ->required()
                                     ->maxLength(50)
-                                    ->unique(column: 'code', ignore: fn ($record) => $record),
+                                    ->unique(column: 'code', ignorable: fn ($record) => $record),
                                 TextInput::make('name')
                                     ->label('Name')
                                     ->required()

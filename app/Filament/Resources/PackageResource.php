@@ -67,7 +67,7 @@ class PackageResource extends Resource
                                     ->label('Package Code')
                                     ->required()
                                     ->maxLength(50)
-                                    ->unique(column: 'code', ignore: fn ($record) => $record),
+                                    ->unique(column: 'code', ignorable: fn ($record) => $record),
                             ]),
                         TextInput::make('description')
                             ->label('Description')

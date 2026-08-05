@@ -64,7 +64,7 @@ class AddOnResource extends Resource
                                     ->label('Code')
                                     ->required()
                                     ->maxLength(50)
-                                    ->unique(column: 'code', ignore: fn ($record) => $record),
+                                    ->unique(column: 'code', ignorable: fn ($record) => $record),
                                 Select::make('type')
                                     ->label('Type')
                                     ->required()
