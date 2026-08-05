@@ -296,31 +296,11 @@ class InvoiceResource extends Resource
     public static function getRelations(): array
     {
         return [
-            'customer' => self::getCustomerRelation(),
-            'subscription' => self::getSubscriptionRelation(),
-            'items' => self::getItemsRelation(),
-            'payments' => self::getPaymentsRelation(),
+            'customer',
+            'subscription',
+            'items',
+            'payments',
         ];
-    }
-
-    protected static function getCustomerRelation(): \Filament\Resources\RelationManagers\RelationManager
-    {
-        return \Filament\Resources\RelationManagers\RelationManager::make('customer');
-    }
-
-    protected static function getSubscriptionRelation(): \Filament\Resources\RelationManagers\RelationManager
-    {
-        return \Filament\Resources\RelationManagers\RelationManager::make('subscription');
-    }
-
-    protected static function getItemsRelation(): \Filament\Resources\RelationManagers\RelationManager
-    {
-        return \Filament\Resources\RelationManagers\RelationManager::make('items');
-    }
-
-    protected static function getPaymentsRelation(): \Filament\Resources\RelationManagers\RelationManager
-    {
-        return \Filament\Resources\RelationManagers\RelationManager::make('payments');
     }
 
     public static function getPages(): array
