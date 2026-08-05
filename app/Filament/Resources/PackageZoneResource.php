@@ -143,11 +143,11 @@ class PackageZoneResource extends Resource
                     ->sortable(),
                 TextColumn::make('current_connections')
                     ->label('Connections')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('max_connections')
                     ->label('Max Connections')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->placeholder('Unlimited')
                     ->sortable(),
                 TextColumn::make('created_at')

@@ -181,15 +181,15 @@ class PromoCodeResource extends Resource
                     ->sortable(),
                 TextColumn::make('discount_value')
                     ->label('Discount Value')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('uses_count')
                     ->label('Uses')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('max_uses')
                     ->label('Max Uses')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->placeholder('Unlimited'),
                 BooleanColumn::make('is_active')
                     ->label('Active')

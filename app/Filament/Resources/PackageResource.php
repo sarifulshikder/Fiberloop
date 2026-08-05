@@ -197,11 +197,11 @@ class PackageResource extends Resource
                     ->sortable(),
                 TextColumn::make('download_speed')
                     ->label('Download (Mbps)')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('upload_speed')
                     ->label('Upload (Mbps)')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('price')
                     ->label('Price')
@@ -217,7 +217,7 @@ class PackageResource extends Resource
                     ->sortable(),
                 TextColumn::make('fup_threshold')
                     ->label('FUP (GB)')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->placeholder('No limit'),
                 BooleanColumn::make('is_active')
                     ->label('Active')
@@ -227,7 +227,7 @@ class PackageResource extends Resource
                     ->sortable(),
                 TextColumn::make('sort_order')
                     ->label('Order')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Created')

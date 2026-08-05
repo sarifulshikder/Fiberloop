@@ -152,7 +152,7 @@ class AddOnResource extends Resource
                     ->sortable(),
                 TextColumn::make('sort_order')
                     ->label('Order')
-                    ->numeric(decisions: 0)
+                    ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Created')
