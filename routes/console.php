@@ -24,3 +24,10 @@ Schedule::call(function () {
         PollDeviceMetricsJob::dispatch($device);
     });
 })->everyFiveMinutes()->name('network:poll-device-metrics');
+
+// ONU optical signal polling: every 30 minutes
+Schedule::call(function () {
+    \App\Models\Onu::where('is_active', true)->each(function (\App\Models\Onu $onu) {
+        \App\Jobs\PollOnuOpticalSignalJob::dispatch($onu);
+    });
+})->everyThirtyMinutes()->name('network:poll-onu-signals');

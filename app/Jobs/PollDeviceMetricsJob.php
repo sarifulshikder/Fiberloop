@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\DeviceMetric;
+use App\Models\Incident;
 use App\Models\NetworkDevice;
 use App\Services\Network\MikroTikService;
 use App\Services\Network\SnmpService;
@@ -104,10 +105,50 @@ class PollDeviceMetricsJob implements ShouldQueue
         ]);
 
         // Update the live reachability flag on the device
+        $wasReachable = $this->device->is_reachable;
+        $isReachable = $status !== 'down';
+        
         $this->device->update([
-            'is_reachable' => $status !== 'down',
+            'is_reachable' => $isReachable,
             'last_checked_at' => now(),
         ]);
+
+        if ($wasReachable && !$isReachable) {
+            $this->createOutageIncident();
+        } elseif (!$wasReachable && $isReachable) {
+            $this->resolveOutageIncident();
+        }
+    }
+
+    protected function createOutageIncident(): void
+    {
+        $existing = Incident::where('network_device_id', $this->device->id)
+            ->where('status', 'open')
+            ->where('title', 'like', 'Device Down:%')
+            ->first();
+
+        if (!$existing) {
+            Incident::create([
+                'uuid' => (string) \Illuminate\Support\Str::uuid(),
+                'title' => "Device Down: {$this->device->name}",
+                'description' => "Device at {$this->device->ip_address} is unreachable.",
+                'status' => 'open',
+                'severity' => 'critical',
+                'network_device_id' => $this->device->id,
+                'started_at' => now(),
+            ]);
+        }
+    }
+
+    protected function resolveOutageIncident(): void
+    {
+        Incident::where('network_device_id', $this->device->id)
+            ->where('status', 'open')
+            ->where('title', 'like', 'Device Down:%')
+            ->update([
+                'status' => 'resolved',
+                'resolved_at' => now(),
+            ]);
     }
 
     /**
