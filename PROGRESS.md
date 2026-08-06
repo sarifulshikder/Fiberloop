@@ -5,6 +5,8 @@
 Last updated: 2026-08-06
 Current phase: Phase 8
 
+**Phase 8 Summary**: Network Device Management completed. All tasks implemented: integrated MikroTik API for connection checking, created `NetworkDevice` model/resource, implemented 5-minute ping/SNMP polling Horizon job, created OLT/ONU basic driver infrastructure (VSOL/BDCOM) to read optical signals, built NOC Dashboard in Filament, implemented Alerting integration for threshold breaches (auto-creates/resolves Incidents), built Incident tracking resource, and implemented IP Pool/Address management resources. All tests pass, resources verified in browser.
+
 **Phase 7 Summary**: FreeRADIUS AAA integration completed. All 8 tasks implemented: RADIUS PostgreSQL DB connection with separate `radius` schema, FreeRADIUS table migrations (radcheck, radreply, radacct, nas, radgroupcheck, radgroupreply, radpostauth), 8 Eloquent models with `$connection = 'radius'`, RadiusProvisioningService (PPPoE + Hotspot, suspend/reactivate/terminate), RadiusCoaService (Disconnect-Request + CoA-Request via radclient), HandleSubscriptionSuspended/Reactivated/Terminated event listeners wired in EventServiceProvider, NasResource Filament page with encrypted shared secrets, EnforceFairUsagePolicy job (scheduled every 30 min) with radacct monitoring, RadiusSessionService for live/historical session data, LiveRadiusSessions Filament page (Network group, auto-refreshes every 30s). All 63 tests pass.
 
 **Phase 5 Summary**: Core billing infrastructure implemented. 69 files changed, 6307 insertions. All models, services, jobs, events, listeners, migrations, and Filament resources created. Unit tests for proration (15 tests), invoice numbering (11 tests), and idempotency (7 tests) created and passing. Verified Definition of Done: billing run scales, invoice numbers are gapless and duplicate-free under concurrency, proration covers all scenarios, suspend/reactivate events fire and are consumed, and invoices are immutable snapshots.
@@ -22,7 +24,7 @@ Current phase: Phase 8
 | 5 — Billing & Invoicing Engine | Done | BillingRunService, GenerateInvoices job, AutoSuspend, AutoReactivate, TaxRate, WalletTransaction, Filament resources created. All migrations run, 47 tests pass, events verified firing. Scale test (100k subscriptions) code in place but not fully tested.
 | 6 — Payment Gateways | Done | Gateway integrations (bKash, Nagad, SSLCommerz), webhook handlers with signature verification, manual/cash payment entry with field agent attribution, payment reconciliation system with settlement matching, partial/split payments (oldest-invoice-first), idempotency keys, refund flow with CreditNote integration, wallet/prepaid balance top-up flow. All migrations, APIs, services, and Filament resources created.
 | 7 — FreeRADIUS Integration | Done | RADIUS DB connection, FreeRADIUS schema, RadiusProvisioningService, CoA/Disconnect via RadiusCoaService, NAS management with encrypted secrets, FUP enforcement job (every 30 min), RadiusSessionService, LiveRadiusSessions Filament page, event listeners wired for suspend/reactivate/terminate. 63 tests pass. |
-| 8 — Network Device Management | In progress | Target OLTs: VSOL, BDCOM. |
+| 8 — Network Device Management | Done | MikroTik API, OLT/ONU tracking, Incident alerts, NOC Dashboard, IP Pools. |
 | 9 — Reseller/Franchise Management | Not started | |
 | 10 — Ticketing & Field Ops | Not started | |
 | 11 — Notifications | Not started | |
