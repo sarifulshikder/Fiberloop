@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\SubscriptionStatus;
+use App\Models\Scopes\ResellerScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,8 +12,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subscription extends Model
 {
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new ResellerScope());
+    }
+
     use HasFactory;
     use SoftDeletes;
+
 
     protected $fillable = [
         'tenant_id',

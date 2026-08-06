@@ -108,6 +108,16 @@ class Reseller extends Model
         return $this->hasMany(InventoryItem::class);
     }
 
+    public function commissionLedger(): HasMany
+    {
+        return $this->hasMany(ResellerCommissionLedger::class);
+    }
+
+    public function approvalRequests(): HasMany
+    {
+        return $this->hasMany(ResellerApprovalRequest::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', ResellerStatus::ACTIVE);
@@ -116,5 +126,17 @@ class Reseller extends Model
     public function scopeByTenant($query, $tenantId)
     {
         return $query->where('tenant_id', $tenantId);
+    }
+
+    /** Wallet balance formatted as BDT (for display) */
+    public function getWalletBalanceBdtAttribute(): string
+    {
+        return '৳' . number_format($this->wallet_balance / 100, 2);
+    }
+
+    /** Total commission earned formatted as BDT */
+    public function getTotalEarningsBdtAttribute(): string
+    {
+        return '৳' . number_format($this->total_earnings / 100, 2);
     }
 }

@@ -30,6 +30,7 @@ class EventServiceProvider extends ServiceProvider
         PaymentReceived::class => [
             LogPaymentReceived::class,
             \App\Listeners\Billing\AutoReactivateOnPayment::class,
+            \App\Listeners\Reseller\CreditResellerCommissionOnPayment::class,
         ],
         SubscriptionSuspended::class => [
             LogSuspension::class,

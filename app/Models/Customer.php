@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
+use App\Models\Scopes\ResellerScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
+    protected static function booted(): void
+    {
+        static::addGlobalScope(new ResellerScope());
+    }
+
     use HasFactory;
     use SoftDeletes;
 

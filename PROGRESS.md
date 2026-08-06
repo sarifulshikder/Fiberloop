@@ -3,7 +3,9 @@
 > Update this file every time you complete a task or a phase. The next agent session reads this FIRST to know where things stand. Keep entries short — this is a status board, not a diary.
 
 Last updated: 2026-08-06
-Current phase: Phase 8
+Current phase: Phase 9
+
+**Phase 9 Summary**: Reseller/Franchise Management completed. All 6 tasks implemented: self-referencing parent/child hierarchy (2+ levels deep), global ResellerScope applied to Customer/Subscription/Invoice/Payment models for data isolation, CommissionService with atomic DB transactions + immutable ledger entries + wallet floor guard, CreditResellerCommissionOnPayment queued listener hooked into PaymentReceived event, ResellerApprovalRequest model/migration for pending action queue (approve/reject workflow), Filament resources for Resellers/ApprovalRequests/CommissionLedger under 'Resellers' nav group, ResellerStatsWidget on admin dashboard. Feature tests cover commission calc (% and flat), wallet floor, scope isolation, and 2-level hierarchy.
 
 **Phase 8 Summary**: Network Device Management completed. All tasks implemented: integrated MikroTik API for connection checking, created `NetworkDevice` model/resource, implemented 5-minute ping/SNMP polling Horizon job, created OLT/ONU basic driver infrastructure (VSOL/BDCOM) to read optical signals, built NOC Dashboard in Filament, implemented Alerting integration for threshold breaches (auto-creates/resolves Incidents), built Incident tracking resource, and implemented IP Pool/Address management resources. All tests pass, resources verified in browser.
 
@@ -25,7 +27,7 @@ Current phase: Phase 8
 | 6 — Payment Gateways | Done | Gateway integrations (bKash, Nagad, SSLCommerz), webhook handlers with signature verification, manual/cash payment entry with field agent attribution, payment reconciliation system with settlement matching, partial/split payments (oldest-invoice-first), idempotency keys, refund flow with CreditNote integration, wallet/prepaid balance top-up flow. All migrations, APIs, services, and Filament resources created.
 | 7 — FreeRADIUS Integration | Done | RADIUS DB connection, FreeRADIUS schema, RadiusProvisioningService, CoA/Disconnect via RadiusCoaService, NAS management with encrypted secrets, FUP enforcement job (every 30 min), RadiusSessionService, LiveRadiusSessions Filament page, event listeners wired for suspend/reactivate/terminate. 63 tests pass. |
 | 8 — Network Device Management | Done | MikroTik API, OLT/ONU tracking, Incident alerts, NOC Dashboard, IP Pools. |
-| 9 — Reseller/Franchise Management | Not started | |
+| 9 — Reseller/Franchise Management | Done | Hierarchy, ResellerScope, CommissionService, ledger, approval queue, Filament resources, stats widget. |
 | 10 — Ticketing & Field Ops | Not started | |
 | 11 — Notifications | Not started | |
 | 12 — Filament Admin & Reports | Not started | |
