@@ -22,7 +22,7 @@ class PollOnuOpticalSignalJob implements ShouldQueue
 
     public int $tries = 1;
     public int $timeout = 60;
-    
+
     // Alert threshold in dBm (e.g., -27 dBm is typically a critical low signal for GPON/EPON)
     public const CRITICAL_RX_POWER_THRESHOLD = -27.0;
 
@@ -38,7 +38,7 @@ class PollOnuOpticalSignalJob implements ShouldQueue
 
         try {
             $driver = OltDriverFactory::make($this->onu->olt);
-            
+
             $rxPower = $driver->getOnuRxPower((string) $this->onu->pon_port, (string) $this->onu->ONU_id);
             $txPower = $driver->getOnuTxPower((string) $this->onu->pon_port, (string) $this->onu->ONU_id);
             $isOnline = $driver->isOnuOnline((string) $this->onu->pon_port, (string) $this->onu->ONU_id);
@@ -79,7 +79,7 @@ class PollOnuOpticalSignalJob implements ShouldQueue
                 'olt_id' => $this->onu->olt->id,
                 'area_zone' => 'ONU ' . $this->onu->serial_number,
             ]);
-            
+
             // In Phase 11, this would trigger an alert/notification
         }
     }

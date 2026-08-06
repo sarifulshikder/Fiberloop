@@ -33,7 +33,7 @@ class BdcomDriver implements OltDriverInterface
         }
 
         $val = $this->snmp->get(self::OID_ONU_RX_POWER . '.' . $index);
-        
+
         if ($val === null || $val === '') {
             return null;
         }

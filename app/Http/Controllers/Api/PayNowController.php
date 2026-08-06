@@ -23,16 +23,16 @@ class PayNowController extends Controller
     public function getPaymentOptions(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Get outstanding invoices
         $invoices = Invoice::where('customer_id', $customer->id)
             ->whereIn('status', ['draft', 'sent', 'overdue', 'partial'])
             ->where('outstanding_amount', '>', 0)
             ->orderBy('due_date', 'asc')
             ->get();
-        
+
         $totalOutstanding = $invoices->sum('outstanding_amount');
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -94,12 +94,12 @@ class PayNowController extends Controller
         $customer = $this->getAuthenticatedCustomer($request);
         $invoice = Invoice::where('customer_id', $customer->id)
             ->findOrFail($request->invoice_id);
-        
+
         // Verify customer owns the invoice
         if ($invoice->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this invoice.');
         }
-        
+
         // Verify amount doesn't exceed outstanding
         if ($request->amount > $invoice->outstanding_amount) {
             return response()->json([
@@ -113,7 +113,7 @@ class PayNowController extends Controller
         }
 
         $gatewayService = $this->getGatewayService($request->gateway);
-        
+
         $paymentData = [
             'customer_id' => $customer->id,
             'customer_name' => $customer->full_name,
@@ -128,10 +128,10 @@ class PayNowController extends Controller
             'success_url' => config('app.url') . '/customer/payment/success?invoice_id=' . $invoice->uuid,
             'fail_url' => config('app.url') . '/customer/payment/fail?invoice_id=' . $invoice->uuid,
         ];
-        
+
         try {
             $response = $gatewayService->initiatePayment($paymentData);
-            
+
             // Create a pending payment record
             $payment = Payment::create([
                 'tenant_id' => $customer->tenant_id,
@@ -146,7 +146,7 @@ class PayNowController extends Controller
                 'gateway_response' => json_encode($response),
                 'created_by' => Auth::id(),
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Payment initiated successfully',
@@ -173,14 +173,14 @@ class PayNowController extends Controller
     public function getPaymentStatus(Request $request, Payment $payment): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Verify customer owns the payment
         if ($payment->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this payment.');
         }
-        
+
         $payment->load(['invoice', 'customer']);
-        
+
         return response()->json([
             'success' => true,
             'data' => new \App\Http\Resources\Api\PaymentResource($payment),
@@ -193,11 +193,11 @@ class PayNowController extends Controller
     public function history(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $payments = Payment::where('customer_id', $customer->id)
             ->orderBy('paid_at', 'desc')
             ->paginate(20);
-        
+
         return response()->json([
             'success' => true,
             'data' => \App\Http\Resources\Api\PaymentResource::collection($payments),
@@ -236,17 +236,17 @@ class PayNowController extends Controller
     protected function getAuthenticatedCustomer(Request $request): Customer
     {
         $user = $request->user();
-        
+
         if ($user->customer) {
             return $user->customer;
         }
-        
+
         $customer = Customer::where('email', $user->email)->first();
-        
+
         if (!$customer) {
             abort(403, 'Customer not found for authenticated user.');
         }
-        
+
         return $customer;
     }
 }

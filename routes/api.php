@@ -94,6 +94,16 @@ Route::prefix('v1')->group(function () {
             Route::get('/unread-count', [ChatController::class, 'unreadCount']);
             Route::get('/online-agents', [ChatController::class, 'onlineAgents']);
         });
+
+        // Data export and deletion (GDPR)
+        Route::prefix('data')->group(function () {
+            Route::post('/export/request', [\App\Http\Controllers\Api\CustomerDataController::class, 'requestExport']);
+            Route::get('/export/status/{requestId}', [\App\Http\Controllers\Api\CustomerDataController::class, 'exportStatus']);
+            Route::get('/export/download/{requestId}', [\App\Http\Controllers\Api\CustomerDataController::class, 'downloadExport']);
+            Route::post('/deletion/request', [\App\Http\Controllers\Api\CustomerDataController::class, 'requestDeletion']);
+            Route::post('/deletion/confirm/{requestId}/{confirmationToken}', [\App\Http\Controllers\Api\CustomerDataController::class, 'confirmDeletion']);
+            Route::get('/deletion/status/{requestId}', [\App\Http\Controllers\Api\CustomerDataController::class, 'deletionStatus']);
+        });
     });
 
     // Reseller-specific routes
@@ -110,6 +120,28 @@ Route::prefix('v1')->group(function () {
 
         // Earnings
         Route::get('/earnings', [\App\Http\Controllers\Api\ResellerController::class, 'earnings']);
+
+        // Customer inventory access
+        Route::prefix('inventory')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\InventoryController::class, 'customerInventory']);
+            Route::get('/{uuid}', [\App\Http\Controllers\Api\InventoryController::class, 'customerInventoryItem']);
+            Route::get('/{uuid}/history', [\App\Http\Controllers\Api\InventoryController::class, 'customerInventoryHistory']);
+        });
+    });
+
+    // Staff inventory management routes
+    Route::prefix('inventory')->middleware(['auth:sanctum', 'ability:admin,noc_engineer,billing_agent,support_agent'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\InventoryController::class, 'index']);
+        Route::post('/', [\App\Http\Controllers\Api\InventoryController::class, 'store']);
+        Route::get('/{uuid}', [\App\Http\Controllers\Api\InventoryController::class, 'show']);
+        Route::put('/{uuid}', [\App\Http\Controllers\Api\InventoryController::class, 'update']);
+        Route::delete('/{uuid}', [\App\Http\Controllers\Api\InventoryController::class, 'destroy']);
+
+        // Stock transactions
+        Route::prefix('transactions')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Api\InventoryController::class, 'transactions']);
+            Route::get('/{uuid}', [\App\Http\Controllers\Api\InventoryController::class, 'transactionShow']);
+        });
     });
 });
 

@@ -2,11 +2,11 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\Incident;
+use App\Models\NetworkDevice;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
-use App\Models\NetworkDevice;
-use App\Models\Incident;
 
 class NocDashboardStats extends BaseWidget
 {

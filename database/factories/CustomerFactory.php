@@ -17,8 +17,8 @@ class CustomerFactory extends Factory
         return [
             'tenant_id' => null,
             'uuid' => fake()->uuid(),
-            'created_by' => 1,
-            'updated_by' => 1,
+            'created_by' => \App\Models\User::factory(),
+            'updated_by' => \App\Models\User::factory(),
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

@@ -2,13 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
+use App\Mail\DailyCollectionSummaryMail;
 use App\Models\Invoice;
 use App\Models\User;
-use App\Mail\DailyCollectionSummaryMail;
-use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Mail;
 
 class SendDailyCollectionSummary extends Command
 {

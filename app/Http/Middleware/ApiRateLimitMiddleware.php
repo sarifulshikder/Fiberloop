@@ -42,7 +42,7 @@ class ApiRateLimitMiddleware
 
         // Get the key for rate limiting
         $key = $this->resolveKey($request);
-        
+
         // Apply different rate limits based on user type
         $limit = $this->getLimitForRequest($request, $maxAttempts, $decaySeconds);
 
@@ -53,7 +53,7 @@ class ApiRateLimitMiddleware
         $this->limiter->hit($key, $limit->decaySeconds);
 
         $response = $next($request);
-        
+
         return $this->addRateLimitHeaders($response, $key, $limit);
     }
 
@@ -63,12 +63,12 @@ class ApiRateLimitMiddleware
     protected function resolveKey(Request $request): string
     {
         $user = $request->user();
-        
+
         if ($user) {
             // Use user ID for authenticated requests
             return 'api_rate_limit:' . $user->id . ':' . $request->ip();
         }
-        
+
         // Use IP address for guest requests
         return 'api_rate_limit:guest:' . $request->ip();
     }
@@ -79,7 +79,7 @@ class ApiRateLimitMiddleware
     protected function getLimitForRequest(Request $request, string $maxAttempts, string $decaySeconds): Limit
     {
         $user = $request->user();
-        
+
         // Higher limits for authenticated users
         if ($user) {
             // Check if user has a specific role
@@ -90,14 +90,14 @@ class ApiRateLimitMiddleware
                 $user->hasRole(['reseller', 'field_technician', 'customer']) => 60,  // 1 request per second
                 default => 60,
             };
-            
+
             $decaySeconds = 60; // 1 minute window
         } else {
             // Stricter limits for guests
             $maxAttempts = 30; // 0.5 requests per second
             $decaySeconds = 60;
         }
-        
+
         return Limit::perMinute((int) $maxAttempts)->by($key)->response(function () {
             return response()->json([
                 'success' => false,
@@ -113,7 +113,7 @@ class ApiRateLimitMiddleware
     protected function buildResponse(string $key, Limit $limit): Response
     {
         $retryAfter = $this->limiter->availableIn($key);
-        
+
         return response()->json([
             'success' => false,
             'message' => 'Too many requests. Please try again later.',
@@ -133,7 +133,7 @@ class ApiRateLimitMiddleware
     {
         $attempts = $this->limiter->attempts($key);
         $remaining = max(0, $limit->maxAttempts - $attempts);
-        
+
         return $response->headers->set('X-RateLimit-Limit', $limit->maxAttempts)
             ->set('X-RateLimit-Remaining', $remaining)
             ->set('X-RateLimit-Reset', time() + $limit->decaySeconds);

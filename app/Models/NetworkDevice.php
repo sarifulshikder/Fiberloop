@@ -48,6 +48,8 @@ class NetworkDevice extends Model
         'is_reachable' => 'boolean',
         'capabilities' => 'array',
         'configuration' => 'array',
+        'password' => 'encrypted',
+        'snmp_community' => 'encrypted',
     ];
 
     protected $hidden = [

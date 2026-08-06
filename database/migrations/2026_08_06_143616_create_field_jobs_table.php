@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -20,7 +19,7 @@ return new class extends Migration
             $table->foreignId('assigned_to')->nullable()->constrained('users');
             $table->string('type')->default('installation'); // installation, repair, survey
             $table->string('status')->default('assigned'); // assigned, en_route, on_site, completed, cancelled
-            
+
             // Location
             $table->text('address')->nullable();
             $table->decimal('geo_lat', 10, 8)->nullable();
@@ -30,12 +29,12 @@ return new class extends Migration
             $table->dateTime('scheduled_at')->nullable();
             $table->dateTime('started_at')->nullable();
             $table->dateTime('completed_at')->nullable();
-            
+
             // Notes
             $table->text('technician_notes')->nullable();
 
             $table->timestamps();
-            
+
             $table->index(['tenant_id', 'status']);
             $table->index('assigned_to');
             $table->index('ticket_id');

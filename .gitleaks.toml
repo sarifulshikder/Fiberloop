@@ -1,0 +1,78 @@
+title = "Fiberloop Security Scan Configuration"
+
+[extend]
+useDefault = true
+
+# Custom rules for Fiberloop application
+[[rules]]
+id = "fiberloop-db-credentials"
+description = "Fiberloop Database Credentials"
+regex = '''(?i)(DB_PASSWORD|DB_USERNAME|POSTGRES_PASSWORD)[=:]\s*["'][^"']+["']'''
+tags = ["db", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-redis-credentials"
+description = "Fiberloop Redis Credentials"
+regex = '''(?i)(REDIS_PASSWORD)[=:]\s*["'][^"']+["']'''
+tags = ["redis", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-payment-gateway"
+description = "Fiberloop Payment Gateway Credentials"
+regex = '''(?i)(BKASH|NAGAD|SSLCOMMERZ|STRIPE)_(APP_KEY|APP_SECRET|PASSWORD|STORE_ID|STORE_PASSWORD|MERCHANT_ID|API_KEY)[=:]\s*["'][^"']+["']'''
+tags = ["payment", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-radius-secrets"
+description = "Fiberloop RADIUS Secrets"
+regex = '''(?i)(RADIUS_(SECRET|DB_PASSWORD|DB_USERNAME))[=:]\s*["'][^"']+["']'''
+tags = ["radius", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-app-key"
+description = "Fiberloop Application Key"
+regex = '''(?i)APP_KEY[=:]\s*["'][a-f0-9]{32,}["']'''
+tags = ["app-key", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-encryption-key"
+description = "Fiberloop Encryption Key"
+regex = '''(?i)(ENCRYPTION_KEY|CIPHER_KEY)[=:]\s*["'][^"']+["']'''
+tags = ["encryption", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-mikrotik-credentials"
+description = "Fiberloop MikroTik Credentials"
+regex = '''(?i)(MIKROTIK_(HOST|USER|PASSWORD))[=:]\s*["'][^"']+["']'''
+tags = ["mikrotik", "credentials", "fiberloop"]
+
+[[rules]]
+id = "fiberloop-ai-microservice"
+description = "Fiberloop AI Microservice Credentials"
+regex = '''(?i)(AI_MICROSERVICE_(URL|KEY|SECRET))[=:]\s*["'][^"']+["']'''
+tags = ["ai", "credentials", "fiberloop"]
+
+# Exclude false positives for test/mock data
+[[rules]]
+id = "excluded-test-credentials"
+description = "Exclude test credentials"
+regex = '''(?i)(password|secret|key)[=:]\s*["'](test|testing|example|dummy|mock|placeholder|fake)["']'''
+tags = ["test", "exclude"]
+negative = true
+
+# Exclude common test values
+[[rules]]
+id = "excluded-test-values"
+description = "Exclude common test values"
+regex = '''(?i)(fiberloop_secret|secret|password|testing123|test123)'''
+paths = [
+  "tests/",
+  "tests/**",
+  "database/seeders/",
+  "database/factories/",
+  ".env.example",
+  "docker-compose.yml",
+  "README.md"
+]
+tags = ["test", "exclude"]
+negative = true

@@ -24,7 +24,7 @@ class PortalController extends Controller
     public function dashboard(Request $request)
     {
         $customer = $this->getCustomer();
-        
+
         $subscription = Subscription::where('customer_id', $customer->id)
             ->active()
             ->with(['package'])
@@ -67,17 +67,17 @@ class PortalController extends Controller
     protected function getCustomer(): Customer
     {
         $user = Auth::user();
-        
+
         if ($user->customer) {
             return $user->customer;
         }
-        
+
         $customer = Customer::where('email', $user->email)->first();
-        
+
         if (!$customer) {
             abort(403, 'Customer not found for authenticated user.');
         }
-        
+
         return $customer;
     }
 }

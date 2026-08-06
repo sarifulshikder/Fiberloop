@@ -13,13 +13,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
 {
+    use HasFactory;
+    use SoftDeletes;
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
     }
-
-    use HasFactory;
-    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',

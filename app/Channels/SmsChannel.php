@@ -2,9 +2,9 @@
 
 namespace App\Channels;
 
+use App\Models\NotificationsLog;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
-use App\Models\NotificationsLog;
 
 class SmsChannel
 {
@@ -43,10 +43,10 @@ class SmsChannel
         // 2. Generic contract/mock for SMS Gateway Provider sending logic
         try {
             Log::info("Sending SMS to {$phone}: {$message}");
-            
+
             // MOCK: simulate gateway call
             $gatewayResponse = ['status' => 'success', 'reference' => uniqid('sms_')];
-            
+
             // 3. Update log
             $log->update([
                 'sent' => true,

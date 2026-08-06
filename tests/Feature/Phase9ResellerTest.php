@@ -1,10 +1,8 @@
 <?php
 
 use App\Models\Customer;
-use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Reseller;
-use App\Models\ResellerCommissionLedger;
 use App\Models\User;
 use App\Services\Reseller\CommissionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;

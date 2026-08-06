@@ -15,7 +15,9 @@ class CreditResellerCommissionOnPayment implements ShouldQueue
 {
     public string $queue = 'default';
 
-    public function __construct(private readonly CommissionService $commissionService) {}
+    public function __construct(private readonly CommissionService $commissionService)
+    {
+    }
 
     public function handle(PaymentReceived $event): void
     {

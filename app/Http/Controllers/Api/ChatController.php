@@ -26,9 +26,9 @@ class ChatController extends Controller
     public function conversations(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $conversations = $this->chatService->getCustomerConversations($customer);
-        
+
         return response()->json([
             'success' => true,
             'data' => ChatConversationResource::collection($conversations),
@@ -42,12 +42,12 @@ class ChatController extends Controller
     public function getConversation(Request $request, ChatConversation $conversation): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Authorize: customer can only view their own conversations
         if ($conversation->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this conversation.');
         }
-        
+
         return response()->json([
             'success' => true,
             'data' => new ChatConversationResource($conversation),
@@ -60,17 +60,17 @@ class ChatController extends Controller
     public function messages(Request $request, ChatConversation $conversation): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Authorize: customer can only view their own conversation messages
         if ($conversation->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this conversation.');
         }
-        
+
         // Mark conversation as read for customer
         $this->chatService->markConversationAsRead($conversation, $customer->user?->id ?? Auth::id(), 'customer');
-        
+
         $messages = $this->chatService->getConversationMessages($conversation);
-        
+
         return response()->json([
             'success' => true,
             'data' => ChatMessageResource::collection($messages),
@@ -97,15 +97,15 @@ class ChatController extends Controller
         }
 
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $conversation = $this->chatService->createConversation(
             $customer,
             $request->subject,
             $request->message
         );
-        
+
         $conversation->load(['customer', 'messages']);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Conversation started successfully',
@@ -132,22 +132,22 @@ class ChatController extends Controller
         }
 
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Authorize: customer can only send messages in their own conversations
         if ($conversation->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this conversation.');
         }
-        
+
         $attachmentPath = null;
         $attachmentType = null;
-        
+
         if ($request->hasFile('attachment')) {
             $file = $request->file('attachment');
             $path = $file->store('chat-attachments', 'public');
             $attachmentPath = Storage::url($path);
             $attachmentType = $file->getMimeType();
         }
-        
+
         $senderId = $customer->user?->id ?? Auth::id();
         $message = $this->chatService->createMessage(
             $conversation,
@@ -157,7 +157,7 @@ class ChatController extends Controller
             $attachmentPath,
             $attachmentType
         );
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Message sent successfully',
@@ -171,17 +171,17 @@ class ChatController extends Controller
     public function closeConversation(Request $request, ChatConversation $conversation): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Authorize: customer can only close their own conversations
         if ($conversation->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this conversation.');
         }
-        
+
         // Mark as read before closing
         $this->chatService->markConversationAsRead($conversation, $customer->user?->id ?? Auth::id(), 'customer');
-        
+
         $this->chatService->closeConversation($conversation, $customer->user?->id ?? Auth::id());
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Conversation closed',
@@ -195,7 +195,7 @@ class ChatController extends Controller
     public function unreadCount(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -210,7 +210,7 @@ class ChatController extends Controller
     public function onlineAgents(Request $request): JsonResponse
     {
         $agents = $this->chatService->getOnlineAgents();
-        
+
         return response()->json([
             'success' => true,
             'data' => $agents,
@@ -223,17 +223,17 @@ class ChatController extends Controller
     protected function getAuthenticatedCustomer(Request $request): Customer
     {
         $user = $request->user();
-        
+
         if ($user->customer) {
             return $user->customer;
         }
-        
+
         $customer = Customer::where('email', $user->email)->first();
-        
+
         if (!$customer) {
             abort(403, 'Customer not found for authenticated user.');
         }
-        
+
         return $customer;
     }
 }

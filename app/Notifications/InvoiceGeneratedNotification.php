@@ -2,12 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Channels\SmsChannel;
+use App\Models\Invoice;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Channels\SmsChannel;
-use App\Models\Invoice;
 use Illuminate\Queue\Middleware\RateLimited;
 
 class InvoiceGeneratedNotification extends Notification implements ShouldQueue
@@ -28,7 +28,7 @@ class InvoiceGeneratedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
                     ->subject('Your Invoice is Ready')
                     ->line('Your invoice for the upcoming billing cycle has been generated.')
                     ->line('Amount: ' . ($this->invoice->total / 100) . ' BDT')
@@ -40,7 +40,7 @@ class InvoiceGeneratedNotification extends Notification implements ShouldQueue
     {
         return "Fiberloop: Your invoice of " . ($this->invoice->total / 100) . " BDT is ready. Due date: " . $this->invoice->due_date->format('Y-m-d');
     }
-    
+
     public function middleware()
     {
         // Rate limit to prevent blowing through provider limits for bulk sends

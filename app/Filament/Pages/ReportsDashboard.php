@@ -2,13 +2,13 @@
 
 namespace App\Filament\Pages;
 
-use BackedEnum;
-use Filament\Pages\Page;
-use Filament\Actions\Action;
-use Illuminate\Support\Facades\DB;
-use App\Models\Invoice;
 use App\Models\Customer;
+use App\Models\Invoice;
+use BackedEnum;
 use Carbon\Carbon;
+use Filament\Actions\Action;
+use Filament\Pages\Page;
+use Illuminate\Support\Facades\DB;
 use UnitEnum;
 
 class ReportsDashboard extends Page
@@ -53,10 +53,15 @@ class ReportsDashboard extends Page
         foreach ($invoices as $invoice) {
             $days = $now->diffInDays($invoice->due_date);
             $amount = $invoice->total / 100;
-            if ($days <= 30) $data['0-30'] += $amount;
-            elseif ($days <= 60) $data['31-60'] += $amount;
-            elseif ($days <= 90) $data['61-90'] += $amount;
-            else $data['90+'] += $amount;
+            if ($days <= 30) {
+                $data['0-30'] += $amount;
+            } elseif ($days <= 60) {
+                $data['31-60'] += $amount;
+            } elseif ($days <= 90) {
+                $data['61-90'] += $amount;
+            } else {
+                $data['90+'] += $amount;
+            }
         }
 
         $csv = "Age Bracket,Outstanding Amount (BDT)\n";

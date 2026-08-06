@@ -12,13 +12,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subscription extends Model
 {
+    use HasFactory;
+    use SoftDeletes;
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
     }
-
-    use HasFactory;
-    use SoftDeletes;
 
 
     protected $fillable = [

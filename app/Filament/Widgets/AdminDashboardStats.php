@@ -2,12 +2,12 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\CustomerStatus;
+use App\Models\Customer;
+use App\Models\Invoice;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Invoice;
-use App\Models\Customer;
-use App\Enums\CustomerStatus;
 
 class AdminDashboardStats extends BaseWidget
 {
@@ -22,7 +22,7 @@ class AdminDashboardStats extends BaseWidget
     {
         $stats = Cache::remember('admin_dashboard_stats', 300, function () {
             $startOfMonth = now()->startOfMonth();
-            
+
             $revenue = Invoice::where('status', 'paid')
                 ->where('created_at', '>=', $startOfMonth)
                 ->sum('total') / 100;

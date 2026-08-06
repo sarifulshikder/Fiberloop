@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class NotificationController extends Controller
@@ -29,7 +28,7 @@ class NotificationController extends Controller
         }
 
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $customer->update([
             'fcm_token' => $request->fcm_token,
             'fcm_token_verified_at' => now(),
@@ -51,7 +50,7 @@ class NotificationController extends Controller
     public function preferences(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -82,24 +81,24 @@ class NotificationController extends Controller
         }
 
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $updates = [];
-        
+
         if ($request->has('push_notifications_enabled')) {
             if (!$request->push_notifications_enabled) {
                 $updates['fcm_token'] = null;
                 $updates['fcm_token_verified_at'] = null;
             }
         }
-        
+
         if ($request->has('email_notifications_enabled')) {
             $updates['promotional_email_opt_in'] = $request->email_notifications_enabled;
         }
-        
+
         if ($request->has('sms_notifications_enabled')) {
             $updates['promotional_sms_opt_in'] = $request->sms_notifications_enabled;
         }
-        
+
         if (!empty($updates)) {
             $customer->update($updates);
         }
@@ -121,17 +120,17 @@ class NotificationController extends Controller
     protected function getAuthenticatedCustomer(Request $request): Customer
     {
         $user = $request->user();
-        
+
         if ($user->customer) {
             return $user->customer;
         }
-        
+
         $customer = Customer::where('email', $user->email)->first();
-        
+
         if (!$customer) {
             abort(403, 'Customer not found for authenticated user.');
         }
-        
+
         return $customer;
     }
 }

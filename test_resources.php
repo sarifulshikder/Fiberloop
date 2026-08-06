@@ -7,7 +7,6 @@ $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 use Filament\Facades\Filament;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Request;
 
 Filament::setCurrentPanel(Filament::getPanel('admin'));
 
@@ -18,15 +17,18 @@ $errors = [];
 foreach ($resources as $resource) {
     try {
         echo "Testing $resource...\n";
-        
+
         // Test Table
         if (method_exists($resource, 'table')) {
-            $mockComponent = new class extends \Livewire\Component implements \Filament\Tables\Contracts\HasTable {
+            $mockComponent = new class () extends \Livewire\Component implements \Filament\Tables\Contracts\HasTable {
                 use \Filament\Tables\Concerns\InteractsWithTable;
-                public function makeFilamentTranslatableContentDriver(): ?\Filament\Support\Contracts\TranslatableContentDriver { return null; }
+                public function makeFilamentTranslatableContentDriver(): ?\Filament\Support\Contracts\TranslatableContentDriver
+                {
+                    return null;
+                }
             };
             $table = Table::make($mockComponent);
-            
+
             // This might be tricky because Filament tables require a proper Livewire component context.
             // Let's just try to call the static table() method.
             try {
@@ -40,20 +42,20 @@ foreach ($resources as $resource) {
                 $errors[] = "$resource Table TypeError: " . $e->getMessage();
             }
         }
-        
+
         // Test Form
         if (method_exists($resource, 'form')) {
-            $mockComponent = new class extends \Livewire\Component implements \Filament\Forms\Contracts\HasForms {
+            $mockComponent = new class () extends \Livewire\Component implements \Filament\Forms\Contracts\HasForms {
                 use \Filament\Forms\Concerns\InteractsWithForms;
             };
             try {
                 $resource::form(\Filament\Schemas\Schema::make($mockComponent));
             } catch (\Exception $e) {
-                 if ($e instanceof TypeError) {
+                if ($e instanceof TypeError) {
                     $errors[] = "$resource Form TypeError: " . $e->getMessage();
                 }
             } catch (TypeError $e) {
-                 $errors[] = "$resource Form TypeError: " . $e->getMessage();
+                $errors[] = "$resource Form TypeError: " . $e->getMessage();
             }
         }
     } catch (\Throwable $e) {

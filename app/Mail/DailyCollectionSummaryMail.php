@@ -11,7 +11,8 @@ use Illuminate\Queue\SerializesModels;
 
 class DailyCollectionSummaryMail extends Mailable implements ShouldQueue
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public array $stats;
 

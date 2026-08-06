@@ -44,8 +44,32 @@ Schedule::job(new \App\Jobs\CheckSlaBreaches())
     ->name('tickets:check-sla-breaches')
     ->withoutOverlapping();
 
+// Inventory low stock check: every 4 hours
+Schedule::job(new \App\Jobs\CheckLowStock())
+    ->everyFourHours()
+    ->name('inventory:check-low-stock')
+    ->withoutOverlapping();
+
 // AI Retraining and analysis: weekly
 Schedule::command('ai:run-analysis')
     ->weekly()
     ->name('ai:run-analysis')
+    ->withoutOverlapping();
+
+// Security: Daily security audit
+Schedule::command('security:audit --full')
+    ->dailyAt('02:00')
+    ->name('security:daily-audit')
+    ->withoutOverlapping();
+
+// Security: Database backup with encryption (daily at 3 AM)
+Schedule::command('db:backup --encrypt --path=' . storage_path('app/backups'))
+    ->dailyAt('03:00')
+    ->name('db:daily-backup')
+    ->withoutOverlapping();
+
+// Security: Test backup restore (weekly on Sundays)
+Schedule::command('db:backup --encrypt --test-restore --path=' . storage_path('app/backups'))
+    ->weeklyOn(0, '04:00') // Sunday at 4 AM
+    ->name('db:weekly-restore-test')
     ->withoutOverlapping();

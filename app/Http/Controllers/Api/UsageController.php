@@ -3,12 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\UsageSummaryResource;
 use App\Models\Customer;
 use App\Services\UsageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class UsageController extends Controller
 {
@@ -22,9 +20,9 @@ class UsageController extends Controller
     public function current(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $usage = $this->usageService->getCustomerUsage($customer);
-        
+
         return response()->json([
             'success' => true,
             'data' => $usage,
@@ -37,9 +35,9 @@ class UsageController extends Controller
     public function realtime(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $usage = $this->usageService->getNearRealtimeUsage($customer);
-        
+
         return response()->json([
             'success' => true,
             'data' => $usage,
@@ -53,9 +51,9 @@ class UsageController extends Controller
     {
         $customer = $this->getAuthenticatedCustomer($request);
         $limit = $request->get('limit', 20);
-        
+
         $sessions = $this->usageService->getSessionHistory($customer, $limit);
-        
+
         return response()->json([
             'success' => true,
             'data' => $sessions,
@@ -68,19 +66,19 @@ class UsageController extends Controller
     protected function getAuthenticatedCustomer(Request $request): Customer
     {
         $user = $request->user();
-        
+
         // If user has a customer relationship, use that
         if ($user->customer) {
             return $user->customer;
         }
-        
+
         // Otherwise, try to find customer by user ID or email
         $customer = Customer::where('email', $user->email)->first();
-        
+
         if (!$customer) {
             abort(403, 'Customer not found for authenticated user.');
         }
-        
+
         return $customer;
     }
 }

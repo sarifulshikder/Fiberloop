@@ -1,18 +1,15 @@
 <?php
 
-use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PackageChangeRequestController;
-use App\Http\Controllers\Api\PayNowController;
-use App\Http\Controllers\Api\TicketApiController;
 use App\Http\Controllers\Api\UsageController;
-use App\Http\Controllers\Customer\PortalController;
 use App\Http\Controllers\Customer\AuthController;
+use App\Http\Controllers\Customer\ChatController as WebChatController;
 use App\Http\Controllers\Customer\InvoiceController;
 use App\Http\Controllers\Customer\PaymentController;
+use App\Http\Controllers\Customer\PortalController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\TicketController;
-use App\Http\Controllers\Customer\ChatController as WebChatController;
 use Illuminate\Support\Facades\Route;
 
 // Customer Portal Routes

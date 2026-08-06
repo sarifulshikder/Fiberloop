@@ -10,19 +10,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
 use Illuminate\Notifications\Notifiable;
 
 class Customer extends Model
 {
     use Notifiable;
+
+    use HasFactory;
+    use SoftDeletes;
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
     }
-
-    use HasFactory;
-    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -76,6 +75,19 @@ class Customer extends Model
         'notes' => 'array',
         'fcm_token_verified_at' => 'datetime',
         'last_push_notification_at' => 'datetime',
+        'nid_number' => 'encrypted',
+        'nid_front_photo' => 'encrypted',
+        'nid_back_photo' => 'encrypted',
+        'signature_photo' => 'encrypted',
+        'radius_password' => 'encrypted',
+    ];
+
+    protected $hidden = [
+        'nid_number',
+        'nid_front_photo',
+        'nid_back_photo',
+        'signature_photo',
+        'radius_password',
     ];
 
     protected $appends = [
@@ -155,6 +167,16 @@ class Customer extends Model
     public function lead(): BelongsTo
     {
         return $this->belongsTo(Lead::class, 'lead_id');
+    }
+
+    public function dataExportRequests(): HasMany
+    {
+        return $this->hasMany(CustomerDataExportRequest::class);
+    }
+
+    public function dataDeletionRequests(): HasMany
+    {
+        return $this->hasMany(CustomerDataDeletionRequest::class);
     }
 
     public function scopeActive($query)

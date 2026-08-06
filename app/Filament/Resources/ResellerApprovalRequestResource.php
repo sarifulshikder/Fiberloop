@@ -4,12 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ResellerApprovalRequestResource\Pages;
 use App\Models\ResellerApprovalRequest;
+use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Actions\Action;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;

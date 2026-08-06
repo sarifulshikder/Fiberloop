@@ -2,8 +2,8 @@
 
 > Update this file every time you complete a task or a phase. The next agent session reads this FIRST to know where things stand. Keep entries short — this is a status board, not a diary.
 
-Last updated: 2026-08-06
-Current phase: Phase 15
+Last updated: 2026-08-07
+Current phase: Phase 17
 
 **Phase 14 Summary**: Customer Self-Service Portal & Mobile App completed. Full REST API (Sanctum-protected) exposing account/profile, current package, invoices/payment history, pay-now (wired to Phase 6 gateways bKash/Nagad/SSLCommerz), usage stats from radacct, ticket creation/status, package upgrade/downgrade request. Live chat widget with real-time messaging via Laravel Echo/Reverb, FCM push notification registration. Web customer portal with dashboard, invoices, payments, tickets, usage tracking, and live chat - built with Tailwind CSS. API rate limiting middleware with role-based limits (30-300 requests/minute). Proper authorization - customers can only access their own data. All Phase 14 DoD items met: full customer journey demonstrable (login → view bill → pay → see payment reflected → raise ticket → see ticket status update), usage data shown from radacct, FCM registration endpoint created, API rejects unauthenticated and cross-customer-scoped requests.
 
@@ -41,8 +41,8 @@ Current phase: Phase 15
 | 12 — Filament Admin & Reports | Done | Role-specific dashboards (Admin/NOC/Support/Reseller), Redis-cached widgets, global search, CSV exports, daily email report scheduled. |
 | 13 — AI & Analytics | Done | FastAPI churn/anomaly/forecast microservice, AiMicroservice Laravel client, RunAiAnalysis command updates 4705 customers, AiAnalyticsDashboard Filament page, ChatbotService with escalation, weekly retraining scheduled. |
 | 14 — Customer Portal & App | Done | REST API, Flutter app infrastructure, usage display, FCM notifications, live chat, web portal with dashboard, API rate limiting, proper authorization. All DoD items verified.
-| 15 — Inventory & Assets | Not started | |
-| 16 — Security & Data Hardening | Not started | |
+| 15 — Inventory & Assets | Done | InventoryItem model with full lifecycle tracking (received→in stock→assigned→returned→inspected→back in stock/retired), StockTransaction model with full audit trail, Procurement/PO tracking, Filament resources (Inventory Items, Stock Transactions, Procurements), API endpoints (customer inventory view, staff CRUD), CheckLowStock job scheduled every 4 hours, LowStockAlert notifications. All Phase 15 DoD items verified: full item lifecycle demonstrable, low-stock alert fires correctly, equipment assigned to terminated customer flagged for return.
+| 16 — Security & Data Hardening | Done | All 10 tasks implemented: (1) Encryption at rest for KYC documents/NID/RADIUS secrets/payment gateway credentials via Laravel encrypted casting in Customer, RadiusCustomer, NetworkDevice models; (2) KYC access restricted via RestrictKycAccess middleware and KycDocumentService with encrypted storage paths and signed URLs; (3) HTTPS/HSTS enforced via EnforceHttps middleware with comprehensive security headers; (4) API rate limiting already implemented via ApiRateLimitMiddleware with role-based limits (30-300 req/min); (5) SQL injection/mass-assignment audit via SecurityAuditService with artisan command security:audit; (6) Dependency scanning via GitHub Actions workflow with composer audit, TruffleHog, Gitleaks; (7) Secrets management via SecretsManager service, .gitleaks.toml config, docker-compose warning in Key Decisions Log; (8) Backup encryption/restore via db:backup command with pg_dump, gzip, AES-256 encryption, scheduled daily with weekly restore test; (9) Penetration testing via PenetrationTest with SQLi, XSS, auth bypass, rate limiting, sensitive data exposure checks; (10) GDPR-style customer data export/delete via CustomerDataController with async jobs, notifications, confirmation workflow. All DoD items verified: KYC documents confirmed inaccessible via direct URL guessing (encrypted paths + middleware), composer audit runs clean (with documented exceptions in CI workflow), backup restore procedure tested via artisan command, rate limiting confirmed on API with automated test.
 | 17 — Testing & QA | Not started | |
 | 18 — DevOps & Deployment | Not started | |
 | 19 — Production Launch | Not started | |
@@ -178,3 +178,52 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 0 / Bugfix: Fixed `ResellerFactory` and others hardcoding `created_by => 1` which broke `db:seed` when auto-increment IDs became misaligned. Replaced with `User::factory()` and wiped/reseeded database.
 - Phase 7 / Bugfix: Fixed `fiberloop-freeradius` docker container crash loop. Updated `radiusd.conf` to move `user`/`group` into `security` block (FreeRADIUS v3 requirement), updated `docker-compose.yml` volume mount to `/etc/freeradius`, and changed healthcheck command to `freeradius -C`.
 - Phase 3 / Bugfix: Audited all Filament resources programmatically. Fixed `TypeError` in `Onu` and `DeviceMetric` decimal casts. Fixed custom bulk actions (`SmsBulkAction`, `SuspendBulkAction`) to use `$this->form()` in `setUp()` instead of the deprecated `getFormSchema()` method. All pages confirmed to load without errors.
+- Phase 15: Filament v5 compatibility - all new resources use Filament\Schemas\Schema for form() method, Filament\Tables\Table for table() method, with \BackedEnum|string|null for navigationIcon and \UnitEnum|string|null for navigationGroup property types.
+- Phase 16: Security at rest implemented using Laravel's built-in encrypted casting for sensitive fields (nid_number, KYC photos, radius_password, network device passwords/community strings). This provides AES-256 encryption using the app key, with automatic encryption/decryption.
+- Phase 16: Docker secrets warning - docker-compose.yml contains plaintext credentials (postgres passwords, Redis passwords, etc.) in the repository. In production, these should be moved to environment files or a secrets manager. This is documented as a known limitation in docker-compose.yml comments.
+- Phase 16: Backup strategy - implemented pg_dump with gzip compression and AES-256 encryption via Laravel's Encrypter. Backups are scheduled daily at 3 AM with weekly restore tests on Sundays. Backups can optionally be uploaded to cloud storage (S3 configured by default).
+
+## Phase 15 Current Tasks
+- [x] Create Filament resources for InventoryItem, StockTransaction, and Procurement
+- [x] Create InventoryService with full lifecycle methods (receive, issue, return, transfer, retire)
+- [x] Create enums: InventoryStatus, StockTransactionType, StockTransactionReason, ProcurementStatus, ProcurementItemStatus
+- [x] Create migrations for stock_transactions, procurements, procurement_items tables
+- [x] Create models: StockTransaction, Procurement, ProcurementItem
+- [x] Create events: InventoryItemAssigned, InventoryItemReturned, InventoryItemStatusChanged
+- [x] Create CheckLowStock job for low-stock alerts
+- [x] Create LowStockAlert notification (mail + database)
+- [x] Register CheckLowStock job in console schedule (every 4 hours)
+- [x] Create InventoryController API endpoints for customer and staff access
+- [x] Add API routes for inventory management
+- [x] Create API resources: InventoryItemResource, StockTransactionResource
+- [x] Create factories: InventoryItemFactory, StockTransactionFactory, ProcurementFactory
+- [x] Create feature tests for inventory functionality
+- [x] Run migrations for new tables
+- [x] Verify Filament resources accessible in browser
+- [x] Human verification: /admin shows Inventory navigation group with Inventory Items, Stock Transactions, Procurements
+
+## Phase 16 Current Tasks
+- [x] Add encrypted casts for sensitive fields in Customer model (nid_number, nid_front_photo, nid_back_photo, signature_photo, radius_password)
+- [x] Add encrypted casts for sensitive fields in RadiusCustomer model (radius_password)
+- [x] Add encrypted casts for sensitive fields in NetworkDevice model (password, snmp_community)
+- [x] Create RestrictKycAccess middleware to restrict KYC document access to authorized roles
+- [x] Create KycDocumentService for encrypted document storage with signed URLs
+- [x] Create EnforceHttps middleware with HSTS and security headers
+- [x] API rate limiting already implemented (ApiRateLimitMiddleware)
+- [x] Create SecurityAuditService for SQL injection and mass assignment auditing
+- [x] Create security:audit artisan command for comprehensive security checks
+- [x] Create GitHub Actions workflow for security scanning (composer audit, TruffleHog, Gitleaks)
+- [x] Create .gitleaks.toml configuration for secrets detection
+- [x] Create SecretsManager service for secure credential storage and retrieval
+- [x] Create BackupDatabase artisan command with pg_dump, compression, AES-256 encryption
+- [x] Add backup commands to console schedule (daily backup, weekly restore test)
+- [x] Create PenetrationTest with SQLi, XSS, auth bypass, sensitive data exposure checks
+- [x] Create CustomerDataExportRequest and CustomerDataDeletionRequest models
+- [x] Create migrations for customer data request tables
+- [x] Create CustomerDataController with export/delete endpoints
+- [x] Create CustomerDataRequest form request with validation
+- [x] Create ProcessCustomerDataExport and ProcessCustomerDataDeletion jobs
+- [x] Create CustomerDataExport for JSON/CSV/XLSX export generation
+- [x] Create CustomerDataExportReady and CustomerDataDeletionConfirmation notifications
+- [x] Add API routes for customer data export and deletion
+- [x] Fix CustomerFactory to use User::factory() instead of hardcoded IDs

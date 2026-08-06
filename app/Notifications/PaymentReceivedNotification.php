@@ -2,12 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Channels\SmsChannel;
+use App\Models\Payment;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Channels\SmsChannel;
-use App\Models\Payment;
 use Illuminate\Queue\Middleware\RateLimited;
 
 class PaymentReceivedNotification extends Notification implements ShouldQueue
@@ -28,7 +28,7 @@ class PaymentReceivedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
                     ->subject('Payment Received')
                     ->line('We have successfully received your payment.')
                     ->line('Amount: ' . ($this->payment->amount / 100) . ' BDT')
@@ -39,7 +39,7 @@ class PaymentReceivedNotification extends Notification implements ShouldQueue
     {
         return "Fiberloop: We received your payment of " . ($this->payment->amount / 100) . " BDT. Thank you!";
     }
-    
+
     public function middleware()
     {
         return [new RateLimited('sms_sends')];

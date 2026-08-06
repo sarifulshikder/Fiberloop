@@ -104,7 +104,7 @@ class ChatService
     public function markConversationAsRead(ChatConversation $conversation, int $userId, string $userType): void
     {
         $field = $userType === 'customer' ? 'is_read_by_customer' : 'is_read_by_agent';
-        
+
         $conversation->update([$field => true]);
 
         // Mark all unread messages as read

@@ -6,6 +6,7 @@ enum InventoryStatus: string
 {
     case IN_STOCK = 'in_stock';
     case ASSIGNED = 'assigned';
+    case NEEDS_INSPECTION = 'needs_inspection';
     case FAULTY = 'faulty';
     case RETIRED = 'retired';
 
@@ -19,6 +20,7 @@ enum InventoryStatus: string
         return [
             self::IN_STOCK->value => self::IN_STOCK->label(),
             self::ASSIGNED->value => self::ASSIGNED->label(),
+            self::NEEDS_INSPECTION->value => self::NEEDS_INSPECTION->label(),
             self::FAULTY->value => self::FAULTY->label(),
             self::RETIRED->value => self::RETIRED->label(),
         ];
@@ -29,6 +31,7 @@ enum InventoryStatus: string
         return match($this) {
             self::IN_STOCK => 'In Stock',
             self::ASSIGNED => 'Assigned',
+            self::NEEDS_INSPECTION => 'Needs Inspection',
             self::FAULTY => 'Faulty',
             self::RETIRED => 'Retired',
         };
@@ -39,6 +42,7 @@ enum InventoryStatus: string
         return match($this) {
             self::IN_STOCK => 'success',
             self::ASSIGNED => 'primary',
+            self::NEEDS_INSPECTION => 'warning',
             self::FAULTY => 'danger',
             self::RETIRED => 'secondary',
         };

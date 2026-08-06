@@ -5,10 +5,7 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\RadAcct;
 use App\Models\RadiusCustomer;
-use App\Models\Subscription;
-use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
 class UsageService
 {
@@ -18,7 +15,7 @@ class UsageService
     public function getCustomerUsage(Customer $customer): array
     {
         $subscription = $customer->subscriptions()->active()->first();
-        
+
         if (!$subscription) {
             return $this->emptyUsageSummary($customer);
         }
@@ -42,11 +39,11 @@ class UsageService
         // Get current billing period usage
         $currentMonthStart = now()->startOfMonth();
         $currentMonthEnd = now()->endOfMonth();
-        
+
         $monthlyUsage = RadAcct::where('username', $username)
             ->where('acctstarttime', '>=', $currentMonthStart)
             ->where('acctstarttime', '<=', $currentMonthEnd)
-            ->sum('acctinputoctets') + 
+            ->sum('acctinputoctets') +
             RadAcct::where('username', $username)
                 ->where('acctstarttime', '>=', $currentMonthStart)
                 ->where('acctstarttime', '<=', $currentMonthEnd)
@@ -54,7 +51,7 @@ class UsageService
 
         // Get all-time usage
         $allTimeUsage = RadAcct::where('username', $username)
-            ->sum('acctinputoctets') + 
+            ->sum('acctinputoctets') +
             RadAcct::where('username', $username)
                 ->sum('acctoutputoctets');
 
@@ -128,7 +125,7 @@ class UsageService
             return $this->formatSession($activeSession) + [
                 'current_month_usage' => RadAcct::where('username', $username)
                     ->where('acctstarttime', '>=', now()->startOfMonth())
-                    ->sum('acctinputoctets') + 
+                    ->sum('acctinputoctets') +
                     RadAcct::where('username', $username)
                         ->where('acctstarttime', '>=', now()->startOfMonth())
                         ->sum('acctoutputoctets'),
@@ -136,7 +133,7 @@ class UsageService
                 'fup_usage_percentage' => $this->calculateFupPercentage(
                     RadAcct::where('username', $username)
                         ->where('acctstarttime', '>=', now()->startOfMonth())
-                        ->sum('acctinputoctets') + 
+                        ->sum('acctinputoctets') +
                     RadAcct::where('username', $username)
                         ->where('acctstarttime', '>=', now()->startOfMonth())
                         ->sum('acctoutputoctets'),
@@ -159,7 +156,7 @@ class UsageService
     protected function formatSession(RadAcct $session): array
     {
         $dataUsed = ($session->acctinputoctets ?? 0) + ($session->acctoutputoctets ?? 0);
-        
+
         return [
             'session_id' => $session->acctsessionid,
             'username' => $session->username,

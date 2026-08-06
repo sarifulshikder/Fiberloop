@@ -2,12 +2,12 @@
 
 namespace App\Notifications;
 
+use App\Channels\SmsChannel;
+use App\Models\Subscription;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use App\Channels\SmsChannel;
-use App\Models\Subscription;
 use Illuminate\Queue\Middleware\RateLimited;
 
 class ServiceSuspendedNotification extends Notification implements ShouldQueue
@@ -28,7 +28,7 @@ class ServiceSuspendedNotification extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
                     ->subject('Service Suspended')
                     ->line('Your internet service has been suspended due to non-payment.')
                     ->line('Please clear your dues to restore the connection.')
@@ -39,7 +39,7 @@ class ServiceSuspendedNotification extends Notification implements ShouldQueue
     {
         return "Fiberloop: Your internet service has been suspended. Please pay your outstanding dues to restore connection.";
     }
-    
+
     public function middleware()
     {
         return [new RateLimited('sms_sends')];

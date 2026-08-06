@@ -20,12 +20,12 @@ class PackageChangeRequestController extends Controller
     public function index(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $requests = PackageChangeRequest::where('customer_id', $customer->id)
             ->with(['currentPackage', 'requestedPackage', 'subscription'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
-        
+
         return response()->json([
             'success' => true,
             'data' => PackageChangeRequestResource::collection($requests),
@@ -38,14 +38,14 @@ class PackageChangeRequestController extends Controller
     public function show(Request $request, PackageChangeRequest $packageChangeRequest): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Authorize: customer can only view their own requests
         if ($packageChangeRequest->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this request.');
         }
-        
+
         $packageChangeRequest->load(['currentPackage', 'requestedPackage', 'subscription', 'approvedBy']);
-        
+
         return response()->json([
             'success' => true,
             'data' => new PackageChangeRequestResource($packageChangeRequest),
@@ -74,20 +74,20 @@ class PackageChangeRequestController extends Controller
         }
 
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Find active subscription if not provided
         $subscriptionId = $request->subscription_id ?? $customer->subscriptions()->active()->first()?->id;
-        
+
         if (!$subscriptionId) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active subscription found for this customer.',
             ], 400);
         }
-        
+
         $subscription = $customer->subscriptions()->findOrFail($subscriptionId);
         $package = Package::findOrFail($request->package_id);
-        
+
         // Create the request
         $changeRequest = PackageChangeRequest::create([
             'tenant_id' => $customer->tenant_id,
@@ -101,9 +101,9 @@ class PackageChangeRequestController extends Controller
             'notes' => $request->notes,
             'created_by' => Auth::id(),
         ]);
-        
+
         $changeRequest->load(['currentPackage', 'requestedPackage', 'subscription']);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Package change request created successfully',
@@ -117,12 +117,12 @@ class PackageChangeRequestController extends Controller
     public function cancel(Request $request, PackageChangeRequest $packageChangeRequest): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         // Authorize: customer can only cancel their own requests
         if ($packageChangeRequest->customer_id !== $customer->id) {
             abort(403, 'Unauthorized access to this request.');
         }
-        
+
         // Can only cancel pending requests
         if ($packageChangeRequest->status !== 'pending') {
             return response()->json([
@@ -130,14 +130,14 @@ class PackageChangeRequestController extends Controller
                 'message' => 'Only pending requests can be cancelled.',
             ], 400);
         }
-        
+
         $packageChangeRequest->update([
             'status' => 'cancelled',
             'cancelled_at' => now(),
             'cancelled_by' => Auth::id(),
             'cancellation_reason' => $request->get('reason', 'Customer request'),
         ]);
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Package change request cancelled',
@@ -151,23 +151,23 @@ class PackageChangeRequestController extends Controller
     public function availablePackages(Request $request): JsonResponse
     {
         $customer = $this->getAuthenticatedCustomer($request);
-        
+
         $subscription = $customer->subscriptions()->active()->first();
-        
+
         if (!$subscription) {
             return response()->json([
                 'success' => false,
                 'message' => 'No active subscription found.',
             ], 400);
         }
-        
+
         $currentPackage = $subscription->package;
-        
+
         // Get all active packages
         $packages = Package::active()
             ->orderBy('price')
             ->get();
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -183,17 +183,17 @@ class PackageChangeRequestController extends Controller
     protected function getAuthenticatedCustomer(Request $request): Customer
     {
         $user = $request->user();
-        
+
         if ($user->customer) {
             return $user->customer;
         }
-        
+
         $customer = Customer::where('email', $user->email)->first();
-        
+
         if (!$customer) {
             abort(403, 'Customer not found for authenticated user.');
         }
-        
+
         return $customer;
     }
 }

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,13 +15,13 @@ return new class extends Migration
             $table->unsignedBigInteger('tenant_id')->nullable();
             $table->foreignId('ticket_id')->constrained('tickets')->cascadeOnDelete();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            
+
             $table->text('content');
             $table->boolean('is_internal')->default(true);
             $table->json('attachments')->nullable();
-            
+
             $table->timestamps();
-            
+
             $table->index(['tenant_id', 'ticket_id']);
         });
     }

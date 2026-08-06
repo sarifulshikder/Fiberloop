@@ -2,11 +2,11 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\TicketStatus;
+use App\Models\Ticket;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Cache;
-use App\Models\Ticket;
-use App\Enums\TicketStatus;
 
 class SupportDashboardStats extends BaseWidget
 {

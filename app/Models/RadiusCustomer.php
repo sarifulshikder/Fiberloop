@@ -50,6 +50,7 @@ class RadiusCustomer extends Model
         'max_total_octets' => 'integer',
         'max_download_speed' => 'integer',
         'max_upload_speed' => 'integer',
+        'radius_password' => 'encrypted',
     ];
 
     protected $hidden = [

@@ -107,7 +107,7 @@ class PollDeviceMetricsJob implements ShouldQueue
         // Update the live reachability flag on the device
         $wasReachable = $this->device->is_reachable;
         $isReachable = $status !== 'down';
-        
+
         $this->device->update([
             'is_reachable' => $isReachable,
             'last_checked_at' => now(),

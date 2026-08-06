@@ -13,10 +13,10 @@ describe('Phase 8: Network Device Management', function () {
     beforeEach(function () {
         app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
-        
+
         $this->tenant = \App\Models\Tenant::create(['name' => 'Test Tenant']);
         tenancy()->initialize($this->tenant);
-        
+
         $this->admin = User::factory()->create(['id' => 1, 'tenant_id' => $this->tenant->id]);
         $this->admin->assignRole('super_admin');
     });
@@ -38,7 +38,8 @@ describe('Phase 8: Network Device Management', function () {
             'started_at'        => now(),
         ]);
 
-        expect(Incident::where('network_device_id', $device->id)
+        expect(
+            Incident::where('network_device_id', $device->id)
             ->where('status', 'open')
             ->where('title', 'like', 'Device Down:%')
             ->exists()
@@ -71,12 +72,14 @@ describe('Phase 8: Network Device Management', function () {
                 'resolved_at' => now(),
             ]);
 
-        expect(Incident::where('network_device_id', $device->id)
+        expect(
+            Incident::where('network_device_id', $device->id)
             ->where('status', 'open')
             ->exists()
         )->toBeFalse();
 
-        expect(Incident::where('network_device_id', $device->id)
+        expect(
+            Incident::where('network_device_id', $device->id)
             ->where('status', 'resolved')
             ->exists()
         )->toBeTrue();

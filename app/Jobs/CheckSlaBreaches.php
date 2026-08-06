@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
+use App\Models\Ticket;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use App\Models\Ticket;
 use Illuminate\Support\Facades\Log;
 
 class CheckSlaBreaches implements ShouldQueue
@@ -14,10 +14,10 @@ class CheckSlaBreaches implements ShouldQueue
     public function handle(): void
     {
         $breachedTickets = Ticket::overdue()->get();
-        
+
         foreach ($breachedTickets as $ticket) {
             Log::warning("SLA Breach: Ticket {$ticket->ticket_number} is overdue.");
-            
+
             $tags = $ticket->tags ?? [];
             if (!in_array('sla_breached', $tags)) {
                 $tags[] = 'sla_breached';

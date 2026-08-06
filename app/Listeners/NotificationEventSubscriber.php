@@ -4,12 +4,12 @@ namespace App\Listeners;
 
 use App\Events\Billing\InvoiceGenerated;
 use App\Events\Billing\PaymentReceived;
-use App\Events\Billing\SubscriptionSuspended;
 use App\Events\Billing\SubscriptionReactivated;
+use App\Events\Billing\SubscriptionSuspended;
 use App\Notifications\InvoiceGeneratedNotification;
 use App\Notifications\PaymentReceivedNotification;
-use App\Notifications\ServiceSuspendedNotification;
 use App\Notifications\ServiceReactivatedNotification;
+use App\Notifications\ServiceSuspendedNotification;
 use Illuminate\Events\Dispatcher;
 
 class NotificationEventSubscriber
