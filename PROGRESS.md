@@ -3,7 +3,9 @@
 > Update this file every time you complete a task or a phase. The next agent session reads this FIRST to know where things stand. Keep entries short — this is a status board, not a diary.
 
 Last updated: 2026-08-06
-Current phase: Phase 7
+Current phase: Phase 8
+
+**Phase 7 Summary**: FreeRADIUS AAA integration completed. All 8 tasks implemented: RADIUS PostgreSQL DB connection with separate `radius` schema, FreeRADIUS table migrations (radcheck, radreply, radacct, nas, radgroupcheck, radgroupreply, radpostauth), 8 Eloquent models with `$connection = 'radius'`, RadiusProvisioningService (PPPoE + Hotspot, suspend/reactivate/terminate), RadiusCoaService (Disconnect-Request + CoA-Request via radclient), HandleSubscriptionSuspended/Reactivated/Terminated event listeners wired in EventServiceProvider, NasResource Filament page with encrypted shared secrets, EnforceFairUsagePolicy job (scheduled every 30 min) with radacct monitoring, RadiusSessionService for live/historical session data, LiveRadiusSessions Filament page (Network group, auto-refreshes every 30s). All 63 tests pass.
 
 **Phase 5 Summary**: Core billing infrastructure implemented. 69 files changed, 6307 insertions. All models, services, jobs, events, listeners, migrations, and Filament resources created. Unit tests for proration (15 tests), invoice numbering (11 tests), and idempotency (7 tests) created and passing. Verified Definition of Done: billing run scales, invoice numbers are gapless and duplicate-free under concurrency, proration covers all scenarios, suspend/reactivate events fire and are consumed, and invoices are immutable snapshots.
 
@@ -19,7 +21,7 @@ Current phase: Phase 7
 | 4 — Package & Pricing | Done | All tasks completed, migrations run, Filament v5 compatibility fixes applied
 | 5 — Billing & Invoicing Engine | Done | BillingRunService, GenerateInvoices job, AutoSuspend, AutoReactivate, TaxRate, WalletTransaction, Filament resources created. All migrations run, 47 tests pass, events verified firing. Scale test (100k subscriptions) code in place but not fully tested.
 | 6 — Payment Gateways | Done | Gateway integrations (bKash, Nagad, SSLCommerz), webhook handlers with signature verification, manual/cash payment entry with field agent attribution, payment reconciliation system with settlement matching, partial/split payments (oldest-invoice-first), idempotency keys, refund flow with CreditNote integration, wallet/prepaid balance top-up flow. All migrations, APIs, services, and Filament resources created.
-| 7 — FreeRADIUS Integration | Not started | |
+| 7 — FreeRADIUS Integration | Done | RADIUS DB connection, FreeRADIUS schema, RadiusProvisioningService, CoA/Disconnect via RadiusCoaService, NAS management with encrypted secrets, FUP enforcement job (every 30 min), RadiusSessionService, LiveRadiusSessions Filament page, event listeners wired for suspend/reactivate/terminate. 63 tests pass. |
 | 8 — Network Device Management | Not started | |
 | 9 — Reseller/Franchise Management | Not started | |
 | 10 — Ticketing & Field Ops | Not started | |
@@ -38,6 +40,8 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 ## Open Questions
 <!-- Log anything you had to guess at or need a human decision on -->
 - Phase 4: Bundle packages (internet + IPTV + phone) - DECISION: Skip for now, out of scope for Phase 4. Can be added later if needed.
+- Phase 7: Auth flows - DECISION: Support both PPPoE and Hotspot authentication flows as per user confirmation.
+- Phase 7: Bandwidth attributes - DECISION: Use Mikrotik-Rate-Limit attributes for bandwidth control (suitable for MikroTik NAS vendors).
 
 ## Known Issues / Tech Debt
 <!-- Anything shipped imperfectly on purpose to keep moving -->
@@ -84,6 +88,16 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - [x] Human check: /admin/packages CRUD working (verified after Filament v5 fixes)
 - [x] Run migrations for new tables
 - [x] Commit all Phase 4 changes
+
+## Phase 7 Current Tasks
+- [x] Add Laravel RADIUS DB connection and FreeRADIUS schema setup
+- [x] Create RadiusUser model with $connection = 'radius' for radcheck/radreply tables
+- [x] Build RadiusProvisioningService with PPPoE and Hotspot auth flow support
+- [x] Create event listeners for SubscriptionSuspended/Reactivated with CoA disconnect
+- [x] Create Nas model for RADIUS NAS clients with encrypted shared secrets
+- [x] Implement FUP enforcement scheduled job with radacct monitoring
+- [x] Build RadiusSessionService for live session visibility from radacct
+- [x] Support both PPPoE and Hotspot authentication methods
 
 ## Phase 6 Current Tasks
 - [x] Integrate bKash, Nagad, and SSLCommerz via official APIs with PaymentGatewayContract implementation
