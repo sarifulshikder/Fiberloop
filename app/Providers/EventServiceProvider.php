@@ -6,10 +6,14 @@ use App\Events\Billing\InvoiceGenerated;
 use App\Events\Billing\PaymentReceived;
 use App\Events\Billing\SubscriptionReactivated;
 use App\Events\Billing\SubscriptionSuspended;
+use App\Events\Billing\SubscriptionTerminated;
 use App\Listeners\Billing\LogInvoiceGenerated;
 use App\Listeners\Billing\LogPaymentReceived;
 use App\Listeners\Billing\LogReactivation;
 use App\Listeners\Billing\LogSuspension;
+use App\Listeners\Radius\HandleSubscriptionReactivated;
+use App\Listeners\Radius\HandleSubscriptionSuspended;
+use App\Listeners\Radius\HandleSubscriptionTerminated;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -29,9 +33,14 @@ class EventServiceProvider extends ServiceProvider
         ],
         SubscriptionSuspended::class => [
             LogSuspension::class,
+            HandleSubscriptionSuspended::class,
         ],
         SubscriptionReactivated::class => [
             LogReactivation::class,
+            HandleSubscriptionReactivated::class,
+        ],
+        SubscriptionTerminated::class => [
+            HandleSubscriptionTerminated::class,
         ],
     ];
 
