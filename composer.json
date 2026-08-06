@@ -15,6 +15,7 @@
         "laravel/reverb": "^1.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
+        "meklis/routeros-api": "^1.6",
         "spatie/laravel-activitylog": "^5.0",
         "spatie/laravel-backup": "^10.0",
         "spatie/laravel-permission": "^6.0",

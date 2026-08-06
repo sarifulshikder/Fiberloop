@@ -22,7 +22,7 @@ Current phase: Phase 8
 | 5 — Billing & Invoicing Engine | Done | BillingRunService, GenerateInvoices job, AutoSuspend, AutoReactivate, TaxRate, WalletTransaction, Filament resources created. All migrations run, 47 tests pass, events verified firing. Scale test (100k subscriptions) code in place but not fully tested.
 | 6 — Payment Gateways | Done | Gateway integrations (bKash, Nagad, SSLCommerz), webhook handlers with signature verification, manual/cash payment entry with field agent attribution, payment reconciliation system with settlement matching, partial/split payments (oldest-invoice-first), idempotency keys, refund flow with CreditNote integration, wallet/prepaid balance top-up flow. All migrations, APIs, services, and Filament resources created.
 | 7 — FreeRADIUS Integration | Done | RADIUS DB connection, FreeRADIUS schema, RadiusProvisioningService, CoA/Disconnect via RadiusCoaService, NAS management with encrypted secrets, FUP enforcement job (every 30 min), RadiusSessionService, LiveRadiusSessions Filament page, event listeners wired for suspend/reactivate/terminate. 63 tests pass. |
-| 8 — Network Device Management | Not started | |
+| 8 — Network Device Management | In progress | Target OLTs: VSOL, BDCOM. |
 | 9 — Reseller/Franchise Management | Not started | |
 | 10 — Ticketing & Field Ops | Not started | |
 | 11 — Notifications | Not started | |
@@ -162,3 +162,5 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 4: Created AddOn model with types: static_ip, extra_device_slot, ott_iptv, voice, other.
 - Phase 4: Created PackageZone model for zone/area-based package availability with capacity constraints.
 - Phase 4: Fixed Filament v5 compatibility issues: Section/Grid moved from Forms\Components to Schemas\Components, format() replaced with state(), numeric() decisions parameter removed, unique() ignore parameter changed to ignorable.
+- Phase 0 / Bugfix: Fixed `laravel/octane` not running correctly (was falling back to single-threaded `serve` which caused broken pipe). Installed FrankenPHP, updated `supervisord.conf`, and restarted.
+- Phase 0 / Bugfix: Fixed `ResellerFactory` and others hardcoding `created_by => 1` which broke `db:seed` when auto-increment IDs became misaligned. Replaced with `User::factory()` and wiped/reseeded database.

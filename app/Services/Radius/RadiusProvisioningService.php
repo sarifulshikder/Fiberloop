@@ -4,10 +4,9 @@ namespace App\Services\Radius;
 
 use App\Models\Customer;
 use App\Models\RadCheck;
-use App\Models\RadReply;
 use App\Models\RadiusCustomer;
+use App\Models\RadReply;
 use App\Models\Subscription;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class RadiusProvisioningService

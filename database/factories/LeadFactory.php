@@ -21,7 +21,7 @@ class LeadFactory extends Factory
     {
         $firstName = fake()->firstName();
         $lastName = fake()->lastName();
-        
+
         return [
             'tenant_id' => 1,
             'uuid' => fake()->uuid(),

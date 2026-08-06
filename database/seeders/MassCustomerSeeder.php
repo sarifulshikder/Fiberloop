@@ -14,7 +14,7 @@ class MassCustomerSeeder extends Seeder
     public function run(): void
     {
         $packages = Package::query()->limit(10)->get();
-        
+
         if ($packages->isEmpty()) {
             $this->command->error('No packages found.');
             return;
@@ -24,10 +24,10 @@ class MassCustomerSeeder extends Seeder
 
         $batchSize = 1000;
         $total = 100000;
-        
+
         for ($i = 0; $i < $total; $i += $batchSize) {
             $batch = min($batchSize, $total - $i);
-            
+
             $customers = Customer::factory()
                 ->count($batch)
                 ->create([
@@ -58,7 +58,7 @@ class MassCustomerSeeder extends Seeder
                     'start_date' => now(),
                 ];
             }
-            
+
             Subscription::insert($subscriptions);
             $this->command->info("Batch: {$i}-" . ($i + $batch));
         }

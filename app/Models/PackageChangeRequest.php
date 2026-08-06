@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PackageChangeRequest extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -286,7 +287,7 @@ class PackageChangeRequest extends Model
             // Simple calculation - actual proration logic in Phase 5
             return $priceDifference;
         }
-        
+
         return 0;
     }
 }

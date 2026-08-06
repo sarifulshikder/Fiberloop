@@ -17,7 +17,7 @@ class PermissionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->seed(RolesAndPermissionsSeeder::class);
     }
 

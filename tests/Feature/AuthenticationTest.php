@@ -18,9 +18,9 @@ class AuthenticationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         $this->seed(RolesAndPermissionsSeeder::class);
-        
+
         // Ensure Sanctum is set up for tests
         Sanctum::actingAs(
             User::factory()->create(),
@@ -143,7 +143,7 @@ class AuthenticationTest extends TestCase
     {
         // Check that the rate limiter configuration exists in the file
         $appServiceProviderContent = file_get_contents(app_path('Providers/AppServiceProvider.php'));
-        
+
         $this->assertStringContainsString("RateLimiter::for('login'", $appServiceProviderContent);
     }
 
@@ -176,7 +176,7 @@ class AuthenticationTest extends TestCase
     public function test_permissions_are_seeded(): void
     {
         $permissions = \Spatie\Permission\Models\Permission::all();
-        
+
         $this->assertGreaterThan(80, $permissions->count(), 'Should have 85+ permissions');
     }
 }

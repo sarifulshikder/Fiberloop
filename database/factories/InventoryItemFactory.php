@@ -4,9 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\InventoryStatus;
 use App\Models\Customer;
-use App\Models\Invoice;
 use App\Models\InventoryItem;
-use App\Models\Reseller;
 use App\Models\Subscription;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

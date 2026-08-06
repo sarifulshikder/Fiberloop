@@ -16,7 +16,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         $customer = $user->customer; // Assuming user has a customer relationship
-        
+
         return response()->json([
             'customer' => $customer ?? null,
         ]);
@@ -32,7 +32,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         $subscriptions = Subscription::where('customer_id', $user->customer?->id)->get();
-        
+
         return response()->json(['subscriptions' => $subscriptions]);
     }
 
@@ -40,7 +40,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         $invoices = Invoice::where('customer_id', $user->customer?->id)->orderBy('due_date', 'desc')->get();
-        
+
         return response()->json(['invoices' => $invoices]);
     }
 
@@ -53,7 +53,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         $payments = Payment::where('customer_id', $user->customer?->id)->orderBy('paid_at', 'desc')->get();
-        
+
         return response()->json(['payments' => $payments]);
     }
 
@@ -61,7 +61,7 @@ class CustomerController extends Controller
     {
         $user = $request->user();
         $tickets = Ticket::where('customer_id', $user->customer?->id)->orderBy('created_at', 'desc')->get();
-        
+
         return response()->json(['tickets' => $tickets]);
     }
 

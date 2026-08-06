@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,14 +13,14 @@ return new class extends Migration
         Schema::table('invoices', function (Blueprint $table) {
             // Add tax rate for audit purposes
             $table->unsignedBigInteger('tax_rate')->default(0)->after('tax_amount');
-            
+
             // Add proration fields
             $table->boolean('is_prorated')->default(false)->after('notes');
             $table->unsignedBigInteger('proration_amount')->default(0)->after('is_prorated');
-            
+
             // Add billing type (postpaid, prepaid)
             $table->string('billing_type')->nullable()->after('proration_amount');
-            
+
             // Add indexes for new fields
             $table->index(['tenant_id', 'is_prorated']);
             $table->index('billing_type');

@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Log;
  */
 class ProcessLateFees implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
 
     public int $gracePeriodDays = 5;
     public int $lateFeePercentage = 10;
@@ -29,12 +31,12 @@ class ProcessLateFees implements ShouldQueue
     public function handle(LateFeeService $lateFeeService): void
     {
         Log::info("Starting late fee processing job");
-        
+
         $lateFeeService->setGracePeriod($this->gracePeriodDays);
         $lateFeeService->setLateFeePercentage($this->lateFeePercentage);
-        
+
         $result = $lateFeeService->processAllOverdueInvoices();
-        
+
         Log::info("Late fee processing completed", [
             'invoices_processed' => $result['total_invoices_processed'],
             'total_late_fees' => $result['total_late_fees_applied'],

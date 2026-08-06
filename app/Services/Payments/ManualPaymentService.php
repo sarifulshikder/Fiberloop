@@ -7,7 +7,6 @@ use App\Enums\PaymentStatus;
 use App\Events\Billing\PaymentReceived;
 use App\Models\Invoice;
 use App\Models\Payment;
-use App\Models\WalletTransaction;
 use App\Services\Billing\PrepaidService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -381,12 +380,12 @@ class ManualPaymentService
     {
         // Get customers assigned to this field agent
         $customers = \App\Models\Customer::where('assigned_to', $fieldAgentId)
-            ->with(['subscriptions', 'invoices' => function($query) {
+            ->with(['subscriptions', 'invoices' => function ($query) {
                 $query->where('status', '!=', 'paid')
                     ->where('outstanding_amount', '>', 0)
                     ->orderBy('due_date', 'asc');
             }])
-            ->whereHas('invoices', function($query) {
+            ->whereHas('invoices', function ($query) {
                 $query->where('status', '!=', 'paid')
                     ->where('outstanding_amount', '>', 0);
             })
@@ -403,7 +402,7 @@ class ManualPaymentService
     {
         $datePart = now()->format('Ymd');
         $tenantPrefix = 'T' . str_pad($tenantId, 4, '0', STR_PAD_LEFT);
-        
+
         // Get the last receipt number for today
         $lastPayment = Payment::where('tenant_id', $tenantId)
             ->where('gateway_reference', 'LIKE', "{$tenantPrefix}{$datePart}%")

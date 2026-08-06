@@ -2,7 +2,6 @@
 
 namespace App\Services\Billing;
 
-use Carbon\Carbon;
 use Carbon\CarbonInterface;
 
 /**
@@ -28,11 +27,11 @@ class ProrationService
     ): int {
         $totalDays = $cycleStart->diffInDays($cycleEnd) + 1;
         $remainingDays = $activationDate->diffInDays($cycleEnd) + 1;
-        
+
         if ($remainingDays <= 0) {
             return 0;
         }
-        
+
         return (int) round($packagePrice * $remainingDays / $totalDays);
     }
 
@@ -57,11 +56,11 @@ class ProrationService
         $priceDifference = $newPrice - $oldPrice;
         $totalDays = $cycleStart->diffInDays($cycleEnd) + 1;
         $remainingDays = $changeDate->diffInDays($cycleEnd) + 1;
-        
+
         if ($remainingDays <= 0 || $priceDifference <= 0) {
             return 0;
         }
-        
+
         return (int) round($priceDifference * $remainingDays / $totalDays);
     }
 
@@ -86,11 +85,11 @@ class ProrationService
         $priceDifference = $oldPrice - $newPrice;
         $totalDays = $cycleStart->diffInDays($cycleEnd) + 1;
         $remainingDays = $changeDate->diffInDays($cycleEnd) + 1;
-        
+
         if ($remainingDays <= 0 || $priceDifference <= 0) {
             return 0;
         }
-        
+
         return (int) round($priceDifference * $remainingDays / $totalDays);
     }
 
@@ -114,14 +113,14 @@ class ProrationService
         if ($suspensionDate->isAfter($cycleEnd)) {
             return 0;
         }
-        
+
         $totalDays = $cycleStart->diffInDays($cycleEnd) + 1;
         $usedDays = $cycleStart->diffInDays($suspensionDate) + 1;
-        
+
         if ($usedDays <= 0) {
             return 0;
         }
-        
+
         return (int) round($packagePrice * $usedDays / $totalDays);
     }
 
@@ -158,7 +157,7 @@ class ProrationService
         if ($denominator === 0) {
             return 0;
         }
-        
+
         return (int) round($fullAmount * $numerator / $denominator);
     }
 }

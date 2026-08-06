@@ -17,7 +17,8 @@ class HandleSubscriptionTerminated implements ShouldQueue
     public function __construct(
         protected RadiusProvisioningService $provisioningService,
         protected RadiusCoaService $coaService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the SubscriptionTerminated event.

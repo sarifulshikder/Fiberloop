@@ -5,23 +5,22 @@ namespace App\Filament\Resources;
 use App\Enums\RefundStatus;
 use App\Filament\Resources\RefundResource\Pages;
 use App\Models\Refund;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
-use Filament\Tables\Table;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
 class RefundResource extends Resource
 {
@@ -31,9 +30,18 @@ class RefundResource extends Resource
     protected static \UnitEnum|string|null $navigationGroup = 'Billing & Payments';
     protected static ?int $navigationSort = 40;
 
-    public static function getPluralLabel(): string { return 'Refunds'; }
-    public static function getSingularLabel(): string { return 'Refund'; }
-    public static function getDescription(): string { return 'Track customer refunds and reversals'; }
+    public static function getPluralLabel(): string
+    {
+        return 'Refunds';
+    }
+    public static function getSingularLabel(): string
+    {
+        return 'Refund';
+    }
+    public static function getDescription(): string
+    {
+        return 'Track customer refunds and reversals';
+    }
 
     public static function form(Schema $form): Schema
     {
@@ -69,7 +77,7 @@ class RefundResource extends Resource
         return $table->columns([
             TextColumn::make('refund_number')->label('Refund #')->searchable()->sortable(),
             TextColumn::make('customer.full_name')->label('Customer')->searchable()->sortable(),
-            TextColumn::make('amount')->label('Amount (BDT)')->state(fn($r) => number_format($r->amount/100,2))->sortable(),
+            TextColumn::make('amount')->label('Amount (BDT)')->state(fn ($r) => number_format($r->amount / 100, 2))->sortable(),
             SelectColumn::make('status')->label('Status')->options(RefundStatus::class)->sortable(),
             TextColumn::make('reason')->label('Reason')->searchable(),
             TextColumn::make('created_at')->label('Created')->dateTime()->sortable()->toggleable(true),
@@ -80,10 +88,13 @@ class RefundResource extends Resource
         ])->defaultSort('created_at', 'desc');
     }
 
-    public static function getPages(): array { return [
-        'index' => Pages\ListRefunds::route('/'),
-        'create' => Pages\CreateRefund::route('/create'),
-        'view' => Pages\ViewRefund::route('/{record}'),
-        'edit' => Pages\EditRefund::route('/{record}/edit'),
-    ]; }
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListRefunds::route('/'),
+            'create' => Pages\CreateRefund::route('/create'),
+            'view' => Pages\ViewRefund::route('/{record}'),
+            'edit' => Pages\EditRefund::route('/{record}/edit'),
+        ];
+    }
 }

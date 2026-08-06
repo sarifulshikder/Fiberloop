@@ -3,13 +3,11 @@
 namespace App\Filament\Pages;
 
 use App\Models\RadAcct;
-use App\Services\Radius\RadiusSessionService;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 
 class LiveRadiusSessions extends Page implements HasTable
 {

@@ -13,7 +13,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class SubscriptionTerminated
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     public Customer $customer;
     public string $reason;

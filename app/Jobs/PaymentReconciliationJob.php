@@ -17,7 +17,10 @@ use Illuminate\Support\Facades\Log;
  */
 class PaymentReconciliationJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     protected string $gateway;
     protected string $startDate;

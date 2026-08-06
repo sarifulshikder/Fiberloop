@@ -31,27 +31,27 @@ class RunBilling extends Command
     public function handle(BillingRunService $billingRunService): int
     {
         $this->info('Starting billing run...');
-        
+
         // Determine cycle dates
         $cycle = $this->option('cycle') ?? 'monthly';
         $customStart = $this->option('start');
         $customEnd = $this->option('end');
-        
+
         if ($customStart && $customEnd) {
             $cycleStart = Carbon::parse($customStart);
             $cycleEnd = Carbon::parse($customEnd);
         } else {
             [$cycleStart, $cycleEnd] = $this->getCycleDates($cycle);
         }
-        
+
         $this->info("Billing cycle: {$cycleStart->toDateString()} to {$cycleEnd->toDateString()}");
-        
+
         // Check if already ran today (unless forced)
         if (!$this->option('force') && $this->alreadyRanToday($cycleStart, $cycleEnd)) {
             $this->warn('Billing already ran for this cycle today. Use --force to override.');
             return 0;
         }
-        
+
         // Run billing
         if ($this->option('test')) {
             // Synchronous test mode
@@ -60,12 +60,12 @@ class RunBilling extends Command
             // Queued mode
             $result = $billingRunService->runBillingForDueSubscriptions($cycleStart, $cycleEnd);
         }
-        
+
         $this->info("Billing run completed successfully!");
         $this->line("Total subscriptions due: {$result['total_subscriptions_due']}");
         $this->line("Jobs dispatched: {$result['jobs_dispatched']}");
         $this->line("Already invoiced: {$result['already_invoiced']}");
-        
+
         // Log completion
         Log::info('Billing run command completed', [
             'cycle_start' => $cycleStart->toDateString(),
@@ -74,7 +74,7 @@ class RunBilling extends Command
             'dispatched' => $result['jobs_dispatched'],
             'already_invoiced' => $result['already_invoiced'],
         ]);
-        
+
         return 0;
     }
 
@@ -84,7 +84,7 @@ class RunBilling extends Command
     protected function getCycleDates(string $cycle): array
     {
         $now = Carbon::now();
-        
+
         return match ($cycle) {
             'quarterly' => [
                 $now->copy()->firstOfQuarter(),
@@ -113,12 +113,12 @@ class RunBilling extends Command
         $total = 0;
         $processed = 0;
         $alreadyInvoiced = 0;
-        
+
         foreach ($subscriptions as $subscription) {
             $cycle = $billingRunService->calculateBillingCycle($subscription);
             $subCycleStart = $cycle['start'];
             $subCycleEnd = $cycle['end'];
-            
+
             if ($billingRunService->runBillingForSubscription(
                 $subscription,
                 $subCycleStart,
@@ -130,7 +130,7 @@ class RunBilling extends Command
             }
             $total++;
         }
-        
+
         return [
             'cycle_start' => $cycleStart->toDateString(),
             'cycle_end' => $cycleEnd->toDateString(),

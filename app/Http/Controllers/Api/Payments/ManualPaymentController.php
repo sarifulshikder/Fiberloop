@@ -30,10 +30,10 @@ class ManualPaymentController extends Controller
     {
         $fieldAgentId = $request->user()->id;
         $limit = $request->get('limit', 50);
-        
+
         try {
             $customers = $this->manualPaymentService->getOutstandingCustomers($fieldAgentId, $limit);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $customers,
@@ -44,7 +44,7 @@ class ManualPaymentController extends Controller
                 'error' => $e->getMessage(),
                 'field_agent_id' => $fieldAgentId,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -62,10 +62,10 @@ class ManualPaymentController extends Controller
     {
         $data = $request->validated();
         $fieldAgentId = $request->user()->id;
-        
+
         // Add the collected_by field from the authenticated user
         $data['collected_by'] = $fieldAgentId;
-        
+
         // Generate receipt number if not provided
         if (empty($data['receipt_number'])) {
             $data['receipt_number'] = $this->manualPaymentService->generateReceiptNumber(
@@ -75,7 +75,7 @@ class ManualPaymentController extends Controller
 
         try {
             $payment = $this->manualPaymentService->recordPayment($data);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $payment,
@@ -87,7 +87,7 @@ class ManualPaymentController extends Controller
                 'data' => $data,
                 'field_agent_id' => $fieldAgentId,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -105,24 +105,24 @@ class ManualPaymentController extends Controller
     {
         $data = $request->validated();
         $fieldAgentId = $request->user()->id;
-        
+
         // Add the collected_by field from the authenticated user
         $data['collected_by'] = $fieldAgentId;
-        
+
         // Generate receipt number if not provided
         if (empty($data['receipt_number'])) {
             $data['receipt_number'] = $this->manualPaymentService->generateReceiptNumber(
                 $request->user()->tenant_id ?? 1
             );
         }
-        
+
         // Force multi-invoice mode by removing invoice_id
         unset($data['invoice_id']);
         $data['is_multi_invoice'] = true;
 
         try {
             $payment = $this->manualPaymentService->recordMultiInvoicePayment($data);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $payment,
@@ -134,7 +134,7 @@ class ManualPaymentController extends Controller
                 'data' => $data,
                 'field_agent_id' => $fieldAgentId,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -151,10 +151,10 @@ class ManualPaymentController extends Controller
     public function generateReceiptNumber(Request $request): JsonResponse
     {
         $tenantId = $request->user()->tenant_id ?? 1;
-        
+
         try {
             $receiptNumber = $this->manualPaymentService->generateReceiptNumber($tenantId);
-            
+
             return response()->json([
                 'success' => true,
                 'receipt_number' => $receiptNumber,
@@ -165,7 +165,7 @@ class ManualPaymentController extends Controller
                 'error' => $e->getMessage(),
                 'tenant_id' => $tenantId,
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

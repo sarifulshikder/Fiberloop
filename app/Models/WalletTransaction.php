@@ -15,7 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class WalletTransaction extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -55,12 +56,12 @@ class WalletTransaction extends Model
     {
         static::creating(function (WalletTransaction $transaction) {
             $transaction->uuid = $transaction->uuid ?? (string) \Str::orderedUuid();
-            
+
             // Calculate balance_after if not set
             if (!isset($transaction->balance_after)) {
                 $customer = $transaction->customer;
                 if ($customer) {
-                    $transaction->balance_after = $transaction->balance_before + 
+                    $transaction->balance_after = $transaction->balance_before +
                         ($transaction->type === WalletTransactionType::CREDIT ? $transaction->amount : -$transaction->amount);
                 }
             }
@@ -110,7 +111,7 @@ class WalletTransaction extends Model
         array $metadata = []
     ): self {
         $currentBalance = $customer->wallet_balance;
-        
+
         $transaction = static::create([
             'tenant_id' => $customer->tenant_id,
             'customer_id' => $customer->id,
@@ -124,7 +125,7 @@ class WalletTransaction extends Model
             'created_by' => $createdBy,
             'metadata' => $metadata,
         ]);
-        
+
         return $transaction;
     }
 
@@ -141,7 +142,7 @@ class WalletTransaction extends Model
         array $metadata = []
     ): self {
         $currentBalance = $customer->wallet_balance;
-        
+
         $transaction = static::create([
             'tenant_id' => $customer->tenant_id,
             'customer_id' => $customer->id,
@@ -155,7 +156,7 @@ class WalletTransaction extends Model
             'created_by' => $createdBy,
             'metadata' => $metadata,
         ]);
-        
+
         return $transaction;
     }
 
@@ -168,12 +169,12 @@ class WalletTransaction extends Model
             ->where('customer_id', $customer->id)
             ->where('type', WalletTransactionType::CREDIT)
             ->sum('amount');
-        
+
         $debits = static::query()
             ->where('customer_id', $customer->id)
             ->where('type', WalletTransactionType::DEBIT)
             ->sum('amount');
-        
+
         return $credits - $debits;
     }
 

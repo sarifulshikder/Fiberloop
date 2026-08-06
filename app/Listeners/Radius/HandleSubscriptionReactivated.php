@@ -14,7 +14,8 @@ class HandleSubscriptionReactivated implements ShouldQueue
 
     public function __construct(
         protected RadiusProvisioningService $provisioningService
-    ) {}
+    ) {
+    }
 
     /**
      * Handle the SubscriptionReactivated event.

@@ -43,7 +43,7 @@ class WalletTopUpController extends Controller
     {
         try {
             $customer = Customer::findOrFail($customerId);
-            
+
             return response()->json([
                 'success' => true,
                 'customer_id' => $customer->id,
@@ -68,7 +68,7 @@ class WalletTopUpController extends Controller
     public function getMyBalance(Request $request): JsonResponse
     {
         $customer = $request->user()->customer;
-        
+
         if (!$customer) {
             return response()->json([
                 'success' => false,
@@ -100,7 +100,7 @@ class WalletTopUpController extends Controller
             $data = $request->validated();
             $customer = $request->user()->customer;
             $user = $request->user();
-            
+
             if (!$customer) {
                 throw new \Exception('No customer found for this user');
             }
@@ -114,7 +114,7 @@ class WalletTopUpController extends Controller
             $gateway = $data['gateway'] ?? PaymentMethod::SSLCOMMERZ->value;
             $amount = $data['amount']; // Already in poysha from request preparation
             $idempotencyKey = $data['idempotency_key'] ?? null;
-            
+
             // Generate a unique reference for this top-up
             $topUpReference = 'WALLET_' . $customer->id . '_' . now()->format('YmdHis') . '_' . Str::random(6);
 
@@ -144,7 +144,7 @@ class WalletTopUpController extends Controller
 
             // Get the appropriate gateway service
             $gatewayService = $this->getGatewayService($gateway);
-            
+
             if (!$gatewayService) {
                 throw new \Exception('Invalid gateway specified');
             }
@@ -193,7 +193,7 @@ class WalletTopUpController extends Controller
                 'gateway' => $gateway ?? null,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -224,7 +224,7 @@ class WalletTopUpController extends Controller
     {
         try {
             $customer = Customer::findOrFail($customerId);
-            
+
             $transactions = \App\Models\WalletTransaction::where('customer_id', $customer->id)
                 ->with(['createdBy', 'payment'])
                 ->orderBy('created_at', 'desc')
@@ -255,7 +255,7 @@ class WalletTopUpController extends Controller
     {
         $minBalance = config('billing.prepaid.min_balance', 0);
         $suspendThreshold = config('billing.prepaid.suspend_threshold', 0);
-        
+
         return response()->json([
             'success' => true,
             'min_balance_poysha' => $minBalance,

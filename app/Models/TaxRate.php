@@ -59,7 +59,7 @@ class TaxRate extends Model
             })
             ->orderBy('effective_from', 'desc')
             ->first();
-        
+
         return $rate ? $rate->rate : config('billing.tax_rate', 15);
     }
 
@@ -72,7 +72,7 @@ class TaxRate extends Model
             ->where('tenant_id', $tenantId)
             ->where('is_default', true)
             ->first();
-        
+
         return $rate ? $rate->rate : config('billing.tax_rate', 15);
     }
 
@@ -85,7 +85,7 @@ class TaxRate extends Model
             ->whereNull('tenant_id')
             ->where('is_default', true)
             ->first();
-        
+
         return $rate ? $rate->rate : config('billing.tax_rate', 15);
     }
 

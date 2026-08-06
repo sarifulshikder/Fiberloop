@@ -27,3 +27,7 @@ Homestead.yaml
 Thumbs.db
 supervisord.pid
 .aider*
+
+**/caddy
+frankenphp
+frankenphp-worker.php

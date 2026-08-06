@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api\Payments;
 
 use App\Enums\PaymentStatus;
 use App\Events\Billing\PaymentReceived;
-use App\Models\Payment;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Services\Payments\BkashService;
 use App\Services\Payments\NagadService;
 use App\Services\Payments\SSLCommerzService;
@@ -13,7 +13,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 /**
  * Base webhook controller for payment gateways.
@@ -27,17 +26,17 @@ class WebhookController extends Controller
     public function handleBkash(Request $request, BkashService $bkashService): JsonResponse
     {
         $payload = $request->all();
-        
+
         try {
             $this->processWebhook('bkash', $payload, $bkashService);
-            
+
             return response()->json(['status' => 'success', 'message' => 'Webhook processed']);
         } catch (\Exception $e) {
             Log::error('bKash webhook processing failed', [
                 'error' => $e->getMessage(),
                 'payload' => $payload,
             ]);
-            
+
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
@@ -48,17 +47,17 @@ class WebhookController extends Controller
     public function handleNagad(Request $request, NagadService $nagadService): JsonResponse
     {
         $payload = $request->all();
-        
+
         try {
             $this->processWebhook('nagad', $payload, $nagadService);
-            
+
             return response()->json(['status' => 'success', 'message' => 'Webhook processed']);
         } catch (\Exception $e) {
             Log::error('Nagad webhook processing failed', [
                 'error' => $e->getMessage(),
                 'payload' => $payload,
             ]);
-            
+
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
@@ -69,17 +68,17 @@ class WebhookController extends Controller
     public function handleSSLCommerz(Request $request, SSLCommerzService $sslCommerzService): JsonResponse
     {
         $payload = $request->all();
-        
+
         try {
             $this->processWebhook('sslcommerz', $payload, $sslCommerzService);
-            
+
             return response()->json(['status' => 'success', 'message' => 'Webhook processed']);
         } catch (\Exception $e) {
             Log::error('SSLCommerz webhook processing failed', [
                 'error' => $e->getMessage(),
                 'payload' => $payload,
             ]);
-            
+
             return response()->json(['status' => 'error', 'message' => $e->getMessage()], 400);
         }
     }
@@ -91,7 +90,7 @@ class WebhookController extends Controller
     {
         // Extract transaction ID - different gateways use different field names
         $transactionId = $this->extractTransactionId($gateway, $payload);
-        
+
         if (empty($transactionId)) {
             throw new \Exception('Cannot extract transaction ID from webhook payload');
         }
@@ -100,7 +99,7 @@ class WebhookController extends Controller
         $existingPayment = Payment::where('gateway_reference', $transactionId)
             ->where('method', $gateway)
             ->first();
-        
+
         if ($existingPayment) {
             Log::info("Duplicate webhook received for transaction {$transactionId}", [
                 'gateway' => $gateway,
@@ -111,7 +110,7 @@ class WebhookController extends Controller
 
         // Process the webhook through the gateway service
         $gatewayResponse = $gatewayService->handleWebhook($payload);
-        
+
         if ($gatewayResponse['status'] !== 'completed') {
             Log::info("Webhook received but payment not completed", [
                 'gateway' => $gateway,
@@ -124,7 +123,7 @@ class WebhookController extends Controller
         // Find the invoice associated with this payment
         $invoiceNumber = $this->extractInvoiceNumber($gateway, $payload);
         $invoice = null;
-        
+
         if ($invoiceNumber) {
             $invoice = Invoice::where('invoice_number', $invoiceNumber)
                 ->where('status', '!=', 'paid')

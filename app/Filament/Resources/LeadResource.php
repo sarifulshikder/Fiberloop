@@ -5,25 +5,20 @@ namespace App\Filament\Resources;
 use App\Enums\LeadStatus;
 use App\Filament\Resources\LeadResource\Pages;
 use App\Models\Lead;
-use App\Models\Olt;
 use App\Models\NetworkDevice;
+use App\Models\Olt;
 use App\Models\User;
-use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -101,7 +96,7 @@ class LeadResource extends Resource
                             ->required(),
                         Select::make('assigned_to')
                             ->label('Assigned To')
-                            ->options(User::query()->whereHas('roles', fn($q) => $q->whereIn('name', ['admin', 'support_agent', 'billing_agent']))->pluck('name', 'id'))
+                            ->options(User::query()->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin', 'support_agent', 'billing_agent']))->pluck('name', 'id'))
                             ->searchable()
                             ->nullable(),
                         Select::make('priority')

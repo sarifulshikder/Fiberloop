@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable([
@@ -36,11 +36,11 @@ use Spatie\Permission\Traits\HasRoles;
 #[Hidden(['password', 'remember_token', 'two_factor_secret'])]
 class User extends Authenticatable implements FilamentUser
 {
-  use HasApiTokens;
-  use HasFactory;
-  use SoftDeletes;
-  use Notifiable;
-  use HasRoles;
+    use HasApiTokens;
+    use HasFactory;
+    use SoftDeletes;
+    use Notifiable;
+    use HasRoles;
 
     /**
      * Get the attributes that should be cast.
@@ -104,7 +104,7 @@ class User extends Authenticatable implements FilamentUser
         // Allow access to staff roles only
         // Customers and resellers should NOT access /admin
         $staffRoles = ['super_admin', 'admin', 'noc_engineer', 'support_agent', 'billing_agent', 'field_technician'];
-        
+
         return $this->hasAnyRole($staffRoles);
     }
 }

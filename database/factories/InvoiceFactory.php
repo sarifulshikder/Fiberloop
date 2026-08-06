@@ -18,7 +18,7 @@ class InvoiceFactory extends Factory
         $subscription = Subscription::factory()->create();
         $customer = $subscription->customer;
         $package = $subscription->package;
-        
+
         $subtotal = $package->price;
         $taxAmount = (int) ($subtotal * $package->tax_rate / 10000);
         $total = $subtotal + $taxAmount;

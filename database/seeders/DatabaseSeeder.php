@@ -2,28 +2,18 @@
 
 namespace Database\Seeders;
 
-use App\Enums\BillingType;
-use App\Enums\ConnectionType;
-use App\Enums\CustomerStatus;
 use App\Enums\InvoiceStatus;
-use App\Enums\PackageBillingCycle;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-use App\Enums\ResellerStatus;
 use App\Enums\SubscriptionStatus;
-use App\Enums\TicketPriority;
-use App\Enums\TicketStatus;
 use App\Models\Customer;
-use App\Models\Lead;
-use App\Models\CustomerNote;
-use App\Models\PackageChangeRequest;
+use App\Models\InventoryItem;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
-use App\Models\InventoryItem;
 use App\Models\NetworkDevice;
 use App\Models\NotificationLog;
-use App\Models\Onu;
 use App\Models\Olt;
+use App\Models\Onu;
 use App\Models\Package;
 use App\Models\Payment;
 use App\Models\RadiusCustomer;
@@ -31,7 +21,6 @@ use App\Models\Reseller;
 use App\Models\Subscription;
 use App\Models\Ticket;
 use App\Models\User;
-use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -120,12 +109,12 @@ class DatabaseSeeder extends Seeder
                 ]),
             ]);
             $subscriptions[] = $subscription;
-            
+
             // Create ONU for some customers
             if (rand(0, 1) == 1 && $olts->count() > 0) {
                 Onu::factory()->forCustomer($customer)->forOlt($olts->random())->create();
             }
-            
+
             // Create RADIUS customer
             RadiusCustomer::factory()->forCustomer($customer)->create();
         }
@@ -147,10 +136,10 @@ class DatabaseSeeder extends Seeder
                             InvoiceStatus::OVERDUE,
                         ]),
                     ]);
-                    
+
                     // Create invoice items
                     InvoiceItem::factory()->count(rand(1, 3))->forInvoice($invoice)->create();
-                    
+
                     // Create payments for some invoices
                     if ($invoice->status === InvoiceStatus::PAID || (rand(0, 1) == 1 && $invoice->status === InvoiceStatus::SENT)) {
                         Payment::factory()->forInvoice($invoice)->forCustomer($subscription->customer)->create([

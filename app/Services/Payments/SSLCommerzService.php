@@ -2,10 +2,10 @@
 
 namespace App\Services\Payments;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * SSLCommerz payment gateway service implementation.
@@ -28,7 +28,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
     public function initiatePayment(array $data): array
     {
         $this->validateConfiguration(['store_id', 'store_password']);
-        
+
         $config = $this->config();
         $amount = $data['amount'] ?? 0; // Amount in poysha
         $invoiceNumber = $data['invoice_number'] ?? '';
@@ -39,16 +39,16 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         $successUrl = $data['success_url'] ?? $config['success_url'];
         $failUrl = $data['fail_url'] ?? $config['fail_url'];
         $cancelUrl = $data['cancel_url'] ?? $config['cancel_url'];
-        
+
         $amountBDT = $this->poyshaToBdt($amount);
-        
+
         // Use idempotency if key provided
         if ($idempotencyKey) {
             return $this->idempotencyService->execute($idempotencyKey, function () use ($config, $amountBDT, $invoiceNumber, $customerName, $customerEmail, $customerPhone, $successUrl, $failUrl, $cancelUrl) {
                 return $this->createPaymentRequest($config, $amountBDT, $invoiceNumber, $customerName, $customerEmail, $customerPhone, $successUrl, $failUrl, $cancelUrl);
             });
         }
-        
+
         return $this->createPaymentRequest($config, $amountBDT, $invoiceNumber, $customerName, $customerEmail, $customerPhone, $successUrl, $failUrl, $cancelUrl);
     }
 
@@ -69,7 +69,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
     ): array {
         $isSandbox = $this->isSandbox();
         $baseUrl = $isSandbox ? $config['sandbox_base_url'] : $config['production_base_url'];
-        
+
         $formData = [
             'store_id' => $config['store_id'],
             'store_passwd' => $config['store_password'],
@@ -102,7 +102,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         ];
 
         $redirectUrl = $baseUrl . '/gwprocess/v4/api.php?' . http_build_query($formData);
-        
+
         return [
             'transaction_id' => $invoiceNumber,
             'gateway_reference' => $invoiceNumber,
@@ -126,21 +126,21 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
     public function verifyPayment(string $transactionId): array
     {
         $this->validateConfiguration(['store_id', 'store_password']);
-        
+
         $config = $this->config();
         $isSandbox = $this->isSandbox();
         $baseUrl = $isSandbox ? $config['sandbox_base_url'] : $config['production_base_url'];
-        
+
         // SSLCommerz provides a validation API
         $validationUrl = $baseUrl . '/validator/api.php';
-        
+
         $requestData = [
             'store_id' => $config['store_id'],
             'store_passwd' => $config['store_password'],
             'tran_id' => $transactionId,
             'v' => 1, // Validation version
         ];
-        
+
         $response = Http::withOptions(['verify' => false])
             ->timeout($this->getTimeout())
             ->get($validationUrl, $requestData);
@@ -151,7 +151,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         }
 
         $data = $response->json();
-        
+
         if (empty($data['status']) || empty($data['AMT'])) {
             throw new Exception('Invalid response from SSLCommerz validation');
         }
@@ -159,7 +159,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         $status = $data['status'] ?? 'failed';
         $amountBDT = $data['AMT'] ?? 0;
         $amountPoysha = $this->bdtToPoysha($amountBDT);
-        
+
         return [
             'transaction_id' => $transactionId,
             'gateway_reference' => $data['tran_id'] ?? $transactionId,
@@ -187,10 +187,10 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         $tranId = $payload['tran_id'] ?? '';
         $status = $payload['status'] ?? '';
         $amountBDT = $payload['amount'] ?? 0;
-        
+
         // Verify the payment with SSLCommerz API to ensure it's legitimate
         $verification = $this->verifyPayment($tranId);
-        
+
         if ($verification['status'] !== 'completed') {
             return [
                 'transaction_id' => $tranId,
@@ -217,7 +217,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
     protected function verifyWebhookSignature(array $payload): bool
     {
         $secret = $this->getWebhookSecret();
-        
+
         if (empty($secret)) {
             Log::warning('SSLCommerz webhook secret not configured');
             return false;
@@ -226,7 +226,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         // SSLCommerz sends verify_sign and verify_key in IPN
         $verifySign = $payload['verify_sign'] ?? '';
         $verifyKey = $payload['verify_key'] ?? '';
-        
+
         if (empty($verifySign) || empty($verifyKey)) {
             return false;
         }
@@ -235,7 +235,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         // SSLCommerz concatenates specific fields in a particular order
         $dataToSign = $this->getWebhookSignatureData($payload);
         $expectedSign = hash_hmac('sha256', $dataToSign . $secret, $secret);
-        
+
         return hash_equals($expectedSign, $verifySign);
     }
 
@@ -247,11 +247,11 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         // SSLCommerz uses these fields for verification
         $requiredKeys = ['store_id', 'tran_id', 'amount', 'currency', 'status'];
         $data = [];
-        
+
         foreach ($requiredKeys as $key) {
             $data[$key] = $payload[$key] ?? '';
         }
-        
+
         return implode('|', $data);
     }
 
@@ -262,15 +262,15 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
     public function refund(string $transactionId, int $amount): array
     {
         $this->validateConfiguration(['store_id', 'store_password']);
-        
+
         $config = $this->config();
         $isSandbox = $this->isSandbox();
         $baseUrl = $isSandbox ? $config['sandbox_base_url'] : $config['production_base_url'];
         $amountBDT = $this->poyshaToBdt($amount);
-        
+
         // SSLCommerz refund API endpoint
         $refundUrl = $baseUrl . '/refund/api.php';
-        
+
         $refundData = [
             'store_id' => $config['store_id'],
             'store_passwd' => $config['store_password'],
@@ -278,7 +278,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
             'refund_amount' => $amountBDT,
             'refund_remarks' => 'Customer request',
         ];
-        
+
         $response = Http::withOptions(['verify' => false])
             ->timeout($this->getTimeout())
             ->post($refundUrl, $refundData);
@@ -289,7 +289,7 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
         }
 
         $data = $response->json();
-        
+
         return [
             'refund_id' => $data['refund_id'] ?? 'REFUND_' . Str::uuid(),
             'transaction_id' => $transactionId,
@@ -308,17 +308,17 @@ class SSLCommerzService extends BaseGatewayService implements PaymentGatewayCont
     {
         $paymentData = $this->initiatePayment($data);
         $formData = $paymentData['form_data'] ?? [];
-        
+
         $html = '<form id="sslcommerzForm" method="POST" action="' . $paymentData['redirect_url'] . '">';
-        
+
         foreach ($formData as $key => $value) {
             $html .= '<input type="hidden" name="' . htmlspecialchars($key) . '" value="' . htmlspecialchars($value) . '">';
         }
-        
+
         $html .= '<input type="submit" value="Pay with SSLCommerz">';
         $html .= '</form>';
         $html .= '<script>document.getElementById("sslcommerzForm").submit();</script>';
-        
+
         return $html;
     }
 }

@@ -26,7 +26,7 @@ class AutoSuspendSubscriptions extends Command
     public function handle(): int
     {
         $this->info('Starting auto-suspend process...');
-        
+
         if ($this->option('test')) {
             // Run synchronously for testing
             $job = new AutoSuspend();
@@ -36,11 +36,11 @@ class AutoSuspendSubscriptions extends Command
             AutoSuspend::dispatch();
             $this->info('Auto-suspend job dispatched to queue.');
         }
-        
+
         Log::info('Auto-suspend command executed', [
             'mode' => $this->option('test') ? 'synchronous' : 'queued',
         ]);
-        
+
         $this->info('Auto-suspend process completed.');
         return 0;
     }

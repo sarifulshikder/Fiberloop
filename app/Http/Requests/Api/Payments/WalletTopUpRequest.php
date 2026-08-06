@@ -20,7 +20,7 @@ class WalletTopUpRequest extends FormRequest
         if ($this->user()->hasRole('customer')) {
             return $this->user()->customer !== null;
         }
-        
+
         return $this->user()->hasAnyRole([
             'billing_agent', 'admin', 'super_admin'
         ]);

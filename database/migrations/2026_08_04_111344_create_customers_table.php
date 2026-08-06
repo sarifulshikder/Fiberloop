@@ -1,13 +1,12 @@
 <?php
 
-use App\Enums\CustomerStatus;
 use App\Enums\ConnectionType;
+use App\Enums\CustomerStatus;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */

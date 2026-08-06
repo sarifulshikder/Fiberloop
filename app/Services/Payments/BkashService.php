@@ -2,10 +2,10 @@
 
 namespace App\Services\Payments;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * bKash payment gateway service implementation.
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class BkashService extends BaseGatewayService implements PaymentGatewayContract
 {
     protected string $gatewayName = 'bkash';
-    
+
     protected string $accessToken = '';
     protected string $refreshToken = '';
     protected int $tokenExpiresAt = 0;
@@ -35,7 +35,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $this->refreshAccessToken();
-        
+
         return $this->accessToken;
     }
 
@@ -45,12 +45,12 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
     protected function refreshAccessToken(): void
     {
         $this->validateConfiguration(['app_key', 'app_secret', 'username', 'password']);
-        
+
         $config = $this->config();
-        
+
         // For bKash, we need to get a grant token first, then use it to get access token
         $grantToken = $this->getGrantToken();
-        
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'username' => $config['username'],
@@ -71,7 +71,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['id_token'])) {
             throw new Exception('Missing id_token in bKash token response');
         }
@@ -97,7 +97,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $accessData = $accessResponse->json();
-        
+
         $this->accessToken = $accessData['access_token'] ?? '';
         $this->refreshToken = $accessData['refresh_token'] ?? '';
         $this->tokenExpiresAt = now()->timestamp + ($accessData['expires_in'] ?? 3600) - 60; // 1 minute buffer
@@ -109,9 +109,9 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
     protected function getGrantToken(): string
     {
         $this->validateConfiguration(['username', 'password']);
-        
+
         $config = $this->config();
-        
+
         $response = Http::withBasicAuth($config['username'], $config['password'])
             ->withHeaders([
                 'Content-Type' => 'application/json',
@@ -129,7 +129,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['grant_token'])) {
             throw new Exception('Missing grant_token in bKash response');
         }
@@ -144,7 +144,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
     public function initiatePayment(array $data): array
     {
         $this->validateConfiguration(['merchant_id']);
-        
+
         $config = $this->config();
         $amount = $data['amount'] ?? 0; // Amount in poysha
         $invoiceNumber = $data['invoice_number'] ?? '';
@@ -152,14 +152,14 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         $customerPhone = $data['customer_phone'] ?? '';
         $idempotencyKey = $data['idempotency_key'] ?? null;
         $callbackUrl = $data['callback_url'] ?? route('api.webhooks.bkash');
-        
+
         // Use idempotency if key provided
         if ($idempotencyKey) {
             return $this->idempotencyService->execute($idempotencyKey, function () use ($data, $config, $amount, $invoiceNumber, $customerName, $customerPhone, $callbackUrl) {
                 return $this->createPaymentRequest($config, $amount, $invoiceNumber, $customerName, $customerPhone, $callbackUrl);
             });
         }
-        
+
         return $this->createPaymentRequest($config, $amount, $invoiceNumber, $customerName, $customerPhone, $callbackUrl);
     }
 
@@ -177,7 +177,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         $accessToken = $this->getAccessToken();
         $amountBDT = $this->poyshaToBdt($amount);
         $orderId = 'ORDER_' . $invoiceNumber . '_' . now()->format('YmdHis');
-        
+
         $paymentRequest = [
             'amount' => (float) $amountBDT,
             'merchantInvoiceNumber' => $invoiceNumber,
@@ -198,7 +198,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['bkashURL'])) {
             throw new Exception('Missing bkashURL in bKash response');
         }
@@ -225,7 +225,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
     {
         $accessToken = $this->getAccessToken();
         $config = $this->config();
-        
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'Authorization' => $accessToken,
@@ -242,7 +242,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['status'])) {
             throw new Exception('Invalid response from bKash');
         }
@@ -250,7 +250,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         $status = $data['status'] ?? 'failed';
         $amountBDT = $data['amount'] ?? 0;
         $amountPoysha = $this->bdtToPoysha($amountBDT);
-        
+
         return [
             'transaction_id' => $transactionId,
             'gateway_reference' => $data['paymentID'] ?? $transactionId,
@@ -278,10 +278,10 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         $paymentId = $payload['paymentID'] ?? '';
         $status = $payload['status'] ?? '';
         $amountBDT = $payload['amount'] ?? 0;
-        
+
         // Verify the payment with bKash API to ensure it's legitimate
         $verification = $this->verifyPayment($paymentId);
-        
+
         if ($verification['status'] !== 'completed') {
             return [
                 'transaction_id' => $paymentId,
@@ -308,7 +308,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
     protected function verifyWebhookSignature(array $payload): bool
     {
         $secret = $this->getWebhookSecret();
-        
+
         if (empty($secret)) {
             Log::warning('bKash webhook secret not configured');
             return false;
@@ -318,7 +318,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         // we need to check the signature based on the payload
         // This is a placeholder - actual implementation depends on bKash webhook spec
         $providedSignature = $payload['signature'] ?? '';
-        
+
         if (empty($providedSignature)) {
             return false;
         }
@@ -327,7 +327,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         // bKash webhook payload includes paymentID, status, amount, etc.
         $dataToSign = $this->getSignatureData($payload);
         $expectedSignature = hash_hmac('sha256', $dataToSign, $secret);
-        
+
         return hash_equals($expectedSignature, $providedSignature);
     }
 
@@ -339,11 +339,11 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         // Order matters for signature verification
         $requiredKeys = ['paymentID', 'status', 'amount', 'merchantInvoiceNumber'];
         $data = [];
-        
+
         foreach ($requiredKeys as $key) {
             $data[$key] = $payload[$key] ?? '';
         }
-        
+
         return implode('|', $data);
     }
 
@@ -355,7 +355,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         $accessToken = $this->getAccessToken();
         $config = $this->config();
         $amountBDT = $this->poyshaToBdt($amount);
-        
+
         $refundRequest = [
             'paymentID' => $transactionId,
             'amount' => (float) $amountBDT,
@@ -376,7 +376,7 @@ class BkashService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         return [
             'refund_id' => $data['refundID'] ?? 'REFUND_' . Str::uuid(),
             'transaction_id' => $transactionId,

@@ -6,7 +6,6 @@ use Closure;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Symfony\Component\HttpFoundation\Response;
 
 class LogPermissionDenied
 {
@@ -24,7 +23,7 @@ class LogPermissionDenied
         } catch (AuthorizationException $e) {
             // Log the permission denied event
             $user = $request->user();
-            
+
             activity()
                 ->by($user)
                 ->withProperties([

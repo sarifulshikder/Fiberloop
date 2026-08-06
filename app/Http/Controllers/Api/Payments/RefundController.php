@@ -32,7 +32,7 @@ class RefundController extends Controller
         try {
             $payment = Payment::findOrFail($paymentId);
             $canRefund = $this->refundService->canRefund($payment);
-            
+
             return response()->json([
                 'success' => true,
                 'can_refund' => $canRefund,
@@ -65,7 +65,7 @@ class RefundController extends Controller
     {
         try {
             $payment = Payment::findOrFail($paymentId);
-            
+
             if (!$this->refundService->canRefund($payment)) {
                 return response()->json([
                     'success' => false,
@@ -76,7 +76,7 @@ class RefundController extends Controller
             $data = $request->validated();
             $processedBy = $request->user()->id;
             $idempotencyKey = $data['idempotency_key'] ?? null;
-            
+
             $result = $this->refundService->processRefund(
                 $payment,
                 $data['amount'],
@@ -96,7 +96,7 @@ class RefundController extends Controller
                 'payment_id' => $paymentId,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -121,7 +121,7 @@ class RefundController extends Controller
 
         try {
             $processedBy = $request->user()->id;
-            
+
             $result = $this->refundService->processManualRefund(
                 $data['customer_id'],
                 $data['amount'],
@@ -142,7 +142,7 @@ class RefundController extends Controller
                 'amount' => $data['amount'] ?? null,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -160,7 +160,7 @@ class RefundController extends Controller
     {
         try {
             $refunds = $this->refundService->getCustomerRefundHistory($customerId);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $refunds,
@@ -170,7 +170,7 @@ class RefundController extends Controller
                 'customer_id' => $customerId,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

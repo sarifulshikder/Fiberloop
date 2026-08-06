@@ -15,7 +15,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class PaymentReconciliation extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -122,7 +123,7 @@ class PaymentReconciliation extends Model
         // If the original payment exists, add a note
         if ($this->payment) {
             $this->payment->update([
-                'notes' => $this->payment->notes . (empty($this->payment->notes) ? '' : ' | ') . 
+                'notes' => $this->payment->notes . (empty($this->payment->notes) ? '' : ' | ') .
                          'Reconciliation resolved: ' . $notes,
             ]);
         }

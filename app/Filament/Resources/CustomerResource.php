@@ -7,27 +7,23 @@ use App\Enums\CustomerStatus;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use App\Models\Package;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Schemas\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Resources\Resource;
-use Filament\Schemas\Schema;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables;
-use Filament\Tables\Columns\IconColumn;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Storage;
 
 class CustomerResource extends Resource
 {
@@ -99,7 +95,7 @@ class CustomerResource extends Resource
                             ->image()
                             ->imagePreviewHeight('150')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
-                        
+
                         FileUpload::make('nid_back_photo')
                             ->label('NID Back Photo')
                             ->directory('kyc-documents')
@@ -110,7 +106,7 @@ class CustomerResource extends Resource
                             ->image()
                             ->imagePreviewHeight('150')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
-                        
+
                         FileUpload::make('signature_photo')
                             ->label('Signature')
                             ->directory('kyc-documents')
@@ -121,7 +117,7 @@ class CustomerResource extends Resource
                             ->image()
                             ->imagePreviewHeight('100')
                             ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
-                        
+
                         TextInput::make('nid_number')
                             ->label('NID Number')
                             ->maxLength(50),

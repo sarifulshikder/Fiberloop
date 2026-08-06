@@ -3,14 +3,9 @@
 namespace Tests\Unit\Radius;
 
 use App\Models\Nas;
-use App\Models\RadAcct;
 use App\Models\RadCheck;
-use App\Models\RadGroupCheck;
-use App\Models\RadGroupReply;
-use App\Models\RadPostAuth;
-use App\Models\RadReply;
-use App\Models\RadUserGroup;
 use App\Models\RadiusUser;
+use App\Models\RadReply;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

@@ -33,7 +33,7 @@ class SmsBulkAction extends BulkAction
     {
         $message = $data['message'] ?? '';
         $actor = auth()->user();
-        
+
         foreach ($records as $record) {
             try {
                 // TODO: Integrate with SMS gateway
@@ -44,7 +44,7 @@ class SmsBulkAction extends BulkAction
                     ->on($record)
                     ->withProperties(['message' => $message, 'type' => 'sms'])
                     ->log('SMS sent to customer');
-                
+
                 // Log to notifications_log
                 $record->notifications()->create([
                     'type' => 'sms',

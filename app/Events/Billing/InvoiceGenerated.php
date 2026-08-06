@@ -12,7 +12,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class InvoiceGenerated
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * The invoice instance.

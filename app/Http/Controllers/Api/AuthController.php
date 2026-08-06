@@ -143,7 +143,7 @@ class AuthController extends Controller
     {
         // Use Laravel's rate limiter
         $key = 'login_attempts:' . $email . ':' . $request->ip();
-        
+
         // Allow 5 attempts per minute
         if (app('rate_limiter')->tooManyAttempts($key, 5)) {
             return true;

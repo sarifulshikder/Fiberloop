@@ -3,8 +3,8 @@
 namespace App\Jobs\Radius;
 
 use App\Models\RadAcct;
-use App\Models\RadReply;
 use App\Models\RadiusCustomer;
+use App\Models\RadReply;
 use App\Models\Subscription;
 use App\Services\Radius\RadiusCoaService;
 use App\Services\Radius\RadiusProvisioningService;
@@ -14,12 +14,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EnforceFairUsagePolicy implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * Execute the FUP enforcement job.

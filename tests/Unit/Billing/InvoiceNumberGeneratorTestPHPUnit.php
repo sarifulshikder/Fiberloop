@@ -11,7 +11,7 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Clean up before each test
         InvoiceNumberSequence::where('tenant_id', 1)->delete();
         InvoiceNumberSequence::where('tenant_id', 2)->delete();
@@ -22,15 +22,15 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         // Generate first invoice number
         $firstNumber = $generator->generateInvoiceNumber($tenantId);
         $this->assertEquals('INV-1-00000001', $firstNumber);
-        
+
         // Generate second invoice number
         $secondNumber = $generator->generateInvoiceNumber($tenantId);
         $this->assertEquals('INV-1-00000002', $secondNumber);
-        
+
         // Generate third invoice number
         $thirdNumber = $generator->generateInvoiceNumber($tenantId);
         $this->assertEquals('INV-1-00000003', $thirdNumber);
@@ -41,14 +41,14 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
         $generator = new InvoiceNumberGenerator();
         $tenantId1 = 1;
         $tenantId2 = 2;
-        
+
         // Generate for tenant 1
         $number1a = $generator->generateInvoiceNumber($tenantId1);
         $number1b = $generator->generateInvoiceNumber($tenantId1);
-        
+
         // Generate for tenant 2
         $number2a = $generator->generateInvoiceNumber($tenantId2);
-        
+
         $this->assertEquals('INV-1-00000001', $number1a);
         $this->assertEquals('INV-1-00000002', $number1b);
         $this->assertEquals('INV-2-00000001', $number2a);
@@ -58,9 +58,9 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         $number = $generator->generateCreditNoteNumber($tenantId);
         $this->assertEquals('CN-1-00000001', $number);
     }
@@ -69,9 +69,9 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         $number = $generator->generateRefundNumber($tenantId);
         $this->assertEquals('RFN-1-00000001', $number);
     }
@@ -80,13 +80,13 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         // Generate a few numbers
         $generator->generateInvoiceNumber($tenantId);
         $generator->generateInvoiceNumber($tenantId);
-        
+
         $current = $generator->getCurrentInvoiceNumber($tenantId);
         $this->assertEquals(2, $current);
     }
@@ -95,13 +95,13 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 999; // New tenant
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         $number = $generator->generateInvoiceNumber($tenantId);
-        
+
         $this->assertEquals('INV-999-00000001', $number);
-        
+
         // Verify sequence was created
         $sequence = InvoiceNumberSequence::where('tenant_id', $tenantId)->first();
         $this->assertNotNull($sequence);
@@ -112,20 +112,20 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         // Generate some numbers
         $generator->generateInvoiceNumber($tenantId);
         $generator->generateInvoiceNumber($tenantId);
         $generator->generateInvoiceNumber($tenantId);
-        
+
         // Reset to 0
         $generator->resetInvoiceNumber($tenantId, 0);
-        
+
         $current = $generator->getCurrentInvoiceNumber($tenantId);
         $this->assertEquals(0, $current);
-        
+
         // Next number should start from 1
         $nextNumber = $generator->generateInvoiceNumber($tenantId);
         $this->assertEquals('INV-1-00000001', $nextNumber);
@@ -135,19 +135,19 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         // Generate multiple numbers
         $numbers = [];
         for ($i = 1; $i <= 10; $i++) {
             $numbers[] = $generator->generateInvoiceNumber($tenantId);
         }
-        
+
         // Verify all numbers are unique and sequential
         $uniqueNumbers = array_unique($numbers);
         $this->assertCount(10, $uniqueNumbers);
-        
+
         // Verify sequence
         for ($i = 0; $i < 10; $i++) {
             $expectedSequence = $i + 1;
@@ -159,12 +159,12 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         // Generate first number
         $number = $generator->generateInvoiceNumber($tenantId);
-        
+
         // Should have 8-digit padding
         $this->assertEquals(14, strlen($number)); // "INV-1-" + 8 digits = 14
         $this->assertEquals('00000001', substr($number, -8));
@@ -174,9 +174,9 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
     {
         $generator = new InvoiceNumberGenerator();
         $tenantId = 1;
-        
+
         InvoiceNumberSequence::where('tenant_id', $tenantId)->delete();
-        
+
         // Set a large sequence number
         InvoiceNumberSequence::create([
             'tenant_id' => $tenantId,
@@ -184,7 +184,7 @@ class InvoiceNumberGeneratorTestPHPUnit extends TestCase
             'last_credit_note_number' => 0,
             'last_refund_number' => 0,
         ]);
-        
+
         $number = $generator->generateInvoiceNumber($tenantId);
         $this->assertEquals('INV-1-12345679', $number);
     }

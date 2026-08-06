@@ -44,7 +44,7 @@ class IdempotencyService
         }
 
         $cached = Cache::get($this->cacheKey($key));
-        
+
         return $cached === null ? null : $cached;
     }
 
@@ -89,14 +89,14 @@ class IdempotencyService
     public function execute(string $key, callable $callback): array
     {
         $cached = $this->check($key);
-        
+
         if ($cached !== null) {
             return $cached;
         }
 
         $response = $callback();
         $this->store($key, $response);
-        
+
         return $response;
     }
 }

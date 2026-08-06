@@ -3,7 +3,6 @@
 namespace App\Services\Radius;
 
 use App\Models\RadAcct;
-use App\Models\RadiusCustomer;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
@@ -12,7 +11,8 @@ class RadiusSessionService
 {
     public function __construct(
         protected RadiusCoaService $coaService
-    ) {}
+    ) {
+    }
 
     /**
      * Fetch all currently active (online) RADIUS sessions.

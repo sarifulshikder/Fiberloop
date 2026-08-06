@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Enums\PackageChangeRequestStatus;
 use App\Models\Customer;
 use App\Models\Package;
-use App\Models\PackageChangeRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -23,7 +22,7 @@ class PackageChangeRequestFactory extends Factory
     {
         $changeTypes = ['upgrade', 'downgrade', 'change'];
         $changeType = fake()->randomElement($changeTypes);
-        
+
         return [
             'tenant_id' => 1,
             'customer_id' => Customer::factory(),

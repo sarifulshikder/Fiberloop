@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\Log;
  */
 class AutoSuspend implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
 
     /**
      * Execute the job.
@@ -29,12 +31,12 @@ class AutoSuspend implements ShouldQueue
     {
         $gracePeriodDays = config('billing.grace_period_days', 5);
         $today = Carbon::today();
-        
+
         // Find subscriptions where:
         // 1. Customer has overdue invoices past grace period
         // 2. Subscription is currently active
         // 3. Not already suspended
-        
+
         $subscriptionsToSuspend = Subscription::query()
             ->with(['customer', 'invoices'])
             ->where('status', 'active')
@@ -45,9 +47,9 @@ class AutoSuspend implements ShouldQueue
                     ->where('outstanding_amount', '>', 0);
             })
             ->get();
-        
+
         $suspendedCount = 0;
-        
+
         foreach ($subscriptionsToSuspend as $subscription) {
             // Check if this subscription should be suspended
             if ($this->shouldSuspend($subscription, $gracePeriodDays)) {
@@ -55,7 +57,7 @@ class AutoSuspend implements ShouldQueue
                 $suspendedCount++;
             }
         }
-        
+
         Log::info("Auto-suspend job completed", [
             'subscriptions_checked' => $subscriptionsToSuspend->count(),
             'subscriptions_suspended' => $suspendedCount,
@@ -71,10 +73,10 @@ class AutoSuspend implements ShouldQueue
         if ($subscription->status !== 'active') {
             return false;
         }
-        
+
         // Check for any overdue invoices past grace period
         $gracePeriodEnd = Carbon::today()->subDays($gracePeriodDays);
-        
+
         return Invoice::query()
             ->where('customer_id', $subscription->customer_id)
             ->where('subscription_id', $subscription->id)
@@ -91,7 +93,7 @@ class AutoSuspend implements ShouldQueue
     {
         DB::transaction(function () use ($subscription) {
             $customer = $subscription->customer;
-            
+
             // Find the most overdue invoice for reference
             $overdueInvoice = Invoice::query()
                 ->where('customer_id', $subscription->customer_id)
@@ -100,28 +102,28 @@ class AutoSuspend implements ShouldQueue
                 ->where('outstanding_amount', '>', 0)
                 ->orderBy('due_date')
                 ->first();
-            
+
             if (!$overdueInvoice) {
                 return;
             }
-            
+
             // Update subscription status
             $subscription->update([
                 'status' => 'suspended',
                 'suspended_at' => now(),
                 'suspension_reason' => 'Non-payment of invoice ' . ($overdueInvoice->invoice_number ?? $overdueInvoice->id),
             ]);
-            
+
             // Update customer status if all their subscriptions are now suspended
             $this->updateCustomerStatus($customer);
-            
+
             // Fire SubscriptionSuspended event for Phase 7
             event(new SubscriptionSuspended(
                 $customer,
                 $overdueInvoice,
                 'Non-payment of invoice'
             ));
-            
+
             Log::info("Subscription suspended", [
                 'subscription_id' => $subscription->id,
                 'customer_id' => $customer->id,
@@ -129,7 +131,7 @@ class AutoSuspend implements ShouldQueue
                 'invoice_number' => $overdueInvoice->invoice_number,
                 'outstanding_amount' => $overdueInvoice->outstanding_amount,
             ]);
-            
+
             // Activity log for financial audit
             activity()
                 ->by(1) // System user
@@ -154,7 +156,7 @@ class AutoSuspend implements ShouldQueue
             ->where('customer_id', $customer->id)
             ->where('status', 'active')
             ->count();
-        
+
         if ($activeSubscriptions === 0) {
             $customer->update([
                 'status' => 'suspended',

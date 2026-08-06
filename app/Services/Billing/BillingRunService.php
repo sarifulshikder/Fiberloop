@@ -33,28 +33,28 @@ class BillingRunService
     public function runBillingForDueSubscriptions(Carbon $cycleStart, Carbon $cycleEnd): array
     {
         $subscriptions = $this->getSubscriptionsDueForBilling($cycleStart, $cycleEnd);
-        
+
         $totalSubscriptions = $subscriptions->count();
         $jobsDispatched = 0;
         $alreadyInvoiced = 0;
-        
+
         foreach ($subscriptions as $subscription) {
             // Check if invoice already exists for this period (idempotency)
             if ($this->invoiceAlreadyExistsForPeriod($subscription, $cycleStart, $cycleEnd)) {
                 $alreadyInvoiced++;
                 continue;
             }
-            
+
             // Dispatch queued job for this subscription
             GenerateInvoices::dispatch(
                 $subscription->id,
                 $cycleStart->copy(),
                 $cycleEnd->copy()
             );
-            
+
             $jobsDispatched++;
         }
-        
+
         Log::info("Billing run completed", [
             'cycle_start' => $cycleStart->toDateString(),
             'cycle_end' => $cycleEnd->toDateString(),
@@ -62,7 +62,7 @@ class BillingRunService
             'jobs_dispatched' => $jobsDispatched,
             'already_invoiced' => $alreadyInvoiced,
         ]);
-        
+
         return [
             'cycle_start' => $cycleStart->toDateString(),
             'cycle_end' => $cycleEnd->toDateString(),
@@ -120,11 +120,11 @@ class BillingRunService
         if ($this->invoiceAlreadyExistsForPeriod($subscription, $cycleStart, $cycleEnd)) {
             return false;
         }
-        
+
         // Run synchronously for testing
         $job = new GenerateInvoices($subscription->id, $cycleStart, $cycleEnd);
         $job->handle();
-        
+
         return true;
     }
 
@@ -136,7 +136,7 @@ class BillingRunService
         $today = Carbon::today();
         $cycleStart = $today->copy()->startOfMonth();
         $cycleEnd = $today->copy()->endOfMonth();
-        
+
         // For monthly billing, check subscriptions with next_billing_date <= today
         return Subscription::query()
             ->with(['customer', 'package'])
@@ -157,21 +157,21 @@ class BillingRunService
         $asOf = $asOf ?? now();
         $package = $subscription->package;
         $billingCycle = $package->billing_cycle ?? 'monthly';
-        
+
         $cycleStart = match ($billingCycle) {
             'monthly' => $asOf->copy()->startOfMonth(),
             'quarterly' => $asOf->copy()->firstOfQuarter(),
             'yearly' => $asOf->copy()->startOfYear(),
             default => $asOf->copy()->startOfMonth(),
         };
-        
+
         $cycleEnd = match ($billingCycle) {
             'monthly' => $asOf->copy()->endOfMonth(),
             'quarterly' => $asOf->copy()->lastOfQuarter(),
             'yearly' => $asOf->copy()->endOfYear(),
             default => $asOf->copy()->endOfMonth(),
         };
-        
+
         return [
             'start' => $cycleStart,
             'end' => $cycleEnd,

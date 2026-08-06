@@ -2,14 +2,13 @@
 
 namespace App\Services\Billing;
 
-use App\Models\Customer;
 use App\Models\CreditNote;
+use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Refund;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Service for generating customer ledger/statement views.
@@ -27,19 +26,19 @@ class CustomerLedgerService
     public function getRunningBalance(Customer $customer, Carbon $atDate = null): int
     {
         $atDate = $atDate ?? now();
-        
+
         // Sum of all invoice totals (amounts customer owes)
         $totalInvoiced = $this->getTotalInvoiced($customer, $atDate);
-        
+
         // Sum of all payments received (amounts customer paid)
         $totalPaid = $this->getTotalPaid($customer, $atDate);
-        
+
         // Sum of all credit notes (amounts credited to customer)
         $totalCredited = $this->getTotalCredited($customer, $atDate);
-        
+
         // Sum of all refunds (amounts refunded to customer)
         $totalRefunded = $this->getTotalRefunded($customer, $atDate);
-        
+
         // Running balance = invoiced - paid - credited - refunded
         return $totalInvoiced - $totalPaid - $totalCredited - $totalRefunded;
     }
@@ -51,10 +50,10 @@ class CustomerLedgerService
     {
         $balance = $this->getRunningBalance($customer, $atDate);
         $bdt = $balance / 100;
-        
+
         $sign = $balance >= 0 ? '' : '-';
         $absBalance = abs($balance);
-        
+
         return $sign . 'BDT ' . number_format($absBalance / 100, 2);
     }
 
@@ -114,10 +113,10 @@ class CustomerLedgerService
     {
         $fromDate = $fromDate ?? now()->subYear();
         $toDate = $toDate ?? now();
-        
+
         // Get all transactions in order
         $transactions = collect();
-        
+
         // Add invoices
         $invoices = Invoice::query()
             ->where('customer_id', $customer->id)
@@ -137,7 +136,7 @@ class CustomerLedgerService
                     'invoice' => $invoice,
                 ];
             });
-        
+
         // Add payments
         $payments = Payment::query()
             ->where('customer_id', $customer->id)
@@ -157,7 +156,7 @@ class CustomerLedgerService
                     'payment' => $payment,
                 ];
             });
-        
+
         // Add credit notes
         $creditNotes = CreditNote::query()
             ->where('customer_id', $customer->id)
@@ -177,7 +176,7 @@ class CustomerLedgerService
                     'credit_note' => $creditNote,
                 ];
             });
-        
+
         // Add refunds
         $refunds = Refund::query()
             ->where('customer_id', $customer->id)
@@ -197,21 +196,21 @@ class CustomerLedgerService
                     'refund' => $refund,
                 ];
             });
-        
+
         // Merge all transactions and sort by date
         $transactions = $transactions->merge($invoices)->merge($payments)->merge($creditNotes)->merge($refunds)
             ->sortBy('date');
-        
+
         // Calculate running balance
         $runningBalance = 0;
         $balancedTransactions = collect();
-        
+
         foreach ($transactions as $transaction) {
             $runningBalance += $transaction['amount'];
             $transaction['balance'] = $runningBalance;
             $balancedTransactions->push($transaction);
         }
-        
+
         return $balancedTransactions;
     }
 
@@ -221,12 +220,12 @@ class CustomerLedgerService
     public function getStatementSummary(Customer $customer, Carbon $fromDate = null, Carbon $toDate = null): array
     {
         $statement = $this->getStatement($customer, $fromDate, $toDate);
-        
+
         $totalInvoiced = 0;
         $totalPaid = 0;
         $totalCredited = 0;
         $totalRefunded = 0;
-        
+
         foreach ($statement as $transaction) {
             switch ($transaction['type']) {
                 case 'invoice':
@@ -243,9 +242,9 @@ class CustomerLedgerService
                     break;
             }
         }
-        
+
         $endingBalance = end($statement)['balance'] ?? 0;
-        
+
         return [
             'period_start' => $fromDate ?? now()->subYear(),
             'period_end' => $toDate ?? now(),
@@ -277,7 +276,7 @@ class CustomerLedgerService
     public function getAccountStatus(Customer $customer): string
     {
         $balance = $this->getRunningBalance($customer);
-        
+
         if ($balance > 0) {
             return 'OWES_MONEY';
         } elseif ($balance < 0) {

@@ -6,7 +6,6 @@ use App\Jobs\Radius\EnforceFairUsagePolicy;
 use App\Models\Customer;
 use App\Models\Package;
 use App\Models\RadAcct;
-use App\Models\RadReply;
 use App\Models\Subscription;
 use App\Models\User;
 use App\Services\Radius\RadiusCoaService;

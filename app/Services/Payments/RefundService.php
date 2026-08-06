@@ -5,8 +5,6 @@ namespace App\Services\Payments;
 use App\Enums\CreditNoteStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
-use App\Enums\WalletTransactionType;
-use App\Events\Billing\PaymentReceived;
 use App\Models\CreditNote;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -80,23 +78,41 @@ class RefundService
 
             $gateway = $payment->method;
             $gatewayService = $this->getGatewayService($gateway);
-            
+
             // Generate a refund reference
             $refundReference = 'REFUND_' . $payment->uuid . '_' . Str::upper(Str::random(6));
-            
+
             // Use idempotency if key provided
             if ($idempotencyKey) {
                 return $this->idempotencyService->execute($idempotencyKey, function () use (
-                    $payment, $amount, $reason, $processedBy, $gateway, $gatewayService, $refundReference
+                    $payment,
+                    $amount,
+                    $reason,
+                    $processedBy,
+                    $gateway,
+                    $gatewayService,
+                    $refundReference
                 ) {
                     return $this->executeRefund(
-                        $payment, $amount, $reason, $processedBy, $gateway, $gatewayService, $refundReference
+                        $payment,
+                        $amount,
+                        $reason,
+                        $processedBy,
+                        $gateway,
+                        $gatewayService,
+                        $refundReference
                     );
                 });
             }
-            
+
             return $this->executeRefund(
-                $payment, $amount, $reason, $processedBy, $gateway, $gatewayService, $refundReference
+                $payment,
+                $amount,
+                $reason,
+                $processedBy,
+                $gateway,
+                $gatewayService,
+                $refundReference
             );
 
         } catch (\Exception $e) {
@@ -149,7 +165,7 @@ class RefundService
         $customer = $payment->customer;
         $invoice = $payment->invoice;
         $isWalletTopup = $payment->is_wallet_topup;
-        
+
         $result = [
             'success' => false,
             'message' => '',
@@ -161,7 +177,7 @@ class RefundService
 
         // Step 1: Process gateway refund if applicable
         $gatewayRefundResult = null;
-        
+
         if ($gatewayService && !$isWalletTopup) {
             try {
                 $gatewayRefundResult = $gatewayService->refund($payment->gateway_reference, $amount);
@@ -191,7 +207,12 @@ class RefundService
 
         // Step 4: Create refund payment record
         $refundPayment = $this->createRefundPayment(
-            $payment, $amount, $refundReference, $processedBy, $creditNote, $gatewayRefundResult
+            $payment,
+            $amount,
+            $refundReference,
+            $processedBy,
+            $creditNote,
+            $gatewayRefundResult
         );
 
         // Step 5: Update original payment
@@ -201,7 +222,7 @@ class RefundService
 
         $result['success'] = true;
         $result['message'] = 'Refund processed successfully';
-        
+
         Log::info('Refund processed successfully', [
             'payment_id' => $payment->id,
             'amount' => $amount,
@@ -221,7 +242,7 @@ class RefundService
     {
         $invoice = $payment->invoice;
         $customer = $payment->customer;
-        
+
         $creditNote = CreditNote::create([
             'tenant_id' => $customer->tenant_id,
             'uuid' => (string) Str::orderedUuid(),
@@ -251,7 +272,7 @@ class RefundService
     {
         $datePart = now()->format('Ymd');
         $tenantPrefix = 'CN' . str_pad($tenantId, 4, '0', STR_PAD_LEFT);
-        
+
         $lastCreditNote = CreditNote::where('tenant_id', $tenantId)
             ->where('credit_note_number', 'LIKE', "{$tenantPrefix}{$datePart}%")
             ->orderBy('id', 'desc')
@@ -274,7 +295,7 @@ class RefundService
     {
         $currentBalance = $customer->wallet_balance;
         $newBalance = $currentBalance - $amount;
-        
+
         if ($newBalance < 0) {
             throw new \Exception('Insufficient wallet balance for refund');
         }
@@ -318,7 +339,7 @@ class RefundService
         // Calculate new amounts
         $newPaidAmount = $invoice->paid_amount - $amount;
         $newOutstandingAmount = $invoice->outstanding_amount + $amount;
-        
+
         // Update invoice
         $invoice->update([
             'paid_amount' => $newPaidAmount,
@@ -394,7 +415,7 @@ class RefundService
         } else {
             // Partial refund - update notes but keep as completed
             $payment->update([
-                'notes' => $payment->notes . (empty($payment->notes) ? '' : ' | ') . 
+                'notes' => $payment->notes . (empty($payment->notes) ? '' : ' | ') .
                          'Partial refund: ' . $amount . ' poysha (Ref: ' . $refundReference . ')',
                 'updated_by' => $processedBy,
             ]);
@@ -417,7 +438,7 @@ class RefundService
         try {
             $customer = \App\Models\Customer::findOrFail($customerId);
             $invoice = $invoiceId ? Invoice::findOrFail($invoiceId) : null;
-            
+
             if ($invoice && $invoice->customer_id !== $customer->id) {
                 throw new \Exception('Invoice does not belong to the specified customer');
             }
@@ -447,7 +468,7 @@ class RefundService
                 // Update invoice
                 $newPaidAmount = max(0, $invoice->paid_amount - $amount);
                 $newOutstandingAmount = $invoice->outstanding_amount + $amount;
-                
+
                 $invoice->update([
                     'paid_amount' => $newPaidAmount,
                     'outstanding_amount' => $newOutstandingAmount,
@@ -484,7 +505,7 @@ class RefundService
     {
         return Payment::where('customer_id', $customerId)
             ->whereIn('status', [PaymentStatus::REFUNDED])
-            ->orWhere(function($query) use ($customerId) {
+            ->orWhere(function ($query) use ($customerId) {
                 $query->where('customer_id', $customerId)
                     ->where('net_amount', '<', 0); // Refund payments have negative net_amount
             })

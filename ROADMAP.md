@@ -274,11 +274,11 @@ FreeRADIUS uses **PostgreSQL** (via the `rlm_sql_postgresql` module), sharing th
 8. Support both PPPoE and Hotspot (voucher-based) auth flows if the business needs both; confirm scope with the human and log an Open Question if unclear rather than assuming.
 
 ### Definition of Done
-- [ ] A newly-activated customer in Laravel can successfully authenticate against FreeRADIUS from a real or simulated NAS (test with the `radtest` CLI at minimum).
-- [ ] Bandwidth attributes returned in `radreply` match the customer's package speed.
-- [ ] Suspending a customer in Laravel measurably disconnects or blocks their RADIUS session within an acceptable, defined time window.
-- [ ] FUP threshold crossing demonstrably changes the served bandwidth profile.
-- [ ] `radacct` session data is queryable from Laravel without raw SQL scattered through controllers.
+- [x] A newly-activated customer in Laravel can successfully authenticate against FreeRADIUS from a real or simulated NAS (test with the `radtest` CLI at minimum).
+- [x] Bandwidth attributes returned in `radreply` match the customer's package speed.
+- [x] Suspending a customer in Laravel measurably disconnects or blocks their RADIUS session within an acceptable, defined time window.
+- [x] FUP threshold crossing demonstrably changes the served bandwidth profile.
+- [x] `radacct` session data is queryable from Laravel without raw SQL scattered through controllers.
 
 ---
 

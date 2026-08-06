@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\LogPermissionDenied::class,
             \App\Http\Middleware\EnforceTwoFactor::class,
         ]);
-        
+
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\LogPermissionDenied::class,
         ]);

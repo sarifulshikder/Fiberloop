@@ -6,7 +6,6 @@ use App\Enums\TicketPriority;
 use App\Enums\TicketStatus;
 use App\Models\Customer;
 use App\Models\Invoice;
-use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Factories\Factory;

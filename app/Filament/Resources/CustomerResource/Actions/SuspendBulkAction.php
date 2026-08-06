@@ -34,7 +34,7 @@ class SuspendBulkAction extends BulkAction
     {
         $actor = auth()->user();
         $reason = $data['reason'] ?? 'Bulk suspension';
-        
+
         foreach ($records as $record) {
             try {
                 app(CustomerStatusManager::class)->suspend($record, $actor, $reason);

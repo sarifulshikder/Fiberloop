@@ -4,8 +4,6 @@ namespace Tests\Unit\Radius;
 
 use App\Models\Customer;
 use App\Models\Package;
-use App\Models\RadCheck;
-use App\Models\RadReply;
 use App\Models\RadiusCustomer;
 use App\Models\Subscription;
 use App\Services\Radius\RadiusProvisioningService;

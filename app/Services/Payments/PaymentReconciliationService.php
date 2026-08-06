@@ -66,17 +66,17 @@ class PaymentReconciliationService
             }
 
             $gatewayService = $this->getGatewayService($gateway);
-            
+
             if (!$gatewayService) {
                 throw new \Exception('Gateway service not available');
             }
 
             // Step 1: Fetch settlement report from the gateway
             $settlementReport = $this->fetchSettlementReport($gatewayService, $startDate, $endDate);
-            
+
             if (empty($settlementReport)) {
                 Log::info("No settlement report data from {$gateway} for period {$startDate} to {$endDate}");
-                
+
                 DB::commit();
                 return [
                     'status' => 'success',
@@ -112,7 +112,7 @@ class PaymentReconciliationService
 
             foreach ($recordedPayments as $payment) {
                 $gatewayReference = $payment->gateway_reference;
-                
+
                 if (empty($gatewayReference)) {
                     // Payment without gateway reference - manual or issue
                     $results['discrepancies'][] = [
@@ -140,7 +140,7 @@ class PaymentReconciliationService
                     // Check amount match
                     $settlementAmount = $this->extractSettlementAmount($gateway, $matchingSettlement);
                     $paymentAmount = $payment->amount;
-                    
+
                     if ($settlementAmount === $paymentAmount) {
                         // Perfect match
                         $results['matched']++;
@@ -152,7 +152,7 @@ class PaymentReconciliationService
                             'settlement_amount' => $settlementAmount,
                             'status' => 'matched',
                         ];
-                        
+
                         // Record reconciliation
                         PaymentReconciliation::create([
                             'tenant_id' => $tenantId,
@@ -177,7 +177,7 @@ class PaymentReconciliationService
                             'customer_id' => $payment->customer_id,
                             'message' => 'Amount mismatch between recorded payment and settlement',
                         ];
-                        
+
                         // Record reconciliation
                         PaymentReconciliation::create([
                             'tenant_id' => $tenantId,
@@ -202,7 +202,7 @@ class PaymentReconciliationService
                         'customer_id' => $payment->customer_id,
                         'message' => 'No matching settlement found for this payment',
                     ];
-                    
+
                     // Record reconciliation
                     PaymentReconciliation::create([
                         'tenant_id' => $tenantId,
@@ -222,12 +222,12 @@ class PaymentReconciliationService
             // Step 4: Check for settlements without matching payments
             foreach ($settlementReport as $settlement) {
                 $gatewayReference = $this->extractGatewayReference($gateway, $settlement);
-                
+
                 if ($gatewayReference && !in_array($gatewayReference, $matchedGatewayReferences)) {
                     // Settlement without matching payment
                     $settlementAmount = $this->extractSettlementAmount($gateway, $settlement);
                     $settlementDate = $this->extractSettlementDate($gateway, $settlement);
-                    
+
                     $results['discrepancies'][] = [
                         'type' => 'orphaned_settlement',
                         'gateway_reference' => $gatewayReference,
@@ -235,7 +235,7 @@ class PaymentReconciliationService
                         'settlement_date' => $settlementDate,
                         'message' => 'Settlement found without matching recorded payment',
                     ];
-                    
+
                     // Record reconciliation
                     PaymentReconciliation::create([
                         'tenant_id' => $tenantId,
@@ -274,7 +274,7 @@ class PaymentReconciliationService
                 'end_date' => $endDate,
                 'tenant_id' => $tenantId,
             ]);
-            
+
             throw $e;
         }
     }
@@ -288,13 +288,13 @@ class PaymentReconciliationService
         // Each gateway has different ways to fetch settlement reports
         // This is a placeholder implementation
         // In production, this would call the gateway's settlement/report API
-        
+
         try {
             // Try to call the gateway-specific method if available
             if (method_exists($gatewayService, 'fetchSettlementReport')) {
                 return $gatewayService->fetchSettlementReport($startDate, $endDate);
             }
-            
+
             // Fallback: return empty array (simulate no settlement data)
             // In real implementation, this would be replaced with actual API call
             return [];
@@ -306,7 +306,7 @@ class PaymentReconciliationService
                 'end_date' => $endDate,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return [];
         }
     }
@@ -318,16 +318,16 @@ class PaymentReconciliationService
     {
         $gatewayReference = $this->extractGatewayReference($gateway, $settlement);
         $paymentReference = $payment->gateway_reference;
-        
+
         if (empty($gatewayReference) || empty($paymentReference)) {
             return false;
         }
-        
+
         // Direct reference match
         if ($gatewayReference === $paymentReference) {
             return true;
         }
-        
+
         // Some gateways might have different formats
         // Additional matching logic can be added here per gateway
         return false;
@@ -405,15 +405,15 @@ class PaymentReconciliationService
         $query = PaymentReconciliation::where('tenant_id', $tenantId)
             ->whereDate('created_at', '>=', $startDate)
             ->whereDate('created_at', '<=', $endDate);
-        
+
         if ($gateway) {
             $query->where('gateway', $gateway);
         }
-        
+
         $reconciliations = $query->with('payment', 'payment.customer', 'payment.invoice')
             ->orderBy('created_at', 'desc')
             ->get();
-        
+
         return [
             'status' => 'success',
             'period' => "{$startDate} to {$endDate}",
@@ -432,7 +432,7 @@ class PaymentReconciliationService
     public function getSummary(int $tenantId, string $period = 'daily'): array
     {
         $query = PaymentReconciliation::where('tenant_id', $tenantId);
-        
+
         switch ($period) {
             case 'daily':
                 $groupBy = 'DATE(created_at)';
@@ -447,7 +447,7 @@ class PaymentReconciliationService
             default:
                 $groupBy = 'DATE(created_at)';
         }
-        
+
         $results = $query->selectRaw(
             "{$groupBy} as period, " .
             "SUM(CASE WHEN status = 'matched' THEN 1 ELSE 0 END) as matched_count, " .
@@ -459,7 +459,7 @@ class PaymentReconciliationService
         ->groupByRaw($groupBy)
         ->orderBy('period', 'desc')
         ->get();
-        
+
         return [
             'status' => 'success',
             'period' => $period,

@@ -14,7 +14,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class SubscriptionSuspended
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * The customer whose subscription was suspended.

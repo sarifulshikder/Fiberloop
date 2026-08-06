@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CustomerNote extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -120,7 +121,7 @@ class CustomerNote extends Model
             'sales' => 'Sales',
             'other' => 'Other',
         ];
-        
+
         return $categories[$this->category] ?? $this->category;
     }
 }

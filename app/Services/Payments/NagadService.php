@@ -2,10 +2,10 @@
 
 namespace App\Services\Payments;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Nagad payment gateway service implementation.
@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class NagadService extends BaseGatewayService implements PaymentGatewayContract
 {
     protected string $gatewayName = 'nagad';
-    
+
     protected string $sessionToken = '';
     protected int $sessionExpiresAt = 0;
 
@@ -34,7 +34,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $this->refreshSessionToken();
-        
+
         return $this->sessionToken;
     }
 
@@ -44,9 +44,9 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     protected function refreshSessionToken(): void
     {
         $this->validateConfiguration(['merchant_id', 'merchant_number', 'api_key', 'api_secret']);
-        
+
         $config = $this->config();
-        
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-KVP-Merchant-ID' => $config['merchant_id'],
@@ -64,7 +64,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['session_token'])) {
             throw new Exception('Missing session_token in Nagad response');
         }
@@ -80,10 +80,10 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     {
         $this->validateConfiguration(['api_key', 'api_secret']);
         $config = $this->config();
-        
+
         $jsonData = json_encode($data, JSON_UNESCAPED_SLASHES);
         $signature = hash_hmac('sha256', $jsonData, $config['api_secret']);
-        
+
         return $signature;
     }
 
@@ -93,7 +93,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     public function initiatePayment(array $data): array
     {
         $this->validateConfiguration(['merchant_id', 'merchant_number']);
-        
+
         $config = $this->config();
         $amount = $data['amount'] ?? 0; // Amount in poysha
         $invoiceNumber = $data['invoice_number'] ?? '';
@@ -101,17 +101,17 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         $customerPhone = $data['customer_phone'] ?? '';
         $idempotencyKey = $data['idempotency_key'] ?? null;
         $callbackUrl = $data['callback_url'] ?? route('api.webhooks.nagad');
-        
+
         $amountBDT = $this->poyshaToBdt($amount);
         $orderId = 'ORDER_' . $invoiceNumber . '_' . now()->format('YmdHis');
-        
+
         // Use idempotency if key provided
         if ($idempotencyKey) {
             return $this->idempotencyService->execute($idempotencyKey, function () use ($data, $config, $amount, $amountBDT, $invoiceNumber, $customerName, $customerPhone, $callbackUrl, $orderId) {
                 return $this->createPaymentRequest($config, $amountBDT, $invoiceNumber, $customerName, $customerPhone, $callbackUrl, $orderId);
             });
         }
-        
+
         return $this->createPaymentRequest($config, $amountBDT, $invoiceNumber, $customerName, $customerPhone, $callbackUrl, $orderId);
     }
 
@@ -128,7 +128,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         string $orderId
     ): array {
         $sessionToken = $this->getSessionToken();
-        
+
         $paymentRequest = [
             'merchantId' => $config['merchant_id'],
             'orderId' => $orderId,
@@ -141,7 +141,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         ];
 
         $signature = $this->generateSignature($paymentRequest);
-        
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-KVP-Merchant-ID' => $config['merchant_id'],
@@ -158,7 +158,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['paymentReference'])) {
             throw new Exception('Missing paymentReference in Nagad response');
         }
@@ -184,17 +184,17 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     public function verifyPayment(string $transactionId): array
     {
         $this->validateConfiguration(['merchant_id', 'merchant_number']);
-        
+
         $config = $this->config();
         $sessionToken = $this->getSessionToken();
-        
+
         $requestData = [
             'merchantId' => $config['merchant_id'],
             'paymentReference' => $transactionId,
         ];
-        
+
         $signature = $this->generateSignature($requestData);
-        
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-KVP-Merchant-ID' => $config['merchant_id'],
@@ -211,7 +211,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         if (empty($data['status'])) {
             throw new Exception('Invalid response from Nagad');
         }
@@ -219,7 +219,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         $status = $data['status'] ?? 'failed';
         $amountBDT = $data['amount'] ?? 0;
         $amountPoysha = $this->bdtToPoysha($amountBDT);
-        
+
         return [
             'transaction_id' => $transactionId,
             'gateway_reference' => $data['paymentReference'] ?? $transactionId,
@@ -247,10 +247,10 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         $status = $payload['status'] ?? '';
         $merchantInvoiceNumber = $payload['merchantInvoiceNumber'] ?? '';
         $amountBDT = $payload['amount'] ?? 0;
-        
+
         // Verify the payment with Nagad API to ensure it's legitimate
         $verification = $this->verifyPayment($paymentReference);
-        
+
         if ($verification['status'] !== 'completed') {
             return [
                 'transaction_id' => $paymentReference,
@@ -277,14 +277,14 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     protected function verifyWebhookSignature(array $payload): bool
     {
         $secret = $this->getWebhookSecret();
-        
+
         if (empty($secret)) {
             Log::warning('Nagad webhook secret not configured');
             return false;
         }
 
         $providedSignature = $payload['signature'] ?? '';
-        
+
         if (empty($providedSignature)) {
             return false;
         }
@@ -292,7 +292,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         // Extract the fields used for signature (order matters)
         $dataToSign = $this->getWebhookSignatureData($payload);
         $expectedSignature = hash_hmac('sha256', $dataToSign, $secret);
-        
+
         return hash_equals($expectedSignature, $providedSignature);
     }
 
@@ -303,11 +303,11 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     {
         $requiredKeys = ['merchantId', 'paymentReference', 'status', 'amount', 'merchantInvoiceNumber'];
         $data = [];
-        
+
         foreach ($requiredKeys as $key) {
             $data[$key] = $payload[$key] ?? '';
         }
-        
+
         return implode('|', $data);
     }
 
@@ -317,20 +317,20 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
     public function refund(string $transactionId, int $amount): array
     {
         $this->validateConfiguration(['merchant_id', 'merchant_number']);
-        
+
         $config = $this->config();
         $sessionToken = $this->getSessionToken();
         $amountBDT = $this->poyshaToBdt($amount);
-        
+
         $refundRequest = [
             'merchantId' => $config['merchant_id'],
             'paymentReference' => $transactionId,
             'amount' => $amountBDT,
             'refundReason' => 'Customer request',
         ];
-        
+
         $signature = $this->generateSignature($refundRequest);
-        
+
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'X-KVP-Merchant-ID' => $config['merchant_id'],
@@ -347,7 +347,7 @@ class NagadService extends BaseGatewayService implements PaymentGatewayContract
         }
 
         $data = $response->json();
-        
+
         return [
             'refund_id' => $data['refundId'] ?? 'REFUND_' . Str::uuid(),
             'transaction_id' => $transactionId,

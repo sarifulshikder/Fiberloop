@@ -12,7 +12,9 @@ use Illuminate\Queue\SerializesModels;
  */
 class PaymentReceived
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     /**
      * The payment instance.

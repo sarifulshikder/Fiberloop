@@ -10,13 +10,11 @@ use App\Listeners\Radius\HandleSubscriptionSuspended;
 use App\Listeners\Radius\HandleSubscriptionTerminated;
 use App\Models\Customer;
 use App\Models\Invoice;
-use App\Models\RadCheck;
 use App\Models\RadiusCustomer;
 use App\Models\User;
 use App\Services\Radius\RadiusCoaService;
 use App\Services\Radius\RadiusProvisioningService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Event;
 use Tests\TestCase;
 
 class RadiusEventListenerTest extends TestCase

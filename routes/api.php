@@ -28,17 +28,17 @@ Route::prefix('v1')->group(function () {
         // Customer profile
         Route::get('/profile', [\App\Http\Controllers\Api\CustomerController::class, 'profile']);
         Route::put('/profile', [\App\Http\Controllers\Api\CustomerController::class, 'updateProfile']);
-        
+
         // Subscriptions
         Route::get('/subscriptions', [\App\Http\Controllers\Api\CustomerController::class, 'subscriptions']);
-        
+
         // Invoices
         Route::get('/invoices', [\App\Http\Controllers\Api\CustomerController::class, 'invoices']);
         Route::get('/invoices/{invoice}', [\App\Http\Controllers\Api\CustomerController::class, 'invoice']);
-        
+
         // Payments
         Route::get('/payments', [\App\Http\Controllers\Api\CustomerController::class, 'payments']);
-        
+
         // Tickets
         Route::get('/tickets', [\App\Http\Controllers\Api\CustomerController::class, 'tickets']);
         Route::post('/tickets', [\App\Http\Controllers\Api\CustomerController::class, 'createTicket']);
@@ -48,14 +48,14 @@ Route::prefix('v1')->group(function () {
     Route::prefix('reseller')->middleware(['auth:sanctum', 'ability:reseller'])->group(function () {
         // Reseller dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Api\ResellerController::class, 'dashboard']);
-        
+
         // Customers
         Route::get('/customers', [\App\Http\Controllers\Api\ResellerController::class, 'customers']);
         Route::post('/customers', [\App\Http\Controllers\Api\ResellerController::class, 'createCustomer']);
-        
+
         // Subscriptions
         Route::get('/subscriptions', [\App\Http\Controllers\Api\ResellerController::class, 'subscriptions']);
-        
+
         // Earnings
         Route::get('/earnings', [\App\Http\Controllers\Api\ResellerController::class, 'earnings']);
     });
@@ -76,25 +76,25 @@ Route::prefix('payments')->middleware(['auth:sanctum'])->group(function () {
         Route::post('/record', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'recordPayment']);
         Route::post('/multi-invoice', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'recordMultiInvoicePayment']);
         Route::get('/receipt-number', [\App\Http\Controllers\Api\Payments\ManualPaymentController::class, 'generateReceiptNumber']);
-        });
-
-        // Refund routes
-        Route::prefix('refunds')->group(function () {
-            Route::get('/{payment}/check-eligibility', [\App\Http\Controllers\Api\Payments\RefundController::class, 'checkRefundEligibility']);
-            Route::post('/{payment}/process', [\App\Http\Controllers\Api\Payments\RefundController::class, 'processRefund']);
-            Route::post('/manual', [\App\Http\Controllers\Api\Payments\RefundController::class, 'processManualRefund']);
-            Route::get('/customer/{customer}', [\App\Http\Controllers\Api\Payments\RefundController::class, 'getCustomerRefunds']);
-        });
-
-        // Wallet top-up routes
-        Route::prefix('wallet')->group(function () {
-            Route::get('/balance', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getMyBalance']);
-            Route::get('/balance/{customer}', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getBalance']);
-            Route::post('/topup', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'initiateTopUp']);
-            Route::get('/transactions/{customer}', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getTransactionHistory']);
-            Route::get('/minimum-balance', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getMinimumBalance']);
-        });
     });
+
+    // Refund routes
+    Route::prefix('refunds')->group(function () {
+        Route::get('/{payment}/check-eligibility', [\App\Http\Controllers\Api\Payments\RefundController::class, 'checkRefundEligibility']);
+        Route::post('/{payment}/process', [\App\Http\Controllers\Api\Payments\RefundController::class, 'processRefund']);
+        Route::post('/manual', [\App\Http\Controllers\Api\Payments\RefundController::class, 'processManualRefund']);
+        Route::get('/customer/{customer}', [\App\Http\Controllers\Api\Payments\RefundController::class, 'getCustomerRefunds']);
+    });
+
+    // Wallet top-up routes
+    Route::prefix('wallet')->group(function () {
+        Route::get('/balance', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getMyBalance']);
+        Route::get('/balance/{customer}', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getBalance']);
+        Route::post('/topup', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'initiateTopUp']);
+        Route::get('/transactions/{customer}', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getTransactionHistory']);
+        Route::get('/minimum-balance', [\App\Http\Controllers\Api\Payments\WalletTopUpController::class, 'getMinimumBalance']);
+    });
+});
 
 // Test route
 Route::get('/', function (Request $request) {

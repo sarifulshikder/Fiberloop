@@ -73,7 +73,7 @@ class LateFeeService
 
         $dueDate = Carbon::parse($invoice->due_date);
         $gracePeriodEnd = $dueDate->copy()->addDays($this->gracePeriodDays);
-        
+
         return now()->isAfter($gracePeriodEnd);
     }
 
@@ -88,7 +88,7 @@ class LateFeeService
         }
 
         $outstanding = $invoice->outstanding_amount;
-        
+
         if ($this->lateFeeFixed > 0) {
             // Fixed late fee
             $lateFee = $this->lateFeeFixed;
@@ -113,7 +113,7 @@ class LateFeeService
     {
         return DB::transaction(function () use ($invoice) {
             $lateFee = $this->calculateLateFee($invoice);
-            
+
             if ($lateFee <= 0) {
                 return 0;
             }
@@ -170,7 +170,7 @@ class LateFeeService
     {
         $processed = [];
         $totalLateFees = 0;
-        
+
         $overdueInvoices = Invoice::query()
             ->whereIn('status', ['sent', 'overdue', 'partial'])
             ->where('due_date', '<', now()->subDays($this->gracePeriodDays)->toDateString())

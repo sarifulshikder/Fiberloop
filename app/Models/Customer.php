@@ -4,16 +4,16 @@ namespace App\Models;
 
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Customer extends Model
 {
-  use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
         'tenant_id',
@@ -75,8 +75,12 @@ class Customer extends Model
 
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(Tenant::class, 'tenant_id',
-        'lead_id', 'id');
+        return $this->belongsTo(
+            Tenant::class,
+            'tenant_id',
+            'lead_id',
+            'id'
+        );
     }
 
     public function createdBy(): BelongsTo
@@ -146,8 +150,11 @@ class Customer extends Model
 
     public function scopeByTenant($query, $tenantId)
     {
-        return $query->where('tenant_id',
-        'lead_id', $tenantId);
+        return $query->where(
+            'tenant_id',
+            'lead_id',
+            $tenantId
+        );
     }
 
     public function scopeByStatus($query, CustomerStatus $status)

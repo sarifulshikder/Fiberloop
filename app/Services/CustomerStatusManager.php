@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Customer Status State Machine
- * 
+ *
  * Manages transitions between customer statuses with validation and logging.
  * All money-moving actions are queued jobs per AGENTS.md, but status transitions
  * are synchronous and logged.
@@ -153,7 +153,7 @@ class CustomerStatusManager
     public function terminate(Customer $customer, User $actor, ?string $reason = null): Customer
     {
         $oldStatus = $customer->status;
-        
+
         if ($oldStatus === CustomerStatus::TERMINATED) {
             return $customer;
         }

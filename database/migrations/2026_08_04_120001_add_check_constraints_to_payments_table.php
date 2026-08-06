@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         DB::statement("ALTER TABLE payments ADD CONSTRAINT check_payments_amount_non_negative CHECK (amount >= 0)");

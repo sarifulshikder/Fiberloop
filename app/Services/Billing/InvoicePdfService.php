@@ -25,12 +25,12 @@ class InvoicePdfService
     public function generateAndSave(Invoice $invoice): string
     {
         $pdfContent = $this->generate($invoice);
-        
+
         $filename = $this->getFilename($invoice);
         $path = 'invoices/' . $filename;
-        
+
         Storage::disk('public')->put($path, $pdfContent);
-        
+
         return $path;
     }
 

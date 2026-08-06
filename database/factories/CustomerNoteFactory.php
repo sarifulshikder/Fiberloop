@@ -4,7 +4,6 @@ namespace Database\Factories;
 
 use App\Enums\NoteType;
 use App\Models\Customer;
-use App\Models\CustomerNote;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 

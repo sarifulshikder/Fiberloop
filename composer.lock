@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6f74508e9e0ff47546e2da5278a69d56",
+    "content-hash": "3c8ae3177ac659165021248d5bb7ad05",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -4298,6 +4298,61 @@
                 "source": "https://github.com/Masterminds/html5-php/tree/2.10.1"
             },
             "time": "2026-06-23T18:43:15+00:00"
+        },
+        {
+            "name": "meklis/routeros-api",
+            "version": "1.6.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/meklis/routeros-api.git",
+                "reference": "35119e1658bcc34485335edb7cdc2cdc23e21210"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/meklis/routeros-api/zipball/35119e1658bcc34485335edb7cdc2cdc23e21210",
+                "reference": "35119e1658bcc34485335edb7cdc2cdc23e21210",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "routeros_api.class.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Denis Basta",
+                    "email": "Denis.Basta@gmail.com"
+                },
+                {
+                    "name": "Nick Barnes"
+                },
+                {
+                    "name": "Ben Menking",
+                    "email": "ben@infotechsc.com"
+                },
+                {
+                    "name": "Jeremy Jefferson"
+                },
+                {
+                    "name": "Cristian Deluxe"
+                },
+                {
+                    "name": "Mikhail Moskalev"
+                }
+            ],
+            "description": "Client API for RouterOS/Mikrotik",
+            "keywords": [
+                "mikrotik",
+                "routeros"
+            ],
+            "support": {
+                "issues": "https://github.com/BenMenking/routeros-api/issues",
+                "source": "https://github.com/BenMenking/routeros-api",
+                "wiki": "http://wiki.mikrotik.com/wiki/API_PHP_class"
+            },
+            "time": "2022-02-03T21:53:34+00:00"
         },
         {
             "name": "monolog/monolog",

@@ -27,7 +27,7 @@ class AutoReactivateOnPayment implements ShouldQueue
     {
         $payment = $event->payment;
         $customer = $payment->customer;
-        
+
         // Only process completed payments
         if ($payment->status !== 'completed') {
             Log::debug("AutoReactivate: Payment not completed, skipping", [
@@ -36,7 +36,7 @@ class AutoReactivateOnPayment implements ShouldQueue
             ]);
             return;
         }
-        
+
         // Get all suspended subscriptions for this customer
         $suspendedSubscriptions = Subscription::query()
             ->where('customer_id', $customer->id)
@@ -44,14 +44,14 @@ class AutoReactivateOnPayment implements ShouldQueue
             ->whereNotNull('suspended_at')
             ->with(['invoices'])
             ->get();
-        
+
         if ($suspendedSubscriptions->isEmpty()) {
             Log::debug("AutoReactivate: No suspended subscriptions for customer", [
                 'customer_id' => $customer->id,
             ]);
             return;
         }
-        
+
         // Check if payment clears the outstanding balance
         foreach ($suspendedSubscriptions as $subscription) {
             if ($this->shouldReactivate($subscription, $payment)) {
@@ -72,13 +72,13 @@ class AutoReactivateOnPayment implements ShouldQueue
             ->whereIn('status', ['draft', 'sent', 'overdue', 'partial'])
             ->where('outstanding_amount', '>', 0)
             ->sum('outstanding_amount');
-        
+
         // Check if payment covers the outstanding (considering payment amount and any existing paid amount)
         $totalPaidForSubscription = Invoice::query()
             ->where('customer_id', $subscription->customer_id)
             ->where('subscription_id', $subscription->id)
             ->sum('paid_amount');
-        
+
         // Payment is for specific invoice - check if that invoice's outstanding is cleared
         if ($payment->invoice_id) {
             $invoice = Invoice::find($payment->invoice_id);
@@ -87,7 +87,7 @@ class AutoReactivateOnPayment implements ShouldQueue
                 return $invoice->outstanding_amount <= 0;
             }
         }
-        
+
         // For customer-level payments, check if all subscriptions have zero outstanding
         return $outstandingTotal <= 0;
     }
@@ -99,31 +99,31 @@ class AutoReactivateOnPayment implements ShouldQueue
     {
         DB::transaction(function () use ($subscription, $payment) {
             $customer = $subscription->customer;
-            
+
             // Update subscription status
             $subscription->update([
                 'status' => 'active',
                 'suspended_at' => null,
                 'suspension_reason' => null,
             ]);
-            
+
             // Update customer status if they have at least one active subscription
             $this->updateCustomerStatus($customer);
-            
+
             // Fire SubscriptionReactivated event for Phase 7
             event(new SubscriptionReactivated(
                 $customer,
                 $payment,
                 'Payment received - auto-reactivated'
             ));
-            
+
             Log::info("Subscription auto-reactivated", [
                 'subscription_id' => $subscription->id,
                 'customer_id' => $customer->id,
                 'payment_id' => $payment->id,
                 'payment_amount' => $payment->amount,
             ]);
-            
+
             // Activity log for financial audit
             activity()
                 ->by(1) // System user
@@ -148,7 +148,7 @@ class AutoReactivateOnPayment implements ShouldQueue
             ->where('customer_id', $customer->id)
             ->where('status', 'active')
             ->count();
-        
+
         if ($activeSubscriptions > 0) {
             $customer->update([
                 'status' => 'active',

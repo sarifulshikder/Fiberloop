@@ -1,10 +1,9 @@
 <?php
 
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         DB::statement("ALTER TABLE inventory_items ADD CONSTRAINT check_inventory_items_purchase_price_non_negative CHECK (purchase_price >= 0)");

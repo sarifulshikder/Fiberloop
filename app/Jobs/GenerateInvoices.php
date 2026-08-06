@@ -23,7 +23,9 @@ use Illuminate\Support\Facades\Log;
  */
 class GenerateInvoices implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
 
     public int $subscriptionId;
     public Carbon $cycleStart;
@@ -41,7 +43,7 @@ class GenerateInvoices implements ShouldQueue
         ProrationService $prorationService
     ): void {
         $subscription = Subscription::with(['customer', 'package'])->find($this->subscriptionId);
-        
+
         if (!$subscription) {
             Log::warning("GenerateInvoices: Subscription {$this->subscriptionId} not found");
             return;
@@ -68,16 +70,16 @@ class GenerateInvoices implements ShouldQueue
             $tenantId = $subscription->customer->tenant_id ?? null;
             $package = $subscription->package;
             $customer = $subscription->customer;
-            
+
             // Calculate base amounts
             $packagePrice = $package->price;
             $taxRate = config('billing.tax_rate', 15); // Default 15% VAT for Bangladesh
-            
+
             // Check if this is a prorated invoice (mid-cycle activation or change)
             $isProrated = false;
             $prorationAmount = 0;
             $prorationNotes = null;
-            
+
             // Mid-cycle activation proration
             if ($subscription->start_date > $this->cycleStart->toDateString()) {
                 $isProrated = true;
@@ -90,7 +92,7 @@ class GenerateInvoices implements ShouldQueue
                 );
                 $prorationNotes = "Mid-cycle activation proration";
             }
-            
+
             // Package change proration (if subscription has proration flag set)
             if ($subscription->is_prorated && $subscription->proration_amount > 0) {
                 $isProrated = true;
@@ -103,10 +105,10 @@ class GenerateInvoices implements ShouldQueue
             $taxAmount = (int) round($baseAmount * $taxRate / 100);
             $subtotal = $baseAmount;
             $total = $subtotal + $taxAmount;
-            
+
             // Generate invoice number (thread-safe via InvoiceNumberGenerator)
             $invoiceNumber = $invoiceNumberGenerator->generateInvoiceNumber($tenantId ?? 1);
-            
+
             // Create invoice
             $invoice = Invoice::create([
                 'tenant_id' => $tenantId,
@@ -137,7 +139,7 @@ class GenerateInvoices implements ShouldQueue
             $description = $isProrated
                 ? "{$package->name} - Prorated ({$this->cycleStart->toDateString()} to {$this->cycleEnd->toDateString()})"
                 : "{$package->name} - {$this->cycleStart->toDateString()} to {$this->cycleEnd->toDateString()}";
-            
+
             InvoiceItem::create([
                 'tenant_id' => $tenantId,
                 'invoice_id' => $invoice->id,
@@ -186,7 +188,7 @@ class GenerateInvoices implements ShouldQueue
     {
         $billingCycle = $package->billing_cycle ?? 'monthly';
         $graceDays = config('billing.grace_period_days', 5);
-        
+
         return match ($billingCycle) {
             'monthly' => $cycleEnd->copy()->addDays($graceDays),
             'quarterly' => $cycleEnd->copy()->addDays(7),
@@ -202,14 +204,14 @@ class GenerateInvoices implements ShouldQueue
     {
         $package = $subscription->package;
         $billingCycle = $package->billing_cycle ?? 'monthly';
-        
+
         $nextDate = match ($billingCycle) {
             'monthly' => $cycleEnd->copy()->addMonth()->startOfMonth(),
             'quarterly' => $cycleEnd->copy()->addQuarter()->firstOfQuarter(),
             'yearly' => $cycleEnd->copy()->addYear()->startOfYear(),
             default => $cycleEnd->copy()->addMonth()->startOfMonth(),
         };
-        
+
         return $nextDate->toDateString();
     }
 

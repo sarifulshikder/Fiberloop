@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\Log;
  */
 class DunningReminders implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
 
     public int $daysOverdue;
 
@@ -30,10 +32,10 @@ class DunningReminders implements ShouldQueue
     public function handle(LateFeeService $lateFeeService): void
     {
         Log::info("Starting dunning reminders job for day {$this->daysOverdue}");
-        
+
         $gracePeriodDays = 5; // Default grace period
         $dueDateThreshold = now()->subDays($gracePeriodDays + $this->daysOverdue);
-        
+
         $overdueInvoices = Invoice::query()
             ->whereIn('status', ['sent', 'overdue', 'partial'])
             ->where('due_date', '<=', $dueDateThreshold->toDateString())
@@ -45,14 +47,14 @@ class DunningReminders implements ShouldQueue
             ->get();
 
         $processed = 0;
-        
+
         foreach ($overdueInvoices as $invoice) {
             if ($this->shouldSendReminder($invoice, $gracePeriodDays)) {
                 $this->fireDunningEvent($invoice);
                 $processed++;
             }
         }
-        
+
         Log::info("Dunning reminders completed", [
             'day' => $this->daysOverdue,
             'invoices_processed' => $processed,
@@ -66,14 +68,14 @@ class DunningReminders implements ShouldQueue
     {
         $dueDate = Carbon::parse($invoice->due_date);
         $gracePeriodEnd = $dueDate->copy()->addDays($gracePeriodDays);
-        
+
         // Invoice must be past grace period
         if (now()->isBefore($gracePeriodEnd)) {
             return false;
         }
-        
+
         $daysOverdue = now()->diffInDays($gracePeriodEnd);
-        
+
         // Check if this matches our reminder schedule
         return match ($this->daysOverdue) {
             1 => $daysOverdue >= 1 && $daysOverdue < 3,
@@ -89,7 +91,7 @@ class DunningReminders implements ShouldQueue
     protected function fireDunningEvent(Invoice $invoice): void
     {
         $daysOverdue = $this->daysOverdue;
-        
+
         // In a real implementation, this would fire a specific DunningReminder event
         // For now, we'll log it and Phase 11 can extend this
         Log::info("Dunning reminder fired", [
@@ -99,7 +101,7 @@ class DunningReminders implements ShouldQueue
             'days_overdue' => $daysOverdue,
             'outstanding_amount' => $invoice->outstanding_amount,
         ]);
-        
+
         // TODO: Fire actual event when Phase 11 is implemented
         // event(new \App\Events\Notifications\DunningReminder(
         //     $invoice->customer,

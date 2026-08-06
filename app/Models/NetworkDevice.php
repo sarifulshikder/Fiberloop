@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\DeviceVendor;
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class NetworkDevice extends Model
 {
-  use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'tenant_id',
@@ -71,9 +70,32 @@ class NetworkDevice extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    /**
+     * MikroTikService reads ->api_port; this aliases the 'port' column.
+     */
+    public function getApiPortAttribute(): int
+    {
+        return $this->port ?? 8728;
+    }
+
     public function olts(): HasMany
     {
         return $this->hasMany(Olt::class);
+    }
+
+    public function deviceMetrics(): HasMany
+    {
+        return $this->hasMany(DeviceMetric::class);
+    }
+
+    public function incidents(): HasMany
+    {
+        return $this->hasMany(Incident::class);
+    }
+
+    public function ipPools(): HasMany
+    {
+        return $this->hasMany(IpPool::class);
     }
 
     public function scopeActive($query)

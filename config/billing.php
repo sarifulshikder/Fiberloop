@@ -80,7 +80,7 @@ return [
     'prepaid' => [
         // Minimum balance required to start service (in poysha)
         'min_balance' => 0,
-        
+
         // Auto-suspend when balance falls below this threshold (in poysha)
         'suspend_threshold' => 0,
     ],

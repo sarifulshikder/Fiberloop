@@ -38,10 +38,10 @@ class PrepaidService
     public function canActivateService(Customer $customer, Subscription $subscription): bool
     {
         $packagePrice = $subscription->package->price;
-        
+
         // For monthly packages, check if customer has at least one month's fee
         $billingCycle = $subscription->package->billing_cycle ?? 'monthly';
-        
+
         $requiredAmount = match ($billingCycle) {
             'monthly' => $packagePrice,
             'quarterly' => $packagePrice * 3,
@@ -137,7 +137,7 @@ class PrepaidService
         return DB::transaction(function () use ($subscription, $periodStart, $periodEnd) {
             $customer = $subscription->customer;
             $package = $subscription->package;
-            
+
             if (!$customer || !$package) {
                 return false;
             }
@@ -145,15 +145,15 @@ class PrepaidService
             // Calculate usage charge based on package
             $billingCycle = $package->billing_cycle ?? 'monthly';
             $packagePrice = $package->price;
-            
+
             // Calculate prorated amount if not full cycle
             $totalDays = $periodStart->diffInDays($periodEnd) + 1;
             $daysInMonth = $periodStart->daysInMonth;
-            
+
             // For simplicity, assume full cycle charge for now
             // In a real implementation, this would calculate actual usage
             $chargeAmount = $packagePrice;
-            
+
             if (!$this->hasSufficientBalance($customer, $chargeAmount)) {
                 // Suspend subscription if insufficient balance
                 $this->suspendForInsufficientBalance($subscription);
@@ -215,7 +215,7 @@ class PrepaidService
     protected function suspendForInsufficientBalance(Subscription $subscription): void
     {
         $customer = $subscription->customer;
-        
+
         // Change subscription status to suspended
         $subscription->update([
             'status' => 'suspended',
@@ -313,13 +313,13 @@ class PrepaidService
     {
         return DB::transaction(function () use ($payment) {
             $customer = $payment->customer;
-            
+
             if (!$customer) {
                 return false;
             }
 
             $amount = $payment->amount;
-            
+
             // Credit the wallet
             $success = $this->creditToBalance(
                 $customer,

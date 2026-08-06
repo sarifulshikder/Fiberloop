@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Package extends Model
 {
-  use HasFactory;
+    use HasFactory;
 
     protected $fillable = [
         'tenant_id',
