@@ -6,13 +6,23 @@ use App\Enums\PaymentMethod;
 use App\Enums\ReconciliationStatus;
 use App\Filament\Resources\PaymentReconciliationResource\Pages;
 use App\Models\PaymentReconciliation;
-use Filament\Forms;
-use Filament\Forms\Form;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Section;
 use Filament\Resources\Resource;
-use Filament\Tables;
+use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * Filament resource for managing payment reconciliation records.
@@ -22,8 +32,8 @@ class PaymentReconciliationResource extends Resource
 {
     protected static ?string $model = PaymentReconciliation::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
-    protected static string|\BackedEnum|null $navigationGroup = 'Billing';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static \UnitEnum|string|null $navigationGroup = 'Billing & Payments';
     protected static ?int $navigationSort = 4;
 
     public static function getModelLabel(): string
@@ -36,77 +46,76 @@ class PaymentReconciliationResource extends Resource
         return 'Payment Reconciliations';
     }
 
-    public static function form(Form $form): Form
+    public static function form(Schema $form): Schema
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Reconciliation Details')
+                Section::make('Reconciliation Details')
                     ->schema([
-                        Forms\Components\TextInput::make('gateway')
+                        TextInput::make('gateway')
                             ->label('Gateway')
-                            ->options(PaymentMethod::options())
                             ->required()
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('gateway_reference')
+                        TextInput::make('gateway_reference')
                             ->label('Gateway Reference')
                             ->maxLength(255)
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('recorded_amount')
+                        TextInput::make('recorded_amount')
                             ->label('Recorded Amount (poysha)')
                             ->numeric()
                             ->disabled(),
 
-                        Forms\Components\TextInput::make('settlement_amount')
+                        TextInput::make('settlement_amount')
                             ->label('Settlement Amount (poysha)')
                             ->numeric()
                             ->disabled(),
 
-                        Forms\Components\DateTimePicker::make('settlement_date')
+                        DateTimePicker::make('settlement_date')
                             ->label('Settlement Date')
                             ->disabled(),
 
-                        Forms\Components\Select::make('status')
+                        Select::make('status')
                             ->label('Status')
                             ->options(ReconciliationStatus::options())
                             ->required(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Related Payment')
+                Section::make('Related Payment')
                     ->schema([
-                        Forms\Components\TextInput::make('payment_id')
+                        TextInput::make('payment_id')
                             ->label('Payment ID')
                             ->numeric()
                             ->disabled(),
                     ])->columns(1),
 
-                Forms\Components\Section::make('Resolution')
+                Section::make('Resolution')
                     ->schema([
-                        Forms\Components\Select::make('resolved_by')
+                        Select::make('resolved_by')
                             ->label('Resolved By')
                             ->relationship('resolvedBy', 'name')
                             ->searchable()
                             ->nullable(),
 
-                        Forms\Components\DateTimePicker::make('resolved_at')
+                        DateTimePicker::make('resolved_at')
                             ->label('Resolved At')
                             ->nullable(),
 
-                        Forms\Components\Textarea::make('resolution_notes')
+                        Textarea::make('resolution_notes')
                             ->label('Resolution Notes')
                             ->rows(3)
                             ->nullable(),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Additional Information')
+                Section::make('Additional Information')
                     ->schema([
-                        Forms\Components\Textarea::make('notes')
+                        Textarea::make('notes')
                             ->label('Notes')
                             ->rows(3)
                             ->nullable(),
 
-                        Forms\Components\Textarea::make('settlement_data')
+                        Textarea::make('settlement_data')
                             ->label('Settlement Data (JSON)')
                             ->rows(5)
                             ->disabled(),
@@ -118,7 +127,7 @@ class PaymentReconciliationResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('gateway')
+                TextColumn::make('gateway')
                     ->label('Gateway')
                     ->badge()
                     ->color(fn ($state) => match ($state) {
@@ -130,85 +139,76 @@ class PaymentReconciliationResource extends Resource
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('gateway_reference')
+                TextColumn::make('gateway_reference')
                     ->label('Gateway Ref')
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('payment_id')
+                TextColumn::make('payment_id')
                     ->label('Payment ID')
                     ->numeric()
                     ->searchable()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('recorded_amount')
+                TextColumn::make('recorded_amount')
                     ->label('Recorded (poysha)')
                     ->numeric()
-                    ->money(fn ($amount) => $amount / 100, 'BDT', true)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('settlement_amount')
+                TextColumn::make('settlement_amount')
                     ->label('Settlement (poysha)')
                     ->numeric()
-                    ->money(fn ($amount) => $amount / 100, 'BDT', true)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('settlement_date')
+                TextColumn::make('settlement_date')
                     ->label('Settlement Date')
                     ->dateTime()
                     ->sortable(),
 
-                Tables\Columns\SelectColumn::make('status')
+                SelectColumn::make('status')
                     ->label('Status')
                     ->options(ReconciliationStatus::options())
                     ->searchable()
-                    ->sortable()
-                    ->badge()
-                    ->color(fn ($state) => match ($state) {
-                        ReconciliationStatus::MATCHED->value => 'success',
-                        ReconciliationStatus::PENDING->value => 'warning',
-                        ReconciliationStatus::DISCREPANCY->value => 'danger',
-                        default => 'gray',
-                    }),
+                    ->sortable(),
 
-                Tables\Columns\TextColumn::make('resolved_at')
+                TextColumn::make('resolved_at')
                     ->label('Resolved At')
                     ->dateTime()
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->label('Created At')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('gateway')
+                SelectFilter::make('gateway')
                     ->label('Gateway')
                     ->options(PaymentMethod::options()),
 
-                Tables\Filters\SelectFilter::make('status')
+                SelectFilter::make('status')
                     ->label('Status')
                     ->options(ReconciliationStatus::options()),
 
-                Tables\Filters\Filter::make('unresolved')
+                Filter::make('unresolved')
                     ->label('Unresolved Only')
                     ->query(fn (Builder $query) => $query->whereIn('status', [
                         ReconciliationStatus::PENDING->value,
                         ReconciliationStatus::DISCREPANCY->value
                     ])),
 
-                Tables\Filters\Filter::make('discrepancies')
+                Filter::make('discrepancies')
                     ->label('Discrepancies Only')
                     ->query(fn (Builder $query) => $query->where('status', ReconciliationStatus::DISCREPANCY->value)),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
