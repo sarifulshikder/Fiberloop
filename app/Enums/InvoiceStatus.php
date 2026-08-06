@@ -19,12 +19,12 @@ enum InvoiceStatus: string
     public static function options(): array
     {
         return [
-            'Draft' => self::DRAFT->value,
-            'Sent' => self::SENT->value,
-            'Paid' => self::PAID->value,
-            'Partial' => self::PARTIAL->value,
-            'Overdue' => self::OVERDUE->value,
-            'Void' => self::VOID->value,
+            self::DRAFT->value => self::DRAFT->label(),
+            self::SENT->value => self::SENT->label(),
+            self::PAID->value => self::PAID->label(),
+            self::PARTIAL->value => self::PARTIAL->label(),
+            self::OVERDUE->value => self::OVERDUE->label(),
+            self::VOID->value => self::VOID->label(),
         ];
     }
 

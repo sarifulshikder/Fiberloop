@@ -15,8 +15,8 @@ enum BillingType: string
     public static function options(): array
     {
         return [
-            'Prepaid' => self::PREPAID->value,
-            'Postpaid' => self::POSTPAID->value,
+            self::PREPAID->value => self::PREPAID->label(),
+            self::POSTPAID->value => self::POSTPAID->label(),
         ];
     }
 

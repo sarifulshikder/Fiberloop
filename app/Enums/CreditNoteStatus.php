@@ -17,10 +17,10 @@ enum CreditNoteStatus: string
     public static function options(): array
     {
         return [
-            'Draft' => self::DRAFT->value,
-            'Approved' => self::APPROVED->value,
-            'Applied' => self::APPLIED->value,
-            'Cancelled' => self::CANCELLED->value,
+            self::DRAFT->value => self::DRAFT->label(),
+            self::APPROVED->value => self::APPROVED->label(),
+            self::APPLIED->value => self::APPLIED->label(),
+            self::CANCELLED->value => self::CANCELLED->label(),
         ];
     }
 

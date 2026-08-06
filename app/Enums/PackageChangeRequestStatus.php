@@ -19,12 +19,12 @@ enum PackageChangeRequestStatus: string
     public static function options(): array
     {
         return [
-            'Pending' => self::PENDING->value,
-            'Approved' => self::APPROVED->value,
-            'Rejected' => self::REJECTED->value,
-            'Processing' => self::PROCESSING->value,
-            'Completed' => self::COMPLETED->value,
-            'Cancelled' => self::CANCELLED->value,
+            self::PENDING->value => self::PENDING->label(),
+            self::APPROVED->value => self::APPROVED->label(),
+            self::REJECTED->value => self::REJECTED->label(),
+            self::PROCESSING->value => self::PROCESSING->label(),
+            self::COMPLETED->value => self::COMPLETED->label(),
+            self::CANCELLED->value => self::CANCELLED->label(),
         ];
     }
 

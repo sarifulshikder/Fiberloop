@@ -44,9 +44,9 @@ class Onu extends Model
     protected $casts = [
         'registered_at' => 'datetime',
         'is_registered' => 'boolean',
-        'optical_signal_db' => 'decimal:5,2',
-        'tx_power_db' => 'decimal:5,2',
-        'rx_power_db' => 'decimal:5,2',
+        'optical_signal_db' => 'decimal:2',
+        'tx_power_db' => 'decimal:2',
+        'rx_power_db' => 'decimal:2',
         'pon_port' => 'integer',
         'is_active' => 'boolean',
         'last_signal_check_at' => 'datetime',

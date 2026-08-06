@@ -91,6 +91,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->is_super_admin;
     }
 
+    public function customer(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Customer::class, 'email', 'email');
+    }
+
     public function hasTwoFactorEnabled(): bool
     {
         return $this->two_factor_enabled;

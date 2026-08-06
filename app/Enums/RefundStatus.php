@@ -17,10 +17,10 @@ enum RefundStatus: string
     public static function options(): array
     {
         return [
-            'Pending' => self::PENDING->value,
-            'Approved' => self::APPROVED->value,
-            'Processed' => self::PROCESSED->value,
-            'Rejected' => self::REJECTED->value,
+            self::PENDING->value => self::PENDING->label(),
+            self::APPROVED->value => self::APPROVED->label(),
+            self::PROCESSED->value => self::PROCESSED->label(),
+            self::REJECTED->value => self::REJECTED->label(),
         ];
     }
 

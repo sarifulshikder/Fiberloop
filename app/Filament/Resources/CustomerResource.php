@@ -33,6 +33,12 @@ class CustomerResource extends Resource
     protected static ?string $navigationLabel = 'Customers';
     protected static \UnitEnum|string|null $navigationGroup = 'CRM';
     protected static ?int $navigationSort = 10;
+    protected static ?string $recordTitleAttribute = 'first_name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['first_name', 'last_name', 'email', 'phone'];
+    }
 
     public static function getPluralLabel(): string
     {
@@ -183,6 +189,17 @@ class CustomerResource extends Resource
                         MarkdownEditor::make('notes')
                             ->columnSpanFull(),
                     ]),
+                Section::make('AI & Analytics')
+                    ->schema([
+                        TextInput::make('churn_score')
+                            ->label('Churn Risk Score (0-1)')
+                            ->numeric()
+                            ->readOnly(),
+                        TextInput::make('anomaly_score')
+                            ->label('Anomaly Score')
+                            ->numeric()
+                            ->readOnly(),
+                    ])->columns(2),
             ]);
     }
 
@@ -231,6 +248,16 @@ class CustomerResource extends Resource
                     ->label('Activated')
                     ->dateTime()
                     ->sortable(),
+                TextColumn::make('churn_score')
+                    ->label('Churn Risk')
+                    ->sortable()
+                    ->color(fn (Customer $record): string => $record->is_high_risk ? 'danger' : 'success')
+                    ->badge(fn (Customer $record): string => $record->is_high_risk ? 'High' : 'Normal'),
+                TextColumn::make('has_anomaly')
+                    ->label('Anomaly')
+                    ->badge()
+                    ->color(fn (Customer $record): string => $record->has_anomaly ? 'warning' : 'success')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Detected' : 'Clear'),
             ])
             ->defaultSort('id', 'desc')
             ->filters([
@@ -254,6 +281,10 @@ class CustomerResource extends Resource
                     ->label('NID Number')
                     ->searchable()
                     ->multiple(),
+                \Filament\Tables\Filters\TernaryFilter::make('is_high_risk')
+                    ->label('High Churn Risk'),
+                \Filament\Tables\Filters\TernaryFilter::make('has_anomaly')
+                    ->label('Anomalous Usage/Payment'),
             ])
             ->actions([
                 ViewAction::make(),

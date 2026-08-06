@@ -20,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\RateLimiter::for('sms_sends', function ($job) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(50);
+        });
         // Configure rate limiting for authentication
         $this->configureRateLimiting();
     }

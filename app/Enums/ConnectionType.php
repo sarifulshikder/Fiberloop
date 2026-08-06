@@ -16,9 +16,9 @@ enum ConnectionType: string
     public static function options(): array
     {
         return [
-            'PPPoE' => self::PPPOE->value,
-            'Hotspot' => self::HOTSPOT->value,
-            'Static IP' => self::STATIC->value,
+            self::PPPOE->value => self::PPPOE->label(),
+            self::HOTSPOT->value => self::HOTSPOT->label(),
+            self::STATIC->value => self::STATIC->label(),
         ];
     }
 

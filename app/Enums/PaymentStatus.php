@@ -17,10 +17,10 @@ enum PaymentStatus: string
     public static function options(): array
     {
         return [
-            'Pending' => self::PENDING->value,
-            'Completed' => self::COMPLETED->value,
-            'Failed' => self::FAILED->value,
-            'Refunded' => self::REFUNDED->value,
+            self::PENDING->value => self::PENDING->label(),
+            self::COMPLETED->value => self::COMPLETED->label(),
+            self::FAILED->value => self::FAILED->label(),
+            self::REFUNDED->value => self::REFUNDED->label(),
         ];
     }
 

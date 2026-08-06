@@ -18,11 +18,11 @@ enum LeadStatus: string
     public static function options(): array
     {
         return [
-            'New' => self::NEW->value,
-            'Contacted' => self::CONTACTED->value,
-            'Site Survey' => self::SITE_SURVEY->value,
-            'Converted' => self::CONVERTED->value,
-            'Lost' => self::LOST->value,
+            self::NEW->value => self::NEW->label(),
+            self::CONTACTED->value => self::CONTACTED->label(),
+            self::SITE_SURVEY->value => self::SITE_SURVEY->label(),
+            self::CONVERTED->value => self::CONVERTED->label(),
+            self::LOST->value => self::LOST->label(),
         ];
     }
 

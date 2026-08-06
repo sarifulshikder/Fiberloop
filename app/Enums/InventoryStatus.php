@@ -17,10 +17,10 @@ enum InventoryStatus: string
     public static function options(): array
     {
         return [
-            'In Stock' => self::IN_STOCK->value,
-            'Assigned' => self::ASSIGNED->value,
-            'Faulty' => self::FAULTY->value,
-            'Retired' => self::RETIRED->value,
+            self::IN_STOCK->value => self::IN_STOCK->label(),
+            self::ASSIGNED->value => self::ASSIGNED->label(),
+            self::FAULTY->value => self::FAULTY->label(),
+            self::RETIRED->value => self::RETIRED->label(),
         ];
     }
 

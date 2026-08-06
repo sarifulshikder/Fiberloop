@@ -23,6 +23,10 @@ class EventServiceProvider extends ServiceProvider
      *
      * @var array<class-string, array<int, class-string>>
      */
+    protected $subscribe = [
+        \App\Listeners\NotificationEventSubscriber::class,
+    ];
+
     protected $listen = [
         InvoiceGenerated::class => [
             LogInvoiceGenerated::class,

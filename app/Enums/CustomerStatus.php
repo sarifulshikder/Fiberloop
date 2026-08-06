@@ -17,10 +17,10 @@ enum CustomerStatus: string
     public static function options(): array
     {
         return [
-            'Pending' => self::PENDING->value,
-            'Active' => self::ACTIVE->value,
-            'Suspended' => self::SUSPENDED->value,
-            'Terminated' => self::TERMINATED->value,
+            self::PENDING->value => self::PENDING->label(),
+            self::ACTIVE->value => self::ACTIVE->label(),
+            self::SUSPENDED->value => self::SUSPENDED->label(),
+            self::TERMINATED->value => self::TERMINATED->label(),
         ];
     }
 

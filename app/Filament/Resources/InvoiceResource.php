@@ -33,6 +33,12 @@ class InvoiceResource extends Resource
     protected static ?string $navigationLabel = 'Invoices';
     protected static \UnitEnum|string|null $navigationGroup = 'Billing & Payments';
     protected static ?int $navigationSort = 10;
+    protected static ?string $recordTitleAttribute = 'invoice_number';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['invoice_number'];
+    }
 
     public static function getPluralLabel(): string
     {

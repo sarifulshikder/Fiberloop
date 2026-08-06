@@ -17,10 +17,10 @@ enum SubscriptionStatus: string
     public static function options(): array
     {
         return [
-            'Active' => self::ACTIVE->value,
-            'Expired' => self::EXPIRED->value,
-            'Cancelled' => self::CANCELLED->value,
-            'Suspended' => self::SUSPENDED->value,
+            self::ACTIVE->value => self::ACTIVE->label(),
+            self::EXPIRED->value => self::EXPIRED->label(),
+            self::CANCELLED->value => self::CANCELLED->label(),
+            self::SUSPENDED->value => self::SUSPENDED->label(),
         ];
     }
 

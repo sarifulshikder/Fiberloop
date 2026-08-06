@@ -16,9 +16,9 @@ enum ReconciliationStatus: string
     public static function options(): array
     {
         return [
-            'Pending' => self::PENDING->value,
-            'Matched' => self::MATCHED->value,
-            'Discrepancy' => self::DISCREPANCY->value,
+            self::PENDING->value => self::PENDING->label(),
+            self::MATCHED->value => self::MATCHED->label(),
+            self::DISCREPANCY->value => self::DISCREPANCY->label(),
         ];
     }
 

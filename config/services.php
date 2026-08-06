@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'ai_microservice' => [
+        'url' => env('AI_MICROSERVICE_URL', 'http://fiberloop-ai:8001'),
+    ],
+
 ];

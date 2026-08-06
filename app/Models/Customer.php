@@ -11,8 +11,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use Illuminate\Notifications\Notifiable;
+
 class Customer extends Model
 {
+    use Notifiable;
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
@@ -57,6 +60,9 @@ class Customer extends Model
         'suspension_reason',
         'termination_reason',
         'notes',
+        'fcm_token',
+        'fcm_token_verified_at',
+        'last_push_notification_at',
     ];
 
     protected $casts = [
@@ -68,6 +74,8 @@ class Customer extends Model
         'suspended_at' => 'datetime',
         'terminated_at' => 'datetime',
         'notes' => 'array',
+        'fcm_token_verified_at' => 'datetime',
+        'last_push_notification_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -191,5 +199,21 @@ class Customer extends Model
     public function scopeTerminated($query)
     {
         return $query->where('status', CustomerStatus::TERMINATED);
+    }
+
+    public function routeNotificationForSms($notification)
+    {
+        if (!$this->promotional_sms_opt_in && property_exists($notification, 'isPromotional') && $notification->isPromotional) {
+            return null;
+        }
+        return $this->phone;
+    }
+
+    public function routeNotificationForMail($notification)
+    {
+        if (!$this->promotional_email_opt_in && property_exists($notification, 'isPromotional') && $notification->isPromotional) {
+            return null;
+        }
+        return $this->email;
     }
 }

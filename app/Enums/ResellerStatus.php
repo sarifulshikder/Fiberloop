@@ -16,9 +16,9 @@ enum ResellerStatus: string
     public static function options(): array
     {
         return [
-            'Active' => self::ACTIVE->value,
-            'Suspended' => self::SUSPENDED->value,
-            'Terminated' => self::TERMINATED->value,
+            self::ACTIVE->value => self::ACTIVE->label(),
+            self::SUSPENDED->value => self::SUSPENDED->label(),
+            self::TERMINATED->value => self::TERMINATED->label(),
         ];
     }
 

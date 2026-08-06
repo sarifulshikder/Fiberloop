@@ -85,17 +85,17 @@ services:
       - "1813:1813/udp"
       - "18120:18120"
     volumes:
-      - ./docker/freeradius:/etc/raddb
+      - ./docker/freeradius:/etc/freeradius
     depends_on:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "radiusd -C || exit 1"]
+      test: ["CMD-SHELL", "freeradius -C || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
-    command: radiusd -f /etc/raddb/radiusd.conf -l stdout
+    command: freeradius -f /etc/freeradius/radiusd.conf -l stdout
 
   # Queue worker (Horizon)
   queue:
@@ -120,6 +120,23 @@ services:
       - DB_USERNAME=fiberloop
       - DB_PASSWORD=fiberloop_secret
       - REDIS_HOST=redis
+
+  # Python AI Service
+  ai:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: fiberloop-ai
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://fiberloop:fiberloop_secret@postgres:5432/fiberloop
 
 networks:
   fiberloop-network:

@@ -18,11 +18,11 @@ enum PaymentMethod: string
     public static function options(): array
     {
         return [
-            'bKash' => self::BKASH->value,
-            'Nagad' => self::NAGAD->value,
-            'SSLCommerz' => self::SSLCOMMERZ->value,
-            'Bank Transfer' => self::BANK->value,
-            'Cash' => self::CASH->value,
+            self::BKASH->value => self::BKASH->label(),
+            self::NAGAD->value => self::NAGAD->label(),
+            self::SSLCOMMERZ->value => self::SSLCOMMERZ->label(),
+            self::BANK->value => self::BANK->label(),
+            self::CASH->value => self::CASH->label(),
         ];
     }
 

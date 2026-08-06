@@ -17,10 +17,10 @@ enum PackageBillingCycle: string
     public static function options(): array
     {
         return [
-            'Monthly' => self::MONTHLY->value,
-            'Quarterly' => self::QUARTERLY->value,
-            'Bi-Annual' => self::BIANNUAL->value,
-            'Annual' => self::ANNUAL->value,
+            self::MONTHLY->value => self::MONTHLY->label(),
+            self::QUARTERLY->value => self::QUARTERLY->label(),
+            self::BIANNUAL->value => self::BIANNUAL->label(),
+            self::ANNUAL->value => self::ANNUAL->label(),
         ];
     }
 

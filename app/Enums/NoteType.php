@@ -22,15 +22,15 @@ enum NoteType: string
     public static function options(): array
     {
         return [
-            'General' => self::GENERAL->value,
-            'Call' => self::CALL->value,
-            'Complaint' => self::COMPLAINT->value,
-            'Technician Visit' => self::TECHNICIAN_VISIT->value,
-            'Payment' => self::PAYMENT->value,
-            'Support' => self::SUPPORT->value,
-            'Sales' => self::SALES->value,
-            'Installation' => self::INSTALLATION->value,
-            'Maintenance' => self::MAINTENANCE->value,
+            self::GENERAL->value => self::GENERAL->label(),
+            self::CALL->value => self::CALL->label(),
+            self::COMPLAINT->value => self::COMPLAINT->label(),
+            self::TECHNICIAN_VISIT->value => self::TECHNICIAN_VISIT->label(),
+            self::PAYMENT->value => self::PAYMENT->label(),
+            self::SUPPORT->value => self::SUPPORT->label(),
+            self::SALES->value => self::SALES->label(),
+            self::INSTALLATION->value => self::INSTALLATION->label(),
+            self::MAINTENANCE->value => self::MAINTENANCE->label(),
         ];
     }
 

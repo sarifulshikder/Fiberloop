@@ -19,12 +19,12 @@ enum DeviceVendor: string
     public static function options(): array
     {
         return [
-            'MikroTik' => self::MIKROTIK->value,
-            'Huawei' => self::HUAWEI->value,
-            'ZTE' => self::ZTE->value,
-            'Nokia' => self::NOKIA->value,
-            'Cisco' => self::CISCO->value,
-            'Other' => self::OTHER->value,
+            self::MIKROTIK->value => self::MIKROTIK->label(),
+            self::HUAWEI->value => self::HUAWEI->label(),
+            self::ZTE->value => self::ZTE->label(),
+            self::NOKIA->value => self::NOKIA->label(),
+            self::CISCO->value => self::CISCO->label(),
+            self::OTHER->value => self::OTHER->label(),
         ];
     }
 

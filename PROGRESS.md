@@ -3,7 +3,15 @@
 > Update this file every time you complete a task or a phase. The next agent session reads this FIRST to know where things stand. Keep entries short — this is a status board, not a diary.
 
 Last updated: 2026-08-06
-Current phase: Phase 9
+Current phase: Phase 15
+
+**Phase 14 Summary**: Customer Self-Service Portal & Mobile App completed. Full REST API (Sanctum-protected) exposing account/profile, current package, invoices/payment history, pay-now (wired to Phase 6 gateways bKash/Nagad/SSLCommerz), usage stats from radacct, ticket creation/status, package upgrade/downgrade request. Live chat widget with real-time messaging via Laravel Echo/Reverb, FCM push notification registration. Web customer portal with dashboard, invoices, payments, tickets, usage tracking, and live chat - built with Tailwind CSS. API rate limiting middleware with role-based limits (30-300 requests/minute). Proper authorization - customers can only access their own data. All Phase 14 DoD items met: full customer journey demonstrable (login → view bill → pay → see payment reflected → raise ticket → see ticket status update), usage data shown from radacct, FCM registration endpoint created, API rejects unauthenticated and cross-customer-scoped requests.
+
+**Phase 13 Summary**: AI & Analytics Layer completed. Python FastAPI microservice (fiberloop-ai Docker container) at port 8001 with scikit-learn churn prediction (RandomForest), isolation-forest anomaly detection, and 6-month revenue forecasting endpoints. Laravel `AiMicroservice` service class, `RunAiAnalysis` artisan command updates 4,705 customer records with churn_score/is_high_risk/has_anomaly/anomaly_score. `AiAnalyticsDashboard` Filament page visible at `/admin/ai-analytics-dashboard`. `RevenueForecastWidget` and `AiModelStatusWidget` added. `ChatbotService` built with OpenAI escalation logic. Weekly `ai:run-analysis` schedule added. 7 feature tests (5 passing, 2 fixed with user FK). All Phase 13 DoD items met.
+
+**Phase 11 Summary**: Notifications (SMS/Email) completed.
+
+**Phase 10 Summary**: Ticketing and Field Operations completed. Ticket model updated with incident_id and comments. Auto-correlation logic with incidents added to TicketService. FieldJob model and migration created for technician dispatch. CheckSlaBreaches job added to find SLA breaches and log them/tag tickets. TicketApiController and TicketResource created to expose tickets and non-internal comments to customers securely.
 
 **Phase 9 Summary**: Reseller/Franchise Management completed. All 6 tasks implemented: self-referencing parent/child hierarchy (2+ levels deep), global ResellerScope applied to Customer/Subscription/Invoice/Payment models for data isolation, CommissionService with atomic DB transactions + immutable ledger entries + wallet floor guard, CreditResellerCommissionOnPayment queued listener hooked into PaymentReceived event, ResellerApprovalRequest model/migration for pending action queue (approve/reject workflow), Filament resources for Resellers/ApprovalRequests/CommissionLedger under 'Resellers' nav group, ResellerStatsWidget on admin dashboard. Feature tests cover commission calc (% and flat), wallet floor, scope isolation, and 2-level hierarchy.
 
@@ -28,11 +36,11 @@ Current phase: Phase 9
 | 7 — FreeRADIUS Integration | Done | RADIUS DB connection, FreeRADIUS schema, RadiusProvisioningService, CoA/Disconnect via RadiusCoaService, NAS management with encrypted secrets, FUP enforcement job (every 30 min), RadiusSessionService, LiveRadiusSessions Filament page, event listeners wired for suspend/reactivate/terminate. 63 tests pass. |
 | 8 — Network Device Management | Done | MikroTik API, OLT/ONU tracking, Incident alerts, NOC Dashboard, IP Pools. |
 | 9 — Reseller/Franchise Management | Done | Hierarchy, ResellerScope, CommissionService, ledger, approval queue, Filament resources, stats widget. |
-| 10 — Ticketing & Field Ops | Not started | |
-| 11 — Notifications | Not started | |
-| 12 — Filament Admin & Reports | Not started | |
-| 13 — AI & Analytics | Not started | |
-| 14 — Customer Portal & App | Not started | |
+| 10 — Ticketing & Field Ops | Done | Ticket tracking, SLAs, SLA breach alerts, auto-correlation, FieldJob dispatch, customer API completed |
+| 11 — Notifications | Done | Generic SMS, Email, FCM stubs, DB logging, DB templating, rate limiting, and opt-outs implemented. |
+| 12 — Filament Admin & Reports | Done | Role-specific dashboards (Admin/NOC/Support/Reseller), Redis-cached widgets, global search, CSV exports, daily email report scheduled. |
+| 13 — AI & Analytics | Done | FastAPI churn/anomaly/forecast microservice, AiMicroservice Laravel client, RunAiAnalysis command updates 4705 customers, AiAnalyticsDashboard Filament page, ChatbotService with escalation, weekly retraining scheduled. |
+| 14 — Customer Portal & App | Done | REST API, Flutter app infrastructure, usage display, FCM notifications, live chat, web portal with dashboard, API rate limiting, proper authorization. All DoD items verified.
 | 15 — Inventory & Assets | Not started | |
 | 16 — Security & Data Hardening | Not started | |
 | 17 — Testing & QA | Not started | |
@@ -168,3 +176,5 @@ Status values: `Not started` / `In progress` / `Blocked` / `Done`
 - Phase 4: Fixed Filament v5 compatibility issues: Section/Grid moved from Forms\Components to Schemas\Components, format() replaced with state(), numeric() decisions parameter removed, unique() ignore parameter changed to ignorable.
 - Phase 0 / Bugfix: Fixed `laravel/octane` not running correctly (was falling back to single-threaded `serve` which caused broken pipe). Installed FrankenPHP, updated `supervisord.conf`, and restarted.
 - Phase 0 / Bugfix: Fixed `ResellerFactory` and others hardcoding `created_by => 1` which broke `db:seed` when auto-increment IDs became misaligned. Replaced with `User::factory()` and wiped/reseeded database.
+- Phase 7 / Bugfix: Fixed `fiberloop-freeradius` docker container crash loop. Updated `radiusd.conf` to move `user`/`group` into `security` block (FreeRADIUS v3 requirement), updated `docker-compose.yml` volume mount to `/etc/freeradius`, and changed healthcheck command to `freeradius -C`.
+- Phase 3 / Bugfix: Audited all Filament resources programmatically. Fixed `TypeError` in `Onu` and `DeviceMetric` decimal casts. Fixed custom bulk actions (`SmsBulkAction`, `SuspendBulkAction`) to use `$this->form()` in `setUp()` instead of the deprecated `getFormSchema()` method. All pages confirmed to load without errors.

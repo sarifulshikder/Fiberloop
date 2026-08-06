@@ -24,16 +24,16 @@ This is the complete, phase-by-phase build plan for Fiberloop — from an empty 
 
 ## Phase Index
 
-- [ ] Phase 0 — Foundation & Environment Setup
-- [ ] Phase 1 — Database Architecture & Domain Modeling
-- [ ] Phase 2 — Authentication & Multi-Role Access Control
-- [ ] Phase 3 — Customer / Subscriber Management (CRM)
-- [ ] Phase 4 — Package, Plan & Pricing Engine
-- [ ] Phase 5 — Billing & Invoicing Engine
-- [ ] Phase 6 — Payment Gateway Integration
-- [ ] Phase 7 — FreeRADIUS AAA Integration
-- [ ] Phase 8 — Network Device Management (MikroTik / OLT / NOC)
-- [ ] Phase 9 — Reseller / Franchise Management
+- [x] Phase 0 — Foundation & Environment Setup
+- [x] Phase 1 — Database Architecture & Domain Modeling
+- [x] Phase 2 — Authentication & Multi-Role Access Control
+- [x] Phase 3 — Customer / Subscriber Management (CRM)
+- [x] Phase 4 — Package, Plan & Pricing Engine
+- [x] Phase 5 — Billing & Invoicing Engine
+- [x] Phase 6 — Payment Gateway Integration
+- [x] Phase 7 — FreeRADIUS AAA Integration
+- [x] Phase 8 — Network Device Management (MikroTik / OLT / NOC)
+- [x] Phase 9 — Reseller / Franchise Management
 - [ ] Phase 10 — Support Ticketing & Field Operations
 - [ ] Phase 11 — Notifications (SMS / Email / Push)
 - [ ] Phase 12 — Filament Admin Panel: Dashboards & Reports

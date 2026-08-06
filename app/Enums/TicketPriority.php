@@ -17,10 +17,10 @@ enum TicketPriority: string
     public static function options(): array
     {
         return [
-            'Low' => self::LOW->value,
-            'Medium' => self::MEDIUM->value,
-            'High' => self::HIGH->value,
-            'Critical' => self::CRITICAL->value,
+            self::LOW->value => self::LOW->label(),
+            self::MEDIUM->value => self::MEDIUM->label(),
+            self::HIGH->value => self::HIGH->label(),
+            self::CRITICAL->value => self::CRITICAL->label(),
         ];
     }
 

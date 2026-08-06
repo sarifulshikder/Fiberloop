@@ -17,10 +17,10 @@ enum WalletTransactionType: string
     public static function options(): array
     {
         return [
-            'Credit' => self::CREDIT->value,
-            'Debit' => self::DEBIT->value,
-            'Refund' => self::REFUND->value,
-            'Adjustment' => self::ADJUSTMENT->value,
+            self::CREDIT->value => self::CREDIT->label(),
+            self::DEBIT->value => self::DEBIT->label(),
+            self::REFUND->value => self::REFUND->label(),
+            self::ADJUSTMENT->value => self::ADJUSTMENT->label(),
         ];
     }
 

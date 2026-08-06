@@ -18,11 +18,11 @@ enum TicketStatus: string
     public static function options(): array
     {
         return [
-            'Open' => self::OPEN->value,
-            'In Progress' => self::IN_PROGRESS->value,
-            'On Hold' => self::ON_HOLD->value,
-            'Resolved' => self::RESOLVED->value,
-            'Closed' => self::CLOSED->value,
+            self::OPEN->value => self::OPEN->label(),
+            self::IN_PROGRESS->value => self::IN_PROGRESS->label(),
+            self::ON_HOLD->value => self::ON_HOLD->label(),
+            self::RESOLVED->value => self::RESOLVED->label(),
+            self::CLOSED->value => self::CLOSED->label(),
         ];
     }
 

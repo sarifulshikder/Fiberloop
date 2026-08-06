@@ -28,6 +28,12 @@ class SuspendBulkAction extends BulkAction
         $this->failureNotificationTitle('Failed to suspend some customers');
         $this->icon('heroicon-o-pause');
         $this->color('warning');
+        $this->form([
+            \Filament\Forms\Components\TextInput::make('reason')
+                ->label('Suspension Reason')
+                ->required()
+                ->maxLength(500),
+        ]);
     }
 
     public function handle(Collection $records, array $data): void
@@ -51,15 +57,6 @@ class SuspendBulkAction extends BulkAction
         $this->success();
     }
 
-    public function getFormSchema(): array
-    {
-        return [
-            \Filament\Forms\Components\TextInput::make('reason')
-                ->label('Suspension Reason')
-                ->required()
-                ->maxLength(500),
-        ];
-    }
 
     public static function canAccess(): bool
     {

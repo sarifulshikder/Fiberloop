@@ -31,3 +31,21 @@ Schedule::call(function () {
         \App\Jobs\PollOnuOpticalSignalJob::dispatch($onu);
     });
 })->everyThirtyMinutes()->name('network:poll-onu-signals');
+
+// Daily collection summary email to admins: every day at 8 AM
+Schedule::command('reports:daily-collection-summary')
+    ->dailyAt('08:00')
+    ->name('reports:daily-collection-summary')
+    ->withoutOverlapping();
+
+// SLA breach check: every hour
+Schedule::job(new \App\Jobs\CheckSlaBreaches())
+    ->hourly()
+    ->name('tickets:check-sla-breaches')
+    ->withoutOverlapping();
+
+// AI Retraining and analysis: weekly
+Schedule::command('ai:run-analysis')
+    ->weekly()
+    ->name('ai:run-analysis')
+    ->withoutOverlapping();

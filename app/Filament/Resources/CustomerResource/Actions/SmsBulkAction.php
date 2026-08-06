@@ -27,6 +27,14 @@ class SmsBulkAction extends BulkAction
         $this->failureNotificationTitle('Failed to send some SMS');
         $this->icon('heroicon-o-paper-airplane');
         $this->color('primary');
+        $this->form([
+            \Filament\Forms\Components\Textarea::make('message')
+                ->label('SMS Message')
+                ->required()
+                ->maxLength(500)
+                ->rows(5)
+                ->hint('Max 500 characters. Standard SMS limit is 160 characters.'),
+        ]);
     }
 
     public function handle(Collection $records, array $data): void
@@ -64,17 +72,6 @@ class SmsBulkAction extends BulkAction
         $this->success();
     }
 
-    public function getFormSchema(): array
-    {
-        return [
-            \Filament\Forms\Components\Textarea::make('message')
-                ->label('SMS Message')
-                ->required()
-                ->maxLength(500)
-                ->rows(5)
-                ->hint('Max 500 characters. Standard SMS limit is 160 characters.'),
-        ];
-    }
 
     public static function canAccess(): bool
     {

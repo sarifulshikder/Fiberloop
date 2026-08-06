@@ -17,6 +17,7 @@ class Ticket extends Model
         'uuid',
         'customer_id',
         'subscription_id',
+        'incident_id',
         'created_by',
         'assigned_to',
         'updated_by',
@@ -90,6 +91,21 @@ class Ticket extends Model
     public function relatedPayment(): BelongsTo
     {
         return $this->belongsTo(Payment::class, 'related_payment_id');
+    }
+
+    public function incident(): BelongsTo
+    {
+        return $this->belongsTo(Incident::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(TicketComment::class);
+    }
+
+    public function fieldJobs()
+    {
+        return $this->hasMany(FieldJob::class);
     }
 
     public function scopeOpen($query)
