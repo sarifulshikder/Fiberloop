@@ -1,0 +1,60 @@
+#
+#  Configuration for the SQL module
+#
+#  This module is for generic SQL databases that follow the standard
+#  FreeRADIUS schema.
+#
+
+sql {
+    # Database driver
+    driver = "rlm_sql_postgresql"
+
+    # PostgreSQL connection string
+    # Format: dbname= radius user= radius password= radius host= postgres port= 5432
+    server = "postgresql://fiberloop:fiberloop_secret@postgres:5432/radius"
+
+    # Radius database
+    radius_db = "radius"
+
+    # Read groups from the database
+    read_groups = yes
+
+    # SQL queries
+    # These are the default queries for PostgreSQL
+    
+    # Query to get the RADIUS user password
+    authorize_check_query = "SELECT id, username, attribute, value, op FROM radcheck WHERE username = '%{SQL-User-Name}' ORDER BY id"
+    
+    # Query to get the RADIUS user reply attributes
+    authorize_reply_query = "SELECT id, username, attribute, value, op FROM radreply WHERE username = '%{SQL-User-Name}' ORDER BY id"
+    
+    # Query to get group check attributes
+    authorize_group_check_query = "SELECT id, groupname, attribute, Value, op FROM radgroupcheck WHERE groupname = '%{SQL-Group}' ORDER BY id"
+    
+    # Query to get group reply attributes
+    authorize_group_reply_query = "SELECT id, groupname, attribute, value, op  FROM radgroupreply WHERE groupname = '%{SQL-Group}' ORDER BY id"
+
+    # Accounting queries
+    accounting_onoff_query = "UPDATE radacct SET acctstoptime = NOW(), acctsessiontime = EXTRACT(EPOCH FROM (NOW() - acctstarttime)), acctterminatecause = '%{Acct-Terminate-Cause}', acctstopdelay = %{%{Acct-Delay-Time}:-0} WHERE acctsessionid = '%{Acct-Session-Id}' AND username = '%{SQL-User-Name}' AND nasipaddress = '%{NAS-IP-Address}'"
+    
+    accounting_update_query = "UPDATE radacct SET framingipaddress = '%{Framed-IP-Address}', acctsessiontime = EXTRACT(EPOCH FROM (NOW() - acctstarttime)), acctinputoctets = '%{Acct-Input-Octets}', acctoutputoctets = '%{Acct-Output-Octets}' WHERE acctsessionid = '%{Acct-Session-Id}' AND username = '%{SQL-User-Name}' AND nasipaddress = '%{NAS-IP-Address}'"
+    
+    accounting_start_query = "INSERT INTO radacct (acctsessionid, acctuniqueid, username, realm, nasipaddress, nasportid, nasporttype, acctstarttime, acctupdatetime, acctstoptime, acctsessiontime, acctauthentic, connectinfo_start, connectinfo_stop, acctinputoctets, acctoutputoctets, calledstationid, callingstationid, acctterminatecause, servicetype, framedprotocol, framedipaddress, framedipnetmask, framedroute, session_timeout, idle_timeout) VALUES ('%{Acct-Session-Id}', '%{Acct-Unique-Session-Id}', '%{SQL-User-Name}', '%{Realm}', '%{NAS-IP-Address}', '%{NAS-Port}', '%{NAS-Port-Type}', NOW(), NOW(), NULL, 0, '%{Acct-Authentic}', '%{Connect-Info}', '', 0, 0, '%{Called-Station-Id}', '%{Calling-Station-Id}', '', '%{Service-Type}', '%{Framed-Protocol}', '%{Framed-IP-Address}', '%{Framed-IP-Netmask}', '%{Framed-Route}', %{%{Session-Timeout}:-0}, %{%{Idle-Timeout}:-0})"
+    
+    accounting_stop_query = "UPDATE radacct SET acctstoptime = NOW(), acctsessiontime = EXTRACT(EPOCH FROM (NOW() - acctstarttime)), acctinputoctets = '%{Acct-Input-Octets}', acctoutputoctets = '%{Acct-Output-Octets}', acctterminatecause = '%{Acct-Terminate-Cause}', acctstopdelay = %{%{Acct-Delay-Time}:-0}, connectinfo_stop = '%{Connect-Info}' WHERE acctsessionid = '%{Acct-Session-Id}' AND username = '%{SQL-User-Name}' AND nasipaddress = '%{NAS-IP-Address}'"
+
+    # Group membership query
+    group_membership_query = "SELECT groupname FROM radusergroup WHERE username = '%{SQL-User-Name}' ORDER BY priority"
+
+    # Safe characters for SQL
+    safe-characters = "@abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-_: $"
+
+    # Maximum number of SQL connections
+    num_sql_socks = 5
+
+    # Connection lifetime
+    lifetime = 0
+
+    # Connection idle timeout
+    max_queries = 0
+}

@@ -73,7 +73,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # FreeRADIUS stub (placeholder for Phase 7)
+  # FreeRADIUS 3.2.x with PostgreSQL backend
   freeradius:
     image: freeradius/freeradius-server:3.2.10
     container_name: fiberloop-freeradius
@@ -83,8 +83,19 @@ services:
     ports:
       - "1812:1812/udp"
       - "1813:1813/udp"
+      - "18120:18120"
     volumes:
       - ./docker/freeradius:/etc/raddb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "radiusd -C || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    command: radiusd -f /etc/raddb/radiusd.conf -l stdout
 
   # Queue worker (Horizon)
   queue:

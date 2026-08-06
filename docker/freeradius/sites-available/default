@@ -1,0 +1,157 @@
+#
+#  Default virtual server configuration
+#
+
+server default {
+
+    # Listen on the standard authentication port
+    listen {
+        type = auth
+        ipaddr = *
+        port = 0
+        limit {
+            max_connections = 16
+            lifetime = 0
+            idle_timeout = 30
+        }
+    }
+
+    # Listen on the standard accounting port
+    listen {
+        type = acct
+        ipaddr = *
+        port = 0
+        limit {
+            max_connections = 16
+            lifetime = 0
+            idle_timeout = 30
+        }
+    }
+
+    # Authorization
+    authorize {
+        # Filter out invalid requests
+        filter_username
+        filter_password
+        
+        # Check for duplicate attributes
+        filter_realm
+        preprocess
+        
+        # Use SQL for authorization
+        sql
+        
+        # If SQL returns no matches, reject
+        if (!ok) {
+            reject
+        }
+    }
+
+    # Authentication
+    authenticate {
+        Auth-Type PAP {
+            pap
+        }
+        Auth-Type CHAP {
+            chap
+        }
+        Auth-Type MS-CHAP {
+            mschap
+        }
+        Auth-Type DIGEST {
+            digest
+        }
+        
+        # If no auth type specified, try to figure it out
+        Auth-Type = Accept
+    }
+
+    # Pre-accounting
+    preacct {
+        preprocess
+        acct_unique
+        suffix
+        files
+    }
+
+    # Accounting
+    accounting {
+        # Accounting request types
+        detail
+        sql
+        
+        # For CoA/DM requests
+        if (CoA-Request) {
+            sql
+        }
+    }
+
+    # Session handling
+    session {
+        sql
+    }
+
+    # Post-authentication
+    post-auth {
+        # Update the database with authentication results
+        sql
+        
+        # For CoA/DM responses
+        if (CoA-Request) {
+            sql
+            Post-Auth-Type = CoA-Request
+        }
+        
+        # Execute the appropriate post-auth actions
+        update {
+            control:Password-With-Header += '&'
+        }
+        
+        # Remove reply attributes from the request
+        reply_log
+    }
+
+    # Post-proxy
+    post-proxy {
+        eap
+    }
+}
+
+#
+#  Inner tunnel server for EAP
+#
+server inner-tunnel {
+    listen {
+        type = auth
+        ipaddr = 127.0.0.1
+        port = 18120
+    }
+
+    authorize {
+        filter_username
+        filter_password
+        filter_realm
+        preprocess
+        sql
+        if (!ok) {
+            reject
+        }
+    }
+
+    authenticate {
+        Auth-Type PAP {
+            pap
+        }
+        Auth-Type CHAP {
+            chap
+        }
+        Auth-Type MS-CHAP {
+            mschap
+        }
+        Auth-Type = Accept
+    }
+
+    post-auth {
+        sql
+    }
+}
