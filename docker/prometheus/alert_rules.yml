@@ -1,0 +1,153 @@
+groups:
+- name: critical-services
+  rules:
+  # RADIUS down alert
+  - alert: RadiusServiceDown
+    expr: up{job="freeradius"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "FreeRADIUS service is down"
+      description: "FreeRADIUS service at {{ $labels.instance }} has been down for more than 1 minute"
+      impact: "All customer internet access will fail"
+
+  # PostgreSQL down alert
+  - alert: PostgresServiceDown
+    expr: up{job="postgres"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "PostgreSQL service is down"
+      description: "PostgreSQL service at {{ $labels.instance }} has been down for more than 1 minute"
+      impact: "Database operations will fail, affecting billing, authentication, and all data operations"
+
+  # Redis down alert
+  - alert: RedisServiceDown
+    expr: up{job="redis"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Redis service is down"
+      description: "Redis service at {{ $labels.instance }} has been down for more than 1 minute"
+      impact: "Cache, queue, and session operations will fail"
+
+  # Application down alert
+  - alert: LaravelAppDown
+    expr: up{job="laravel-app"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Laravel application is down"
+      description: "Laravel application at {{ $labels.instance }} has been down for more than 1 minute"
+      impact: "Admin panel, API, and customer portal will be inaccessible"
+
+  # Queue service down alert
+  - alert: QueueServiceDown
+    expr: up{job="queue"} == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Queue service is down"
+      description: "Queue service at {{ $labels.instance }} has been down for more than 1 minute"
+      impact: "Background jobs (billing, provisioning, notifications) will not be processed"
+
+  # High memory usage
+  - alert: HighMemoryUsage
+    expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 90
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High memory usage (instance {{ $labels.instance }})"
+      description: "Memory usage is {{ $value }}%"
+
+  # High CPU usage
+  - alert: HighCpuUsage
+    expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 90
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU usage (instance {{ $labels.instance }})"
+      description: "CPU usage is {{ $value }}%"
+
+- name: billing-alerts
+  rules:
+  # Billing run failure
+  - alert: BillingRunFailed
+    expr: increase(laravel_jobs_failed_total{job="billing"}[5m]) > 0
+    labels:
+      severity: critical
+    annotations:
+      summary: "Billing run failed"
+      description: "{{ $value }} billing jobs have failed in the last 5 minutes"
+      impact: "Customers may not be billed correctly"
+
+  # Payment processing failure
+  - alert: PaymentProcessingFailed
+    expr: increase(laravel_jobs_failed_total{job="payment"}[5m]) > 0
+    labels:
+      severity: critical
+    annotations:
+      summary: "Payment processing failed"
+      description: "{{ $value }} payment processing jobs have failed in the last 5 minutes"
+      impact: "Customer payments may not be recorded"
+
+  # RADIUS provisioning failure
+  - alert: RadiusProvisioningFailed
+    expr: increase(laravel_jobs_failed_total{job="radius"}[5m]) > 0
+    labels:
+      severity: critical
+    annotations:
+      summary: "RADIUS provisioning failed"
+      description: "{{ $value }} RADIUS provisioning jobs have failed in the last 5 minutes"
+      impact: "New customer connections may not work"
+
+- name: database-alerts
+  rules:
+  # High database connections
+  - alert: HighDatabaseConnections
+    expr: pg_stat_activity_count > 100
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High database connection count"
+      description: "Database has {{ $value }} active connections"
+
+  # Slow database queries
+  - alert: SlowDatabaseQueries
+    expr: rate(pg_stat_statements_total_time_sum[5m]) / rate(pg_stat_statements_total_time_count[5m]) > 1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Slow database queries detected"
+      description: "Average query execution time is {{ $value }} seconds"
+
+- name: monitoring-alerts
+  rules:
+  # Prometheus down
+  - alert: PrometheusDown
+    expr: up{job="prometheus"} == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Prometheus monitoring is down"
+      description: "Prometheus at {{ $labels.instance }} has been down for more than 1 minute"
+
+  # Grafana down
+  - alert: GrafanaDown
+    expr: up{job="grafana"} == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Grafana dashboard is down"
+      description: "Grafana at {{ $labels.instance }} has been down for more than 1 minute"

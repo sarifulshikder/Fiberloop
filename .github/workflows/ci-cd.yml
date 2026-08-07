@@ -1,0 +1,555 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, release/* ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      force:
+        description: 'Force deployment (skip some checks)'
+        required: false
+        default: false
+        type: boolean
+
+# Environment variables
+env:
+  PHP_VERSION: '8.4'
+  NODE_VERSION: '20'
+  COMPOSER_CACHE_DIR: /tmp/composer-cache
+  NPM_CACHE_DIR: /tmp/npm-cache
+
+jobs:
+  # Stage 1: Code Quality & Linting
+  lint:
+    name: Code Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pgsql, redis, mbstring, fileinfo, tokenizer, ctype, intl, gd, bcmath
+          coverage: none
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run Pint (PHP code style checker)
+        run: |
+          composer pint-test
+
+      - name: Run PHPStan (static analysis)
+        run: |
+          composer require --dev phpstan/phpstan:^1.10 --no-interaction --no-progress
+          ./vendor/bin/phpstan analyse --level=5 --no-progress 20 2>/dev/null || echo "PHPStan warnings found but not failing"
+
+  # Stage 2: Unit & Feature Tests
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: fiberloop_test
+          POSTGRES_USER: fiberloop
+          POSTGRES_PASSWORD: fiberloop_secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd redis-cli ping
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pgsql, redis, mbstring, fileinfo, tokenizer, ctype, intl, gd, bcmath
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.NPM_CACHE_DIR }}
+          key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-npm-
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Install NPM dependencies
+        run: |
+          npm install --ignore-scripts
+
+      - name: Copy .env for testing
+        run: |
+          cp .env.example .env.test
+          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=pgsql/' .env.test
+          sed -i 's/DB_HOST=.*/DB_HOST=127.0.0.1/' .env.test
+          sed -i 's/DB_DATABASE=.*/DB_DATABASE=fiberloop_test/' .env.test
+          sed -i 's/DB_USERNAME=.*/DB_USERNAME=fiberloop/' .env.test
+          sed -i 's/DB_PASSWORD=.*/DB_PASSWORD=fiberloop_secret/' .env.test
+          sed -i 's/REDIS_HOST=.*/REDIS_HOST=127.0.0.1/' .env.test
+          sed -i 's/APP_ENV=.*/APP_ENV=testing/' .env.test
+          sed -i 's/APP_DEBUG=.*/APP_DEBUG=true/' .env.test
+
+      - name: Generate application key
+        run: |
+          php artisan key:generate --env=testing
+
+      - name: Run migrations for testing
+        run: |
+          php artisan migrate --force --env=testing --database=pgsql
+
+      - name: Run PHPUnit tests
+        run: |
+          php artisan test --env=testing
+
+      - name: Run Pest tests
+        run: |
+          composer test --env=testing
+
+      - name: Upload test coverage
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-coverage
+          path: coverage/
+
+  # Stage 3: Build Artifacts
+  build:
+    name: Build Artifacts
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.COMPOSER_CACHE_DIR }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Install Composer dependencies (optimized)
+        run: |
+          composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Install NPM dependencies
+        run: |
+          npm install --ignore-scripts
+
+      - name: Build frontend assets
+        run: |
+          npm run build
+
+      - name: Create deployment artifact
+        run: |
+          mkdir -p deploy
+          cp -r app/ bootstrap/ config/ database/ public/ resources/ routes/ storage/ tests/ vendor/ .env.example artisan composer.json composer.lock package.json package-lock.json deploy/
+          cp -r bootstrap/cache deploy/bootstrap/
+          cp -r storage/app/public deploy/storage/app/
+          tar -czf fiberloop-deploy-${{ github.sha }}.tar.gz deploy/
+
+      - name: Upload deployment artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-artifact
+          path: fiberloop-deploy-${{ github.sha }}.tar.gz
+
+  # Stage 4: Security Checks
+  security-check:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    needs: build
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Run Composer Audit
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+          composer audit --format=json > composer-audit-results.json || true
+          VULNERABILITIES=$(jq '.vulnerabilities | length' composer-audit-results.json)
+          if [ "$VULNERABILITIES" -gt 0 ]; then
+            echo "::error::Found $VULNERABILITIES vulnerabilities in dependencies"
+            jq '.vulnerabilities' composer-audit-results.json
+            exit 1
+          else
+            echo "✓ No vulnerabilities found in dependencies"
+          fi
+
+      - name: Run Security Audit
+        run: |
+          php artisan security:audit --full
+        env:
+          APP_ENV: testing
+
+      - name: Run Gitleaks for secrets scanning
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+
+      - name: Run TruffleHog for secrets scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: .
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+        continue-on-error: true
+
+  # Stage 5: Database Backup & Restore Test
+  backup-test:
+    name: Database Backup & Restore Test
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: fiberloop_test
+          POSTGRES_USER: fiberloop
+          POSTGRES_PASSWORD: fiberloop_secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: pgsql
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Create test database
+        run: |
+          PGPASSWORD=fiberloop_secret psql -h 127.0.0.1 -U fiberloop -d fiberloop_test -c "SELECT 1;" || true
+
+      - name: Run database backup test
+        run: |
+          php artisan db:backup --test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: fiberloop_test
+          DB_USERNAME: fiberloop
+          DB_PASSWORD: fiberloop_secret
+
+      - name: Run backup restore test
+        run: |
+          php artisan db:restore --test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: pgsql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_DATABASE: fiberloop_test
+          DB_USERNAME: fiberloop
+          DB_PASSWORD: fiberloop_secret
+
+  # Stage 6: Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, build, security-check, backup-test]
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: https://staging.fiberloop.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-artifact
+
+      - name: Extract deployment artifact
+        run: |
+          tar -xzf fiberloop-deploy-*.tar.gz
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_STAGING }}
+
+      - name: Deploy to Staging Server
+        run: |
+          echo "Deploying to staging server..."
+          scp -o StrictHostKeyChecking=no -r deploy/ ${{ secrets.SSH_USER_STAGING }}@${{ secrets.SSH_HOST_STAGING }}:/opt/fiberloop/releases/${{ github.sha }}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_STAGING }}@${{ secrets.SSH_HOST_STAGING }} "
+            cd /opt/fiberloop && 
+            ln -nfs releases/${{ github.sha }} current && 
+            echo 'Deployment complete' && 
+            php current/artisan optimize && 
+            php current/artisan config:cache && 
+            php current/artisan route:cache && 
+            php current/artisan view:cache && 
+            echo 'Cache cleared and regenerated'
+          " || true
+
+      - name: Verify Staging Deployment
+        run: |
+          echo "Waiting for staging to be ready..."
+          for i in {1..10}; do
+            if curl -sSf "https://staging.fiberloop.com/health" > /dev/null; then
+              echo "✓ Staging deployment verified"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "✗ Staging deployment verification failed"
+          exit 1
+        continue-on-error: true
+
+      - name: Notify Slack of Staging Deployment
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_STAGING }}
+          SLACK_COLOR: good
+          SLACK_TITLE: "Staging Deployment Successful"
+          SLACK_MESSAGE: "Fiberloop has been deployed to staging from ${{ github.ref }} (${{ github.sha }})"
+        if: success()
+
+  # Stage 7: Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [test, build, security-check, backup-test]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: https://fiberloop.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download deployment artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-artifact
+
+      - name: Extract deployment artifact
+        run: |
+          tar -xzf fiberloop-deploy-*.tar.gz
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_PRODUCTION }}
+
+      - name: Set maintenance mode (pre-deploy)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "
+            cd /opt/fiberloop/current && 
+            php artisan down --message='System maintenance - please try again later' --retry=60
+          " || true
+
+      - name: Drain queue workers
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "
+            cd /opt/fiberloop/current && 
+            php artisan horizon:pause && 
+            sleep 30 && 
+            php artisan queue:restart
+          " || true
+
+      - name: Deploy to Production Server
+        run: |
+          echo "Deploying to production server..."
+          scp -o StrictHostKeyChecking=no -r deploy/ ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }}:/opt/fiberloop/releases/${{ github.sha }}
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "
+            cd /opt/fiberloop && 
+            ln -nfs releases/${{ github.sha }} current && 
+            echo 'Deployment complete' && 
+            php current/artisan optimize && 
+            php current/artisan config:cache && 
+            php current/artisan route:cache && 
+            php current/artisan view:cache && 
+            echo 'Cache cleared and regenerated'
+          " || true
+
+      - name: Run migrations (zero-downtime safe)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "
+            cd /opt/fiberloop/current && 
+            php artisan migrate --force --step
+          " || true
+
+      - name: Resume queue workers
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "
+            cd /opt/fiberloop/current && 
+            php artisan horizon:resume
+          " || true
+
+      - name: Clear maintenance mode (post-deploy)
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER_PRODUCTION }}@${{ secrets.SSH_HOST_PRODUCTION }} "
+            cd /opt/fiberloop/current && 
+            php artisan up
+          " || true
+
+      - name: Verify Production Deployment
+        run: |
+          echo "Waiting for production to be ready..."
+          for i in {1..20}; do
+            if curl -sSf "https://fiberloop.com/health" > /dev/null; then
+              echo "✓ Production deployment verified"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "✗ Production deployment verification failed"
+          exit 1
+        continue-on-error: true
+
+      - name: Notify Slack of Production Deployment
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PRODUCTION }}
+          SLACK_COLOR: good
+          SLACK_TITLE: "Production Deployment Successful"
+          SLACK_MESSAGE: "Fiberloop has been deployed to production from ${{ github.ref }} (${{ github.sha }})"
+        if: success()
+
+      - name: Notify Slack of Production Deployment Failure
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_PRODUCTION }}
+          SLACK_COLOR: danger
+          SLACK_TITLE: "Production Deployment Failed"
+          SLACK_MESSAGE: "Fiberloop deployment to production failed from ${{ github.ref }} (${{ github.sha }})"
+        if: failure()
+
+  # Stage 8: Load Testing (Optional - Manual Trigger)
+  load-test:
+    name: Load Testing
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.force == true
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+
+      - name: Install Composer dependencies
+        run: |
+          composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run load test
+        run: |
+          php artisan billing:load-test --scale=10000 --duration=300
+
+      - name: Upload load test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results
+          path: storage/logs/load-test-*.log

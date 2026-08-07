@@ -1,5 +1,5 @@
 services:
-  # PHP Application with Laravel
+  # PHP Application with Laravel Octane
   app:
     build:
       context: .
@@ -30,10 +30,51 @@ services:
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=redis
       - SESSION_DRIVER=redis
-    ports:
-      - "8000:8000"
+      - BROADCAST_CONNECTION=redis
+    expose:
+      - "9000"
 
-  # PostgreSQL 18 - using /var/lib/postgresql for PG 18+ compatibility
+  # Nginx Web Server
+  nginx:
+    image: nginx:alpine
+    container_name: fiberloop-nginx
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - reverb
+    ports:
+      - "80:80"
+      - "443:443"
+
+  # Laravel Reverb for WebSockets
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-reverb
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - redis
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    environment:
+      - APP_ENV=local
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - "8080:8080"
+
+  # PostgreSQL 18
   postgres:
     image: postgres:18-alpine
     container_name: fiberloop-postgres
@@ -121,6 +162,30 @@ services:
       - DB_PASSWORD=fiberloop_secret
       - REDIS_HOST=redis
 
+  # Queue worker for load balancing (additional worker)
+  queue-worker-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-queue-worker-2
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: php artisan queue:work --queue=default,low --sleep=3 --tries=3
+    environment:
+      - APP_ENV=local
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=fiberloop_secret
+      - REDIS_HOST=redis
+
   # Python AI Service
   ai:
     build:
@@ -138,6 +203,110 @@ services:
     environment:
       - DATABASE_URL=postgresql://fiberloop:fiberloop_secret@postgres:5432/fiberloop
 
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fiberloop-prometheus
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+
+  # Grafana for monitoring dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fiberloop-grafana
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_SERVER_HTTP_PORT=3000
+
+  # Log aggregation - Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: fiberloop-elasticsearch
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+
+  # Log aggregation - Logstash
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: fiberloop-logstash
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    volumes:
+      - ./docker/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+
+  # Log aggregation - Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: fiberloop-kibana
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+
+  # Sentry for error tracking (self-hosted)
+  sentry:
+    image: sentry:10
+    container_name: fiberloop-sentry
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    ports:
+      - "9001:9000"
+    volumes:
+      - sentry_data:/var/lib/sentry/files
+    environment:
+      - SENTRY_SECRET_KEY=change-me-in-production
+      - SENTRY_POSTGRES_PASSWORD=fiberloop_secret
+      - SENTRY_DB_HOST=postgres
+      - SENTRY_DB_USER=fiberloop
+      - SENTRY_DB_PASSWORD=fiberloop_secret
+      - SENTRY_DB_NAME=sentry
+      - SENTRY_REDIS_HOST=redis
+
 networks:
   fiberloop-network:
     driver: bridge
@@ -145,3 +314,7 @@ networks:
 volumes:
   postgres_data:
   redis_data:
+  prometheus_data:
+  grafana_data:
+  elasticsearch_data:
+  sentry_data:

@@ -63,16 +63,32 @@ Schedule::command('security:audit --full')
     ->withoutOverlapping();
 
 // Security: Database backup with encryption (daily at 3 AM)
-Schedule::command('db:backup --encrypt --path=' . storage_path('app/backups'))
+Schedule::command('db:backup --encrypt --cloud --path=' . storage_path('app/backups'))
     ->dailyAt('03:00')
     ->name('db:daily-backup')
     ->withoutOverlapping();
 
+// Security: Database backup with encryption only (local, every 6 hours)
+Schedule::command('db:backup --encrypt --path=' . storage_path('app/backups'))
+    ->everySixHours()
+    ->name('db:six-hour-backup')
+    ->withoutOverlapping();
+
 // Security: Test backup restore (weekly on Sundays)
-Schedule::command('db:backup --encrypt --test-restore --path=' . storage_path('app/backups'))
+Schedule::command('db:backup --encrypt --cloud --test-restore --path=' . storage_path('app/backups'))
     ->weeklyOn(0, '04:00') // Sunday at 4 AM
     ->name('db:weekly-restore-test')
     ->withoutOverlapping();
+
+// Security: Test backup restore to staging environment (monthly on 1st)
+Schedule::command('db:restore --test --force')
+    ->monthlyOn(1, '05:00') // 1st of every month at 5 AM
+    ->name('db:monthly-full-restore-test')
+    ->withoutOverlapping()
+    ->skip(function () {
+        // Only run in production environment
+        return app()->environment() !== 'production';
+    });
 
 // Financial reconciliation health check: daily at 2 AM
 Schedule::job(new \App\Jobs\Reconciliation\FinancialReconciliationJob())
