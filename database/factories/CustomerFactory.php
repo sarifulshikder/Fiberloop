@@ -48,6 +48,7 @@ class CustomerFactory extends Factory
             'suspension_reason' => null,
             'termination_reason' => null,
             'notes' => null,
+            'wallet_balance' => 0.00,
         ];
     }
 

@@ -21,7 +21,7 @@ class RadiusCustomerFactory extends Factory
             'tenant_id' => null,
             'customer_id' => $customer->id,
             'subscription_id' => null,
-            'created_by' => 1,
+            'created_by' => \App\Models\User::factory(),
             'radius_username' => 'user_' . fake()->unique()->userName(),
             'radius_password' => fake()->password(),
             'radius_group' => 'default',

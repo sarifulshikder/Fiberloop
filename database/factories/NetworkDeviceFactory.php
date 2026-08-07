@@ -16,8 +16,8 @@ class NetworkDeviceFactory extends Factory
         return [
             'tenant_id' => null,
             'uuid' => fake()->uuid(),
-            'created_by' => 1,
-            'updated_by' => 1,
+            'created_by' => \App\Models\User::factory(),
+            'updated_by' => \App\Models\User::factory(),
             'name' => fake()->words(2, true) . ' Router',
             'vendor' => fake()->randomElement(DeviceVendor::cases()),
             'model' => fake()->bothify('Model-????'),
