@@ -16,8 +16,11 @@ class PenetrationTest extends TestCase
     {
         parent::setUp();
         
-        // Seed roles and permissions for tests
-        $this->artisan('db:seed', ['--class' => 'RolesAndPermissionsSeeder', '--force' => true]);
+        // Create basic roles needed for tests without full seeder
+        // to avoid issues with test environment
+        if (!\Spatie\Permission\Models\Role::where('name', 'customer')->exists()) {
+            $customerRole = \Spatie\Permission\Models\Role::create(['name' => 'customer', 'guard_name' => 'web']);
+        }
     }
 
     /**

@@ -14,11 +14,13 @@ class CustomerFactory extends Factory
 {
     public function definition(): array
     {
+        $user = \App\Models\User::factory()->create();
+        
         return [
             'tenant_id' => null,
             'uuid' => fake()->uuid(),
-            'created_by' => \App\Models\User::factory(),
-            'updated_by' => \App\Models\User::factory(),
+            'created_by' => $user->id,
+            'updated_by' => $user->id,
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),

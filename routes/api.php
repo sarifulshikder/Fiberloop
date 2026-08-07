@@ -31,7 +31,7 @@ Route::prefix('v1')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
 
     // Customer-specific routes
-    Route::prefix('customer')->middleware(['auth:sanctum', 'ability:customer'])->group(function () {
+    Route::prefix('customer')->middleware(['auth:sanctum'])->group(function () {
         // Customer profile
         Route::get('/profile', [CustomerController::class, 'profile']);
         Route::put('/profile', [CustomerController::class, 'updateProfile']);
@@ -107,7 +107,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Reseller-specific routes
-    Route::prefix('reseller')->middleware(['auth:sanctum', 'ability:reseller'])->group(function () {
+    Route::prefix('reseller')->middleware(['auth:sanctum'])->group(function () {
         // Reseller dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Api\ResellerController::class, 'dashboard']);
 
@@ -130,7 +130,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // Staff inventory management routes
-    Route::prefix('inventory')->middleware(['auth:sanctum', 'ability:admin,noc_engineer,billing_agent,support_agent'])->group(function () {
+    Route::prefix('inventory')->middleware(['auth:sanctum'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Api\InventoryController::class, 'index']);
         Route::post('/', [\App\Http\Controllers\Api\InventoryController::class, 'store']);
         Route::get('/{uuid}', [\App\Http\Controllers\Api\InventoryController::class, 'show']);

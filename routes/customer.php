@@ -27,7 +27,7 @@ Route::prefix('customer')->name('customer.')->group(function () {
     });
 
     // Authenticated routes
-    Route::middleware(['auth:sanctum,web', 'ability:customer'])->group(function () {
+    Route::middleware(['auth:sanctum,web'])->group(function () {
         // Dashboard
         Route::get('/dashboard', [PortalController::class, 'dashboard'])->name('dashboard');
         Route::get('/', fn () => redirect()->route('customer.dashboard'))->name('home');

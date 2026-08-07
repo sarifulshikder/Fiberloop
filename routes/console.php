@@ -73,3 +73,10 @@ Schedule::command('db:backup --encrypt --test-restore --path=' . storage_path('a
     ->weeklyOn(0, '04:00') // Sunday at 4 AM
     ->name('db:weekly-restore-test')
     ->withoutOverlapping();
+
+// Financial reconciliation health check: daily at 2 AM
+Schedule::job(new \App\Jobs\Reconciliation\FinancialReconciliationJob())
+    ->dailyAt('02:30')
+    ->name('reconciliation:financial')
+    ->withoutOverlapping()
+    ->onOneServer();

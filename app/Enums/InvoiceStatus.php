@@ -51,4 +51,19 @@ enum InvoiceStatus: string
             self::VOID => 'dark',
         };
     }
+
+    public function isPaid(): bool
+    {
+        return $this === self::PAID;
+    }
+
+    public function isVoid(): bool
+    {
+        return $this === self::VOID;
+    }
+
+    public function isUnpaid(): bool
+    {
+        return !$this->isPaid();
+    }
 }
