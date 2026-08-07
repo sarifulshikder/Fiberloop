@@ -30,8 +30,8 @@ class CustomerDataDeletionConfirmation extends Notification implements ShouldQue
     public function toMail(object $notifiable): MailMessage
     {
         $customer = $this->deletionRequest->customer;
-        
-        return (new MailMessage)
+
+        return (new MailMessage())
             ->subject('Confirm Your Data Deletion Request')
             ->greeting('Hello ' . $customer->first_name . ',')
             ->line('We have received your request to delete your personal data from our systems.')

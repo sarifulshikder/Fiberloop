@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class ChatConversation extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
 
     protected static function booted(): void
     {
@@ -101,5 +104,10 @@ class ChatConversation extends Model
     public function scopeForCustomer($query, $customerId)
     {
         return $query->where('customer_id', $customerId);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

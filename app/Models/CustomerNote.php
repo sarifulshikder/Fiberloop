@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\NoteType;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class CustomerNote extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
 
     protected $fillable = [
         'tenant_id',
@@ -123,5 +126,10 @@ class CustomerNote extends Model
         ];
 
         return $categories[$this->category] ?? $this->category;
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

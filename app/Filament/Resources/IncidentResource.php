@@ -22,8 +22,8 @@ class IncidentResource extends Resource
 {
     protected static ?string $model = Incident::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-exclamation-triangle';
-    protected static \UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-exclamation-triangle';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $navigationLabel = 'Incidents / Outages';
     protected static ?int $navigationSort = 5;
     protected static ?string $recordTitleAttribute = 'title';

@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\StockTransactionResource\Tables;
 
-use App\Enums\InventoryStatus;
 use App\Enums\StockTransactionReason;
 use App\Enums\StockTransactionType;
+use App\Models\Customer;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Illuminate\Database\Eloquent\Builder;
 
 class StockTransactionsTable
 {
@@ -28,15 +28,15 @@ class StockTransactionsTable
                 ->label('Item')
                 ->sortable()
                 ->searchable(),
-            SelectColumn::make('transaction_type')
+            TextColumn::make('transaction_type')
                 ->label('Type')
-                ->options(StockTransactionType::class)
+                ->badge()
                 ->sortable()
                 ->searchable()
                 ->color(fn (\App\Models\StockTransaction $record): string => $record->transaction_type->color()),
-            SelectColumn::make('reason')
+            TextColumn::make('reason')
                 ->label('Reason')
-                ->options(StockTransactionReason::class)
+                ->badge()
                 ->sortable()
                 ->searchable(),
             TextColumn::make('reference_number')
@@ -63,13 +63,13 @@ class StockTransactionsTable
                 ->label('User')
                 ->sortable()
                 ->searchable(),
-            SelectColumn::make('previous_status')
+            TextColumn::make('previous_status')
                 ->label('From Status')
-                ->options(InventoryStatus::class)
+                ->badge()
                 ->sortable(),
-            SelectColumn::make('new_status')
+            TextColumn::make('new_status')
                 ->label('To Status')
-                ->options(InventoryStatus::class)
+                ->badge()
                 ->sortable(),
             TextColumn::make('created_at')
                 ->label('Created')
@@ -102,8 +102,15 @@ class StockTransactionsTable
                 ),
             SelectFilter::make('customer_id')
                 ->label('Customer')
-                ->options(\App\Models\Customer::query()->pluck('full_name', 'id'))
-                ->searchable()
+                ->relationship(
+                    name: 'customer',
+                    titleAttribute: 'first_name',
+                    modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                )
+                ->getOptionLabelFromRecordUsing(
+                    fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                )
+                ->searchable(['first_name', 'last_name', 'phone'])
                 ->multiple(),
             SelectFilter::make('user_id')
                 ->label('User')

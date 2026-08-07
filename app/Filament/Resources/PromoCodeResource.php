@@ -28,9 +28,9 @@ class PromoCodeResource extends Resource
 {
     protected static ?string $model = PromoCode::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-gift';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-gift';
     protected static ?string $navigationLabel = 'Promo Codes';
-    protected static \UnitEnum|string|null $navigationGroup = 'Products & Pricing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
     protected static ?int $navigationSort = 20;
 
     public static function getPluralLabel(): string

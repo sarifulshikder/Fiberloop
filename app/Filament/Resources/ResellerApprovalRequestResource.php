@@ -18,9 +18,9 @@ class ResellerApprovalRequestResource extends Resource
 {
     protected static ?string $model = ResellerApprovalRequest::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-check';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Resellers';
+    protected static string|\UnitEnum|null $navigationGroup = 'Resellers';
 
     protected static ?int $navigationSort = 2;
 

@@ -50,10 +50,10 @@ class RestrictKycAccess
         // Check if user is a reseller trying to access their own customer's KYC
         if ($user->hasRole('reseller')) {
             $customerId = $request->route('customer')?->id ?? $request->input('customer_id');
-            
+
             if ($customerId) {
                 $customer = \App\Models\Customer::find($customerId);
-                
+
                 // Resellers can only access KYC of their own customers
                 if ($customer && $customer->created_by === $user->id) {
                     return $next($request);

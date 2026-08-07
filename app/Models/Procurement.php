@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ProcurementStatus;
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Procurement extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
 
     protected static function booted(): void
     {
@@ -136,5 +139,10 @@ class Procurement extends Model
     public function getTotalAmountInTakaAttribute(): float
     {
         return $this->total_amount / 100;
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

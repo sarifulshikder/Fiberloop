@@ -3,20 +3,18 @@
 namespace App\Filament\Pages;
 
 use App\Models\RadAcct;
-use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
-use UnitEnum;
 
 class LiveRadiusSessions extends Page implements HasTable
 {
     use InteractsWithTable;
 
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-signal';
-    protected static UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-signal';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $navigationLabel = 'Live RADIUS Sessions';
     protected static ?int $navigationSort = 5;
     protected string $view = 'filament.pages.live-radius-sessions';

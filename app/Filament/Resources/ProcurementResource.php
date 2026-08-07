@@ -14,8 +14,8 @@ class ProcurementResource extends Resource
 {
     protected static ?string $model = Procurement::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-shopping-bag';
-    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-shopping-bag';
+    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
     protected static ?string $navigationLabel = 'Procurements';
     protected static ?string $pluralModelLabel = 'Procurements';
     protected static ?string $modelLabel = 'Procurement';

@@ -27,9 +27,9 @@ class ResellerResource extends Resource
 {
     protected static ?string $model = Reseller::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
-    protected static \UnitEnum|string|null $navigationGroup = 'Resellers';
+    protected static string|\UnitEnum|null $navigationGroup = 'Resellers';
 
     protected static ?int $navigationSort = 1;
 

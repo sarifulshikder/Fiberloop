@@ -71,7 +71,7 @@ class SecretsManager
     {
         // Encrypt and store in cache
         $encryptedValue = $this->encrypt($value);
-        
+
         Cache::put(
             $this->getCacheKey($key),
             $encryptedValue,
@@ -195,7 +195,7 @@ class SecretsManager
     {
         $envKey = strtoupper($key);
         $value = env($envKey);
-        
+
         if ($value !== null && $value !== '') {
             return $value;
         }
@@ -220,7 +220,7 @@ class SecretsManager
     {
         $cacheKey = $this->getCacheKey($key);
         $encryptedValue = Cache::get($cacheKey);
-        
+
         if ($encryptedValue !== null) {
             try {
                 return $this->decrypt($encryptedValue);
@@ -255,7 +255,7 @@ class SecretsManager
     protected function getFromExternalManager(string $key): ?string
     {
         $manager = config('secrets.manager', 'none');
-        
+
         if (!in_array($manager, $this->externalManagers, true)) {
             return null;
         }

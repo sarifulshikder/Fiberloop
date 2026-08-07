@@ -11,21 +11,23 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 /**
  * Financial Reconciliation Health Check Job
- * 
+ *
  * This job performs data integrity checks to ensure financial data consistency:
  * - Invoice payments sum should reconcile with ledger balances
  * - Wallet transactions should balance correctly
  * - No orphaned records (payments without invoices, etc.)
- * 
+ *
  * Runs as a scheduled job in production for health monitoring.
  */
 class FinancialReconciliationJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * The number of times the job may be attempted.

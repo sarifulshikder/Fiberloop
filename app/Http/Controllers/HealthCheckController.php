@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Facades\Cache;
 
 class HealthCheckController extends Controller
 {
@@ -58,7 +58,7 @@ class HealthCheckController extends Controller
             Cache::put('health_check_test', 'healthy', 60);
             $value = Cache::get('health_check_test');
             Cache::forget('health_check_test');
-            
+
             $checks['cache'] = [
                 'status' => $value === 'healthy' ? 'healthy' : 'degraded',
                 'timestamp' => Carbon::now()->toISOString(),
@@ -76,7 +76,7 @@ class HealthCheckController extends Controller
         try {
             $start = microtime(true);
             $queueStatus = app('queue')->size();
-            
+
             $checks['queue'] = [
                 'status' => 'healthy',
                 'queue_size' => $queueStatus,
@@ -95,7 +95,7 @@ class HealthCheckController extends Controller
         try {
             $start = microtime(true);
             app()->booted();
-            
+
             $checks['application'] = [
                 'status' => 'healthy',
                 'php_version' => PHP_VERSION,
@@ -116,7 +116,7 @@ class HealthCheckController extends Controller
             if (config('database.connections.radius')) {
                 $start = microtime(true);
                 DB::connection('radius')->select('SELECT 1');
-                
+
                 $checks['radius_database'] = [
                     'status' => 'healthy',
                     'timestamp' => Carbon::now()->toISOString(),
@@ -141,7 +141,7 @@ class HealthCheckController extends Controller
         }
 
         $overallStatus = $allHealthy ? 'healthy' : 'degraded';
-        
+
         // Check if any are unhealthy
         foreach ($checks as $check) {
             if ($check['status'] === 'unhealthy') {
@@ -191,7 +191,7 @@ class HealthCheckController extends Controller
         try {
             $dbStatus = DB::connection('pgsql')->select('SELECT count(*) as total FROM pg_stat_activity');
             $activeConnections = $dbStatus[0]->total ?? 0;
-            
+
             $metrics[] = '# HELP fiberloop_database_connections Total database connections';
             $metrics[] = '# TYPE fiberloop_database_connections gauge';
             $metrics[] = "fiberloop_database_connections $activeConnections";
@@ -213,19 +213,19 @@ class HealthCheckController extends Controller
         try {
             $cacheStats = Redis::connection()->info('stats');
             $keyspaceStats = Redis::connection()->info('keyspace');
-            
+
             $hitRate = $cacheStats['keyspace_hits'] / max(1, ($cacheStats['keyspace_hits'] + $cacheStats['keyspace_misses'])) * 100;
             $usedMemory = $cacheStats['used_memory'] ?? 0;
             $totalKeys = $keyspaceStats['db0']['keys'] ?? 0;
-            
+
             $metrics[] = '# HELP fiberloop_cache_hit_rate Cache hit rate percentage';
             $metrics[] = '# TYPE fiberloop_cache_hit_rate gauge';
             $metrics[] = "fiberloop_cache_hit_rate $hitRate";
-            
+
             $metrics[] = '# HELP fiberloop_cache_memory_used Memory used by cache in bytes';
             $metrics[] = '# TYPE fiberloop_cache_memory_used gauge';
             $metrics[] = "fiberloop_cache_memory_used $usedMemory";
-            
+
             $metrics[] = '# HELP fiberloop_cache_keys_total Total keys in cache';
             $metrics[] = '# TYPE fiberloop_cache_keys_total gauge';
             $metrics[] = "fiberloop_cache_keys_total $totalKeys";
@@ -237,11 +237,11 @@ class HealthCheckController extends Controller
         if (function_exists('memory_get_usage')) {
             $memoryUsage = memory_get_usage(true);
             $memoryPeak = memory_get_peak_usage(true);
-            
+
             $metrics[] = '# HELP fiberloop_memory_usage Current memory usage in bytes';
             $metrics[] = '# TYPE fiberloop_memory_usage gauge';
             $metrics[] = "fiberloop_memory_usage $memoryUsage";
-            
+
             $metrics[] = '# HELP fiberloop_memory_peak Peak memory usage in bytes';
             $metrics[] = '# TYPE fiberloop_memory_peak gauge';
             $metrics[] = "fiberloop_memory_peak $memoryPeak";
@@ -254,14 +254,14 @@ class HealthCheckController extends Controller
             $metrics[] = '# HELP fiberloop_customers_total Total customers';
             $metrics[] = '# TYPE fiberloop_customers_total gauge';
             $metrics[] = "fiberloop_customers_total $customerCount";
-            
+
             // Active subscriptions
             $activeSubscriptions = DB::connection('pgsql')->table('subscriptions')
                 ->where('status', 'active')->count();
             $metrics[] = '# HELP fiberloop_subscriptions_active Active subscriptions';
             $metrics[] = '# TYPE fiberloop_subscriptions_active gauge';
             $metrics[] = "fiberloop_subscriptions_active $activeSubscriptions";
-            
+
             // Overdue invoices
             $overdueInvoices = DB::connection('pgsql')->table('invoices')
                 ->where('due_date', '<', now())
@@ -269,7 +269,7 @@ class HealthCheckController extends Controller
             $metrics[] = '# HELP fiberloop_invoices_overdue Overdue invoices';
             $metrics[] = '# TYPE fiberloop_invoices_overdue gauge';
             $metrics[] = "fiberloop_invoices_overdue $overdueInvoices";
-            
+
             // Today's payments
             $todayPayments = DB::connection('pgsql')->table('payments')
                 ->whereDate('created_at', today())->count();

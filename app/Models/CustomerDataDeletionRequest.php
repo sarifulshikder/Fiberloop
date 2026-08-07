@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class CustomerDataDeletionRequest extends Model
 {
     use HasFactory;
+    use HasUuids;
+
 
     protected $fillable = [
         'uuid',
@@ -86,7 +89,7 @@ class CustomerDataDeletionRequest extends Model
 
     public function isConfirmationRequired(): bool
     {
-        return $this->confirmation_required && 
+        return $this->confirmation_required &&
                $this->status === 'confirmation_required' &&
                !$this->confirmation_confirmed_at;
     }
@@ -94,5 +97,10 @@ class CustomerDataDeletionRequest extends Model
     public function isConfirmed(): bool
     {
         return $this->confirmation_confirmed_at !== null;
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

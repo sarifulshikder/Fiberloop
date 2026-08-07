@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\BillingType;
 use App\Enums\PackageBillingCycle;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Package extends Model
 {
     use HasFactory;
+    use HasUuids;
+
 
     protected $fillable = [
         'tenant_id',
@@ -93,5 +96,10 @@ class Package extends Model
     public function scopeByTenant($query, $tenantId)
     {
         return $query->where('tenant_id', $tenantId);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

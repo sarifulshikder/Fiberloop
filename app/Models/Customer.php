@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -17,7 +18,9 @@ class Customer extends Model
     use Notifiable;
 
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
@@ -237,5 +240,10 @@ class Customer extends Model
             return null;
         }
         return $this->email;
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

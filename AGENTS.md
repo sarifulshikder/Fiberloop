@@ -65,5 +65,10 @@ npm run dev
 - Every migration must have a working `down()`.
 - English for all code, comments, and commit messages (the team may speak Bengali day to day; code stays English for tooling compatibility).
 
+## Verification Reality
+All artisan/test commands must run via `docker exec -it fiberloop-app <command>`, never bare. A command run outside the container failing does not mean "no access."
+
+**Standing Rule:** Any message claiming something is "done," "fixed," "verified," "audited," or "confirmed" must include the actual raw output or file content proving it in that same message — a prose description of what you did is not sufficient and will be rejected.
+
 ## When Stuck
 Ask a specific question rather than guessing silently. It's cheaper to pause for one answer than to build the wrong thing for three phases.

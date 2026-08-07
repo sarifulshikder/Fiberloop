@@ -29,9 +29,9 @@ class LeadResource extends Resource
 {
     protected static ?string $model = Lead::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-list';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static ?string $navigationLabel = 'Leads';
-    protected static \UnitEnum|string|null $navigationGroup = 'CRM';
+    protected static string|\UnitEnum|null $navigationGroup = 'CRM';
     protected static ?int $navigationSort = 20;
 
     public static function getPluralLabel(): string

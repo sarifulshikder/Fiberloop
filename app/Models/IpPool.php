@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,9 @@ use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 class IpPool extends Model
 {
     use HasFactory;
+    use HasUuids;
     use BelongsToTenant;
+
 
     protected $fillable = [
         'tenant_id',
@@ -51,5 +54,10 @@ class IpPool extends Model
     public function updatedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

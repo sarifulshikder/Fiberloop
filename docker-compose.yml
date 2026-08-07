@@ -33,6 +33,8 @@ services:
       - BROADCAST_CONNECTION=redis
     expose:
       - "9000"
+    ports:
+      - "8000:8000"
 
   # Nginx Web Server
   nginx:
@@ -178,6 +180,30 @@ services:
       - app
       - redis
     command: php artisan queue:work --queue=default,low --sleep=3 --tries=3
+    environment:
+      - APP_ENV=local
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=fiberloop_secret
+      - REDIS_HOST=redis
+
+  # Laravel Scheduler (runs php artisan schedule:run every minute)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-scheduler
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
     environment:
       - APP_ENV=local
       - DB_HOST=postgres

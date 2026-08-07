@@ -11,13 +11,13 @@ use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class InventoryItemForm
 {
-    public static function schema(): Schema
+    public static function schema(): array
     {
-        return Schema::make([
+        return [
             Section::make('Basic Information')
                 ->schema([
                     TextInput::make('name')
@@ -78,8 +78,14 @@ class InventoryItemForm
                         ->maxLength(255),
                     Select::make('customer_id')
                         ->label('Assigned Customer')
-                        ->options(Customer::query()->pluck('full_name', 'id'))
-                        ->searchable()
+                        ->relationship(
+                            name: 'customer',
+                            modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                        )
+                        ->getOptionLabelFromRecordUsing(
+                            fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                        )
+                        ->searchable(['first_name', 'last_name', 'phone'])
                         ->nullable(),
                     Select::make('reseller_id')
                         ->label('Assigned Reseller')
@@ -151,6 +157,6 @@ class InventoryItemForm
                         ->label('Notes')
                         ->columnSpanFull(),
                 ]),
-        ]);
+        ];
     }
 }

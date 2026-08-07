@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeviceVendor;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class NetworkDevice extends Model
 {
     use HasFactory;
+    use HasUuids;
 
     protected $fillable = [
         'tenant_id',
@@ -113,5 +115,10 @@ class NetworkDevice extends Model
     public function scopeByVendor($query, DeviceVendor $vendor)
     {
         return $query->where('vendor', $vendor);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

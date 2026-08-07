@@ -27,9 +27,9 @@ class PaymentResource extends Resource
 {
     protected static ?string $model = Payment::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-banknotes';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationLabel = 'Payments';
-    protected static \UnitEnum|string|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
     protected static ?int $navigationSort = 20;
 
     public static function getPluralLabel(): string

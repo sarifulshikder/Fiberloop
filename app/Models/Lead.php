@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
 use App\Enums\LeadStatus;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Lead extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
 
     protected $fillable = [
         'tenant_id',
@@ -289,5 +292,10 @@ class Lead extends Model
         }
 
         return true;
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

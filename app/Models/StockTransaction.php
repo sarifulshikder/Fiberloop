@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\StockTransactionReason;
 use App\Enums\StockTransactionType;
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class StockTransaction extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
 
     protected static function booted(): void
     {
@@ -157,5 +160,10 @@ class StockTransaction extends Model
     public function isOutgoing(): bool
     {
         return $this->transaction_type->isOutgoing();
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

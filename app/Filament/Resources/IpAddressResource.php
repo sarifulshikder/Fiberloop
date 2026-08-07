@@ -16,13 +16,14 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class IpAddressResource extends Resource
 {
     protected static ?string $model = IpAddress::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-tag';
-    protected static \UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-tag';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $navigationLabel = 'IP Addresses';
     protected static ?int $navigationSort = 7;
     protected static ?string $recordTitleAttribute = 'ip_address';
@@ -55,8 +56,14 @@ class IpAddressResource extends Resource
                         ->required(),
                     \Filament\Forms\Components\Select::make('customer_id')
                         ->label('Customer')
-                        ->options(Customer::query()->get()->pluck('full_name', 'id'))
-                        ->searchable()
+                        ->relationship(
+                            name: 'customer',
+                            modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                        )
+                        ->getOptionLabelFromRecordUsing(
+                            fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                        )
+                        ->searchable(['first_name', 'last_name', 'phone'])
                         ->nullable(),
                     \Filament\Forms\Components\Textarea::make('notes')
                         ->rows(3),

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Onu extends Model
 {
     use HasFactory;
+    use HasUuids;
+
 
     protected $fillable = [
         'tenant_id',
@@ -102,5 +105,10 @@ class Onu extends Model
     public function scopeByOlt($query, $oltId)
     {
         return $query->where('olt_id', $oltId);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

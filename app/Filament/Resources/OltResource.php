@@ -21,8 +21,8 @@ class OltResource extends Resource
 {
     protected static ?string $model = Olt::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cpu-chip';
-    protected static \UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $navigationLabel = 'OLTs';
     protected static ?int $navigationSort = 2;
     protected static ?string $recordTitleAttribute = 'name';

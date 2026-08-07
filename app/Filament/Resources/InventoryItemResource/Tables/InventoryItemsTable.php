@@ -8,7 +8,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -50,12 +49,12 @@ class InventoryItemsTable
                 ->label('Asset Tag')
                 ->sortable()
                 ->searchable(),
-            SelectColumn::make('status')
+            TextColumn::make('status')
                 ->label('Status')
-                ->options(InventoryStatus::class)
+                ->badge()
                 ->sortable()
                 ->searchable()
-                ->color(fn (\App\Models\InventoryItem $record): string => $record->status->color()),
+                ->color(fn (\App\Models\InventoryItem $record): string => $record->status?->color() ?? 'gray'),
             TextColumn::make('warehouse')
                 ->label('Warehouse')
                 ->sortable()
@@ -135,11 +134,13 @@ class InventoryItemsTable
                 ->label('Warranty Expiring (30 days)')
                 ->queries(
                     true: fn ($query) => $query->warrantyExpiring(30),
+                    false: fn ($query) => $query,
                 ),
             TernaryFilter::make('warranty_expired')
                 ->label('Warranty Expired')
                 ->queries(
                     true: fn ($query) => $query->where('warranty_end', '<=', now()->toDateString())->whereNotNull('warranty_end'),
+                    false: fn ($query) => $query,
                 ),
         ];
     }

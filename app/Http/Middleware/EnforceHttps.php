@@ -23,7 +23,7 @@ class EnforceHttps
                 // Redirect to HTTPS
                 $url = $request->getSchemeAndHttpHost() . $request->getRequestUri();
                 $secureUrl = str_replace('http://', 'https://', $url);
-                
+
                 return redirect()->to($secureUrl, 301);
             }
         }

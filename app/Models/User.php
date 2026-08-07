@@ -6,6 +6,7 @@ use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -38,9 +39,11 @@ class User extends Authenticatable implements FilamentUser
 {
     use HasApiTokens;
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
     use Notifiable;
     use HasRoles;
+
 
     /**
      * Get the attributes that should be cast.
@@ -111,5 +114,10 @@ class User extends Authenticatable implements FilamentUser
         $staffRoles = ['super_admin', 'admin', 'noc_engineer', 'support_agent', 'billing_agent', 'field_technician'];
 
         return $this->hasAnyRole($staffRoles);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

@@ -30,8 +30,8 @@ class CustomerDataExportReady extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $customer = $this->exportRequest->customer;
-        
-        return (new MailMessage)
+
+        return (new MailMessage())
             ->subject('Your Data Export is Ready')
             ->greeting('Hello ' . $customer->first_name . ',')
             ->line('Your data export request has been completed and is ready for download.')

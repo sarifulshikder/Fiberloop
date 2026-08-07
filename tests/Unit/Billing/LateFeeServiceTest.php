@@ -40,7 +40,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isEligible = $this->service->isEligibleForLateFee($invoice);
-        
+
         $this->assertFalse($isEligible);
     }
 
@@ -56,7 +56,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isEligible = $this->service->isEligibleForLateFee($invoice);
-        
+
         $this->assertFalse($isEligible);
     }
 
@@ -72,7 +72,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isEligible = $this->service->isEligibleForLateFee($invoice);
-        
+
         $this->assertFalse($isEligible);
     }
 
@@ -89,7 +89,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isEligible = $this->service->isEligibleForLateFee($invoice);
-        
+
         $this->assertFalse($isEligible);
     }
 
@@ -106,7 +106,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isEligible = $this->service->isEligibleForLateFee($invoice);
-        
+
         $this->assertTrue($isEligible);
     }
 
@@ -125,7 +125,7 @@ class LateFeeServiceTest extends TestCase
 
         // Default is 10% late fee
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         // 10% of 100000 = 10000 poysha
         $this->assertEquals(10000, $lateFee);
     }
@@ -145,7 +145,7 @@ class LateFeeServiceTest extends TestCase
         $this->service->setLateFeeFixed(500);
 
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         $this->assertEquals(500, $lateFee);
     }
 
@@ -164,7 +164,7 @@ class LateFeeServiceTest extends TestCase
         $this->service->setMaxLateFee(50000);
 
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         // Should be capped at 50,000
         $this->assertEquals(50000, $lateFee);
     }
@@ -181,7 +181,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         $this->assertEquals(0, $lateFee);
     }
 
@@ -228,7 +228,7 @@ class LateFeeServiceTest extends TestCase
         $invoice->refresh();
 
         $this->assertEquals(10000, $lateFeeAmount); // 10% of 100000
-        
+
         // Check that invoice totals were updated
         $this->assertEquals(110000, $invoice->total);
         $this->assertEquals(110000, $invoice->outstanding_amount);
@@ -237,7 +237,7 @@ class LateFeeServiceTest extends TestCase
         $lateFeeItem = InvoiceItem::where('invoice_id', $invoice->id)
             ->where('item_type', 'late_fee')
             ->first();
-        
+
         $this->assertNotNull($lateFeeItem);
         $this->assertEquals(10000, $lateFeeItem->amount);
         $this->assertEquals('Late Fee - 10% for overdue payment', $lateFeeItem->description);
@@ -282,7 +282,7 @@ class LateFeeServiceTest extends TestCase
     public function test_grace_period_end_date_calculation(): void
     {
         $dueDate = Carbon::parse('2026-01-01');
-        
+
         $invoice = Invoice::factory()->create([
             'due_date' => $dueDate->toDateString(),
         ]);
@@ -290,7 +290,7 @@ class LateFeeServiceTest extends TestCase
         $gracePeriodEnd = $this->service->getGracePeriodEnd($invoice);
 
         $expectedEnd = Carbon::parse('2026-01-06'); // 5 days after Jan 1
-        
+
         $this->assertTrue($gracePeriodEnd->isSameDay($expectedEnd));
     }
 
@@ -305,7 +305,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isWithin = $this->service->isWithinGracePeriod($invoice);
-        
+
         $this->assertTrue($isWithin);
     }
 
@@ -320,7 +320,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $isWithin = $this->service->isWithinGracePeriod($invoice);
-        
+
         $this->assertFalse($isWithin);
     }
 
@@ -335,7 +335,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $hasPassed = $this->service->hasPassedGracePeriod($invoice);
-        
+
         $this->assertTrue($hasPassed);
     }
 
@@ -350,7 +350,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $hasPassed = $this->service->hasPassedGracePeriod($invoice);
-        
+
         $this->assertFalse($hasPassed);
     }
 
@@ -368,7 +368,7 @@ class LateFeeServiceTest extends TestCase
         ]);
 
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         $this->assertEquals(0, $lateFee);
     }
 
@@ -385,7 +385,7 @@ class LateFeeServiceTest extends TestCase
 
         // Default 10% of 1 = 0.1, rounded = 0
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         $this->assertEquals(0, $lateFee);
     }
 
@@ -402,7 +402,7 @@ class LateFeeServiceTest extends TestCase
 
         // Default 10% of 10000000 = 1000000
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         $this->assertEquals(1000000, $lateFee);
     }
 
@@ -423,7 +423,7 @@ class LateFeeServiceTest extends TestCase
 
         // Fixed fee should take precedence (percentage is reset to 0 when fixed is set)
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         $this->assertEquals(5000, $lateFee);
     }
 
@@ -435,7 +435,7 @@ class LateFeeServiceTest extends TestCase
     public function test_set_grace_period(): void
     {
         $service = $this->service->setGracePeriod(10);
-        
+
         $this->assertSame($service, $this->service);
         // We can't directly test the private property, but we can test behavior
     }
@@ -454,7 +454,7 @@ class LateFeeServiceTest extends TestCase
         $this->service->setLateFeePercentage(5); // 5%
 
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         // 5% of 100000 = 5000
         $this->assertEquals(5000, $lateFee);
     }
@@ -474,7 +474,7 @@ class LateFeeServiceTest extends TestCase
         $this->service->setMaxLateFee(10000); // Max of 10000
 
         $lateFee = $this->service->calculateLateFee($invoice);
-        
+
         // Should be capped at 10000
         $this->assertEquals(10000, $lateFee);
     }

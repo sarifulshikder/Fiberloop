@@ -6,7 +6,6 @@ use App\Enums\InventoryStatus;
 use App\Enums\StockTransactionReason;
 use App\Enums\StockTransactionType;
 use App\Models\Customer;
-use App\Models\FieldJob;
 use App\Models\InventoryItem;
 use App\Models\Subscription;
 use App\Models\User;
@@ -14,13 +13,13 @@ use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class StockTransactionForm
 {
-    public static function schema(): Schema
+    public static function schema(): array
     {
-        return Schema::make([
+        return [
             Section::make('Transaction Information')
                 ->schema([
                     Select::make('transaction_type')
@@ -69,12 +68,18 @@ class StockTransactionForm
                         ->nullable(),
                     Select::make('customer_id')
                         ->label('Customer')
-                        ->options(Customer::query()->pluck('full_name', 'id'))
-                        ->searchable()
+                        ->relationship(
+                            name: 'customer',
+                            modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                        )
+                        ->getOptionLabelFromRecordUsing(
+                            fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                        )
+                        ->searchable(['first_name', 'last_name', 'phone'])
                         ->nullable(),
                     Select::make('field_job_id')
                         ->label('Field Job')
-                        ->options(FieldJob::query()->pluck('title', 'id'))
+                        ->relationship('fieldJob', 'uuid')
                         ->searchable()
                         ->nullable(),
                     Select::make('subscription_id')
@@ -120,6 +125,6 @@ class StockTransactionForm
                         ->label('Notes')
                         ->columnSpanFull(),
                 ]),
-        ]);
+        ];
     }
 }

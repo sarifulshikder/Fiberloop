@@ -9,13 +9,12 @@ use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Schema;
 
 class ProcurementForm
 {
-    public static function schema(): Schema
+    public static function schema(): array
     {
-        return Schema::make([
+        return [
             Section::make('Basic Information')
                 ->schema([
                     TextInput::make('po_number')
@@ -115,6 +114,6 @@ class ProcurementForm
                         ->label('Notes')
                         ->columnSpanFull(),
                 ]),
-        ]);
+        ];
     }
 }

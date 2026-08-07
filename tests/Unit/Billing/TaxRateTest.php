@@ -2,8 +2,8 @@
 
 namespace Tests\Unit\Billing;
 
-use App\Models\Tenant;
 use App\Models\TaxRate;
+use App\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -29,7 +29,7 @@ class TaxRateTest extends TestCase
 
         // Calculate tax on 100000 poysha (1000 BDT)
         $taxAmount = $taxRate->calculateTax(100000);
-        
+
         // 15% of 100000 = 15000
         $this->assertEquals(15000, $taxAmount);
     }
@@ -44,7 +44,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $taxAmount = $taxRate->calculateTax(100000);
-        
+
         $this->assertEquals(0, $taxAmount);
     }
 
@@ -58,7 +58,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $taxAmount = $taxRate->calculateTax(100000);
-        
+
         $this->assertEquals(25000, $taxAmount);
     }
 
@@ -73,7 +73,7 @@ class TaxRateTest extends TestCase
 
         // 1 poysha = 0.01 BDT
         $taxAmount = $taxRate->calculateTax(1);
-        
+
         // 15% of 1 = 0.15, rounded = 0
         $this->assertEquals(0, $taxAmount);
     }
@@ -89,7 +89,7 @@ class TaxRateTest extends TestCase
 
         // 1,000,000 poysha = 10,000 BDT
         $taxAmount = $taxRate->calculateTax(1000000);
-        
+
         // 15% of 1000000 = 150000
         $this->assertEquals(150000, $taxAmount);
     }
@@ -104,7 +104,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $totalAmount = $taxRate->calculateTotal(100000);
-        
+
         // 100000 + (15% of 100000) = 100000 + 15000 = 115000
         $this->assertEquals(115000, $totalAmount);
     }
@@ -122,7 +122,7 @@ class TaxRateTest extends TestCase
 
         // 10% of 101 = 10.1, should round to 10
         $taxAmount = $taxRate->calculateTax(101);
-        
+
         $this->assertEquals(10, $taxAmount);
     }
 
@@ -137,7 +137,7 @@ class TaxRateTest extends TestCase
 
         // 10% of 105 = 10.5, should round to 11
         $taxAmount = $taxRate->calculateTax(105);
-        
+
         $this->assertEquals(11, $taxAmount);
     }
 
@@ -158,7 +158,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $rate = TaxRate::getCurrentRateForTenant($tenant->id);
-        
+
         $this->assertEquals(15, $rate);
     }
 
@@ -171,7 +171,7 @@ class TaxRateTest extends TestCase
 
         // No tax rate for this tenant
         $rate = TaxRate::getCurrentRateForTenant($tenant->id);
-        
+
         // Should return config default (15)
         $this->assertEquals(15, $rate);
     }
@@ -191,7 +191,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $rate = TaxRate::getDefaultRateForTenant($tenant->id);
-        
+
         $this->assertEquals(20, $rate);
     }
 
@@ -208,7 +208,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $rate = TaxRate::getGlobalDefaultRate();
-        
+
         $this->assertEquals(10, $rate);
     }
 
@@ -236,7 +236,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $rate = TaxRate::getCurrentRateForTenant($tenant->id);
-        
+
         // Should return the effective rate (15), not the future rate (10)
         $this->assertEquals(15, $rate);
     }
@@ -265,7 +265,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $rate = TaxRate::getCurrentRateForTenant($tenant->id);
-        
+
         // Should return the current rate (15), not the expired rate (20)
         $this->assertEquals(15, $rate);
     }
@@ -282,7 +282,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $taxAmount = $taxRate->calculateTax(0);
-        
+
         $this->assertEquals(0, $taxAmount);
     }
 
@@ -296,7 +296,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $totalAmount = $taxRate->calculateTotal(0);
-        
+
         $this->assertEquals(0, $totalAmount);
     }
 
@@ -310,7 +310,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $taxAmount = $taxRate->calculateTax(100000);
-        
+
         // 100% of 100000 = 100000
         $this->assertEquals(100000, $taxAmount);
     }
@@ -325,7 +325,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $taxAmount = $taxRate->calculateTax(100000);
-        
+
         $this->assertIsInt($taxAmount);
     }
 
@@ -349,8 +349,11 @@ class TaxRateTest extends TestCase
 
         foreach ($testCases as $case) {
             $taxAmount = $taxRate->calculateTax($case['base']);
-            $this->assertEquals($case['expected'], $taxAmount,
-                "Failed for base amount: {$case['base']}");
+            $this->assertEquals(
+                $case['expected'],
+                $taxAmount,
+                "Failed for base amount: {$case['base']}"
+            );
         }
     }
 
@@ -381,7 +384,7 @@ class TaxRateTest extends TestCase
 
         $currentRate = TaxRate::getCurrentRateForTenant($tenant->id);
         $defaultRate = TaxRate::getDefaultRateForTenant($tenant->id);
-        
+
         $this->assertEquals(15, $currentRate);
         $this->assertEquals(20, $defaultRate);
     }
@@ -410,7 +413,7 @@ class TaxRateTest extends TestCase
         ]);
 
         $rate = TaxRate::getCurrentRateForTenant($tenant->id);
-        
+
         // Should return the most recent rate (15)
         $this->assertEquals(15, $rate);
     }
@@ -424,7 +427,7 @@ class TaxRateTest extends TestCase
     {
         // No tax rates in database
         $rate = TaxRate::getCurrentRateForTenant(999);
-        
+
         // Should return config default (15)
         $this->assertEquals(15, $rate);
     }
@@ -436,7 +439,7 @@ class TaxRateTest extends TestCase
     {
         // No global default rate
         $rate = TaxRate::getGlobalDefaultRate();
-        
+
         // Should return config default (15)
         $this->assertEquals(15, $rate);
     }

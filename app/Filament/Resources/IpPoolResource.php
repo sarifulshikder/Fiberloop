@@ -20,8 +20,8 @@ class IpPoolResource extends Resource
 {
     protected static ?string $model = IpPool::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-globe-alt';
-    protected static \UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-globe-alt';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $navigationLabel = 'IP Pools';
     protected static ?int $navigationSort = 6;
     protected static ?string $recordTitleAttribute = 'name';

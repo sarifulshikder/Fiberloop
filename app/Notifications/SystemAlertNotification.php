@@ -45,7 +45,7 @@ class SystemAlertNotification extends Notification implements ShouldQueue
         $severity = strtoupper($this->alertData['severity']);
         $category = strtoupper($this->alertData['category']);
 
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject("[$severity] {$this->alertData['title']}")
             ->greeting("System Alert: $severity")
             ->line($this->alertData['title'])

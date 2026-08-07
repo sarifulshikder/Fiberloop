@@ -30,9 +30,9 @@ class PackageResource extends Resource
 {
     protected static ?string $model = Package::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-cube';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
     protected static ?string $navigationLabel = 'Packages';
-    protected static \UnitEnum|string|null $navigationGroup = 'Products & Pricing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
     protected static ?int $navigationSort = 10;
 
     public static function getPluralLabel(): string

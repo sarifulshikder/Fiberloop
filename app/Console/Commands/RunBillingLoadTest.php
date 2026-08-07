@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 
 /**
  * Artisan command to run billing load test.
- * 
+ *
  * Usage:
  *   php artisan billing:load-test --subscriptions=10000
  *   php artisan billing:load-test --subscriptions=100000 --batch=5000
@@ -43,17 +43,17 @@ class RunBillingLoadTest extends Command
 
         if ($sync) {
             $this->info('Running synchronously...');
-            
+
             $job = new BillingRunLoadTestJob($subscriptions, $batchSize);
             $job->handle();
-            
+
             $this->info('Load test completed!');
             return 0;
         }
 
         // Dispatch the job
         $job = new BillingRunLoadTestJob($subscriptions, $batchSize);
-        
+
         if ($queue) {
             $job->onQueue($queue);
         }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\SubscriptionStatus;
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Subscription extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
@@ -142,5 +145,10 @@ class Subscription extends Model
     public function scopeNextBillingDue($query, $days = 7)
     {
         return $query->where('next_billing_date', '<=', now()->addDays($days)->toDateString());
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

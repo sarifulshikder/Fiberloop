@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RefundStatus;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Refund extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
 
     protected $fillable = [
         'tenant_id',
@@ -111,5 +114,10 @@ class Refund extends Model
     public function scopeByCustomer($query, $customerId)
     {
         return $query->where('customer_id', $customerId);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

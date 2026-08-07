@@ -15,16 +15,18 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Billing Run Load Test Job
- * 
+ *
  * Simulates a billing run at scale (100k+ subscriptions) to test performance.
  * This job creates test subscriptions and measures the time to generate invoices.
- * 
+ *
  * Run with: php artisan queue:work --queue=loadtest
  * Or schedule for off-peak hours.
  */
 class BillingRunLoadTestJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
 
     /**
      * The number of subscriptions to create for the load test.
@@ -89,9 +91,9 @@ class BillingRunLoadTestJob implements ShouldQueue
 
         // Now run billing for all created subscriptions
         Log::channel('loadtest')->info('Starting invoice generation for all subscriptions...');
-        
+
         $billingStart = microtime(true);
-        
+
         // Dispatch GenerateInvoices job for all subscriptions
         // In a real load test, we'd use chunking or a more efficient approach
         $subscriptions = Subscription::query()
@@ -103,7 +105,7 @@ class BillingRunLoadTestJob implements ShouldQueue
         foreach ($subscriptions as $subscription) {
             GenerateInvoices::dispatch($subscription);
             $dispatched++;
-            
+
             if ($dispatched % 1000 === 0) {
                 Log::channel('loadtest')->info("Dispatched {$dispatched} GenerateInvoices jobs");
             }
@@ -114,7 +116,7 @@ class BillingRunLoadTestJob implements ShouldQueue
 
         Log::channel('loadtest')->info(
             "Billing run load test completed in {$totalTime}s. " .
-            "Setup: {$billingStart - $startTime}s, Billing dispatch: {$billingTime}s"
+            "Setup: " . ($billingStart - $startTime) . "s, Billing dispatch: {$billingTime}s"
         );
 
         // Log results
@@ -163,7 +165,7 @@ class BillingRunLoadTestJob implements ShouldQueue
 
         for ($i = 0; $i < $count; $i++) {
             $startDate = $now->copy()->subDays(rand(1, 30));
-            
+
             $subscriptions[] = [
                 'tenant_id' => null,
                 'uuid' => 'loadtest-sub-' . $i . '-' . md5($package->code),

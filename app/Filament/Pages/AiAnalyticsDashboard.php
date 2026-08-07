@@ -4,16 +4,14 @@ namespace App\Filament\Pages;
 
 use App\Models\Customer;
 use App\Services\Ai\AiMicroservice;
-use BackedEnum;
 use Filament\Pages\Page;
-use UnitEnum;
 
 class AiAnalyticsDashboard extends Page
 {
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-cpu-chip';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
     protected string $view = 'filament.pages.ai-analytics-dashboard';
     protected static ?string $navigationLabel = 'AI Analytics';
-    protected static UnitEnum|string|null $navigationGroup = 'Analytics';
+    protected static string|\UnitEnum|null $navigationGroup = 'Analytics';
     protected static ?int $navigationSort = 1;
     protected static ?string $title = 'AI & Analytics Dashboard';
 

@@ -15,7 +15,6 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 

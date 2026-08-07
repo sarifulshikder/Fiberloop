@@ -15,8 +15,8 @@ class InventoryItemResource extends Resource
 {
     protected static ?string $model = InventoryItem::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-archive-box';
-    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-archive-box';
+    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
     protected static ?string $navigationLabel = 'Inventory Items';
     protected static ?string $pluralModelLabel = 'Inventory Items';
     protected static ?string $modelLabel = 'Inventory Item';

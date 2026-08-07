@@ -15,7 +15,7 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         $user = \App\Models\User::factory()->create();
-        
+
         return [
             'tenant_id' => null,
             'uuid' => fake()->uuid(),

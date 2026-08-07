@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\InvoiceStatus;
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Invoice extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
@@ -133,5 +136,10 @@ class Invoice extends Model
     {
         return $query->whereIn('status', [InvoiceStatus::DRAFT, InvoiceStatus::SENT, InvoiceStatus::OVERDUE, InvoiceStatus::PARTIAL])
             ->where('outstanding_amount', '>', 0);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

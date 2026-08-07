@@ -18,7 +18,10 @@ use Illuminate\Support\Facades\Log;
  */
 class ProcessCustomerDataDeletion implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     /**
      * The number of times the job may be attempted.
@@ -158,7 +161,7 @@ class ProcessCustomerDataDeletion implements ShouldQueue
         ];
 
         $customer->update($updates);
-        
+
         $report['anonymized_records'][] = [
             'model' => 'Customer',
             'id' => $customer->id,
@@ -182,7 +185,7 @@ class ProcessCustomerDataDeletion implements ShouldQueue
                 'email' => 'deleted_user_' . $customer->user->uuid . '@deleted.example.com',
                 'phone' => null,
             ]);
-            
+
             $report['anonymized_records'][] = [
                 'model' => 'User',
                 'id' => $customer->user->id,

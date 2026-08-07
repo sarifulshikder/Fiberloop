@@ -27,17 +27,17 @@ class SecurityAuditService
         ];
 
         $modelFiles = glob(app_path('Models/*.php'));
-        
+
         foreach ($modelFiles as $file) {
             $className = 'App\\Models\\' . basename($file, '.php');
-            
+
             try {
                 if (!class_exists($className)) {
                     continue;
                 }
 
                 $reflection = new ReflectionClass($className);
-                
+
                 // Check if class extends Model
                 if (!$reflection->isSubclassOf(Model::class)) {
                     continue;
@@ -99,14 +99,14 @@ class SecurityAuditService
 
         // This method requires query logging to be enabled
         // In production, this should be done via a dedicated logging channel
-        
+
         // Get recent queries from the query log
         if (config('database.log_queries', false)) {
             $queries = DB::getQueryLog();
-            
+
             foreach ($queries as $query) {
                 $report['total_queries']++;
-                
+
                 $sql = $query['query'];
                 $bindings = $query['bindings'] ?? [];
 
@@ -185,14 +185,14 @@ class SecurityAuditService
 
         foreach ($modelFiles as $file) {
             $className = 'App\\Models\\' . basename($file, '.php');
-            
+
             try {
                 if (!class_exists($className)) {
                     continue;
                 }
 
                 $reflection = new ReflectionClass($className);
-                
+
                 // Check if class extends Model
                 if (!$reflection->isSubclassOf(Model::class)) {
                     continue;
@@ -213,8 +213,8 @@ class SecurityAuditService
 
                 // Check if model has sensitive columns
                 foreach ($sensitiveColumns as $column) {
-                    if (in_array($column, $modelFillable, true) || 
-                        !in_array($column, $modelGuarded, true) && 
+                    if (in_array($column, $modelFillable, true) ||
+                        !in_array($column, $modelGuarded, true) &&
                         !in_array('*', $modelGuarded, true)) {
                         $modelsNeedingReview[] = [
                             'model' => $className,

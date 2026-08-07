@@ -3,9 +3,9 @@
 namespace App\Services\Security;
 
 use App\Models\Customer;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Encryption\Encrypter;
 
 /**
  * Service for handling KYC document storage and retrieval with encryption.
@@ -36,7 +36,7 @@ class KycDocumentService
     {
         // Generate a unique filename
         $filename = $this->generateSecureFilename($customer, $documentType);
-        
+
         // Store the file in the encrypted disk
         $path = Storage::disk($this->storageDisk)->putFileAs(
             'kyc/' . $customer->uuid,
@@ -55,19 +55,19 @@ class KycDocumentService
     {
         try {
             $decryptedPath = $this->decryptPath($encryptedPath);
-            
+
             // Verify the path exists and is within the KYC directory
             if (Str::startsWith($decryptedPath, 'kyc/') && Storage::disk($this->storageDisk)->exists($decryptedPath)) {
                 return $decryptedPath;
             }
-            
+
             return null;
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to decrypt KYC document path', [
                 'error' => $e->getMessage(),
                 'encrypted_path' => $encryptedPath,
             ]);
-            
+
             return null;
         }
     }
@@ -80,7 +80,7 @@ class KycDocumentService
         $timestamp = now()->format('YmdHis');
         $random = Str::random(16);
         $customerUuid = Str::replace('-', '', $customer->uuid);
-        
+
         return "{$timestamp}_{$customerUuid}_{$documentType}_{$random}";
     }
 
@@ -117,7 +117,7 @@ class KycDocumentService
     public function generateSignedDocumentUrl(string $encryptedPath, int $ttlMinutes = 15): string
     {
         $decryptedPath = $this->decryptPath($encryptedPath);
-        
+
         return Storage::disk($this->storageDisk)->temporaryUrl(
             $decryptedPath,
             now()->addMinutes($ttlMinutes),
@@ -134,18 +134,18 @@ class KycDocumentService
     {
         try {
             $decryptedPath = $this->decryptPath($encryptedPath);
-            
+
             if (Storage::disk($this->storageDisk)->exists($decryptedPath)) {
                 return Storage::disk($this->storageDisk)->delete($decryptedPath);
             }
-            
+
             return false;
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to delete KYC document', [
                 'error' => $e->getMessage(),
                 'encrypted_path' => $encryptedPath,
             ]);
-            
+
             return false;
         }
     }

@@ -9,6 +9,7 @@ class FieldJob extends Model
     use \Illuminate\Database\Eloquent\Factories\HasFactory;
     use \Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
+
     protected $fillable = [
         'tenant_id',
         'uuid',

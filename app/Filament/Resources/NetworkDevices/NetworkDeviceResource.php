@@ -10,7 +10,6 @@ use App\Filament\Resources\NetworkDevices\Schemas\NetworkDeviceForm;
 use App\Filament\Resources\NetworkDevices\Schemas\NetworkDeviceInfolist;
 use App\Filament\Resources\NetworkDevices\Tables\NetworkDevicesTable;
 use App\Models\NetworkDevice;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
@@ -19,9 +18,9 @@ class NetworkDeviceResource extends Resource
 {
     protected static ?string $model = NetworkDevice::class;
 
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-server';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-server';
     protected static ?string $navigationLabel = 'Network Devices';
-    protected static \UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?int $navigationSort = 1;
     protected static ?string $recordTitleAttribute = 'name';
 

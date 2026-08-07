@@ -27,9 +27,9 @@ class AddOnResource extends Resource
 {
     protected static ?string $model = AddOn::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-plus-circle';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-plus-circle';
     protected static ?string $navigationLabel = 'Add-Ons';
-    protected static \UnitEnum|string|null $navigationGroup = 'Products & Pricing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
     protected static ?int $navigationSort = 30;
 
     public static function getPluralLabel(): string

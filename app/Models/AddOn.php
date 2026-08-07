@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class AddOn extends Model
 {
     use HasFactory;
+    use HasUuids;
+
 
     protected $fillable = [
         'tenant_id',
@@ -86,5 +89,10 @@ class AddOn extends Model
     public static function getTypes(): array
     {
         return ['static_ip', 'extra_device_slot', 'ott_iptv', 'voice', 'other'];
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

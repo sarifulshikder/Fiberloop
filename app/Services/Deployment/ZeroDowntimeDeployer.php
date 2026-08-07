@@ -2,18 +2,17 @@
 
 namespace App\Services\Deployment;
 
+use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
-use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Database\Console\MigrateCommand;
 use Symfony\Component\Console\Output\BufferedOutput;
 
 /**
  * Zero-downtime deployment service for Laravel applications.
- * 
+ *
  * This service handles safe migrations, queue draining, and rollback strategies
  * to ensure minimal impact during deployments.
  */
@@ -50,40 +49,40 @@ class ZeroDowntimeDeployer
         try {
             // Step 1: Pre-deployment checks
             $result['steps'][] = $this->runPreDeploymentChecks();
-            
+
             // Step 2: Enter maintenance mode (for production)
             if ($this->isProduction) {
                 $result['steps'][] = $this->enterMaintenanceMode();
             }
-            
+
             // Step 3: Drain queue workers
             $result['steps'][] = $this->drainQueueWorkers();
-            
+
             // Step 4: Run safe migrations
             $result['steps'][] = $this->runSafeMigrations();
-            
+
             // Step 5: Clear caches
             $result['steps'][] = $this->clearCaches();
-            
+
             // Step 6: Warm up cache
             $result['steps'][] = $this->warmUpCache();
-            
+
             // Step 7: Switch symlink (actual deployment)
             $result['steps'][] = $this->switchSymlink();
-            
+
             // Step 8: Verify deployment
             $result['steps'][] = $this->verifyDeployment();
-            
+
             // Step 9: Resume queue workers
             $result['steps'][] = $this->resumeQueueWorkers();
-            
+
             // Step 10: Exit maintenance mode
             if ($this->isProduction) {
                 $result['steps'][] = $this->exitMaintenanceMode();
             }
-            
+
             $result['success'] = true;
-            
+
         } catch (\Exception $e) {
             $result['errors'][] = [
                 'step' => 'deployment',
@@ -91,7 +90,7 @@ class ZeroDowntimeDeployer
                 'trace' => $e->getTraceAsString(),
                 'timestamp' => Carbon::now()->toISOString(),
             ];
-            
+
             // Attempt rollback
             $result['steps'][] = $this->rollback();
         }
@@ -137,10 +136,10 @@ class ZeroDowntimeDeployer
 
         // Check migration safety
         $checks['checks']['migration_safety'] = $this->checkMigrationSafety();
-        
+
         // Check disk space
         $checks['checks']['disk_space'] = $this->checkDiskSpace();
-        
+
         $checks['end_time'] = Carbon::now()->toISOString();
 
         return $checks;
@@ -165,7 +164,7 @@ class ZeroDowntimeDeployer
             $unsafeMigrations = [];
             foreach ($pending as $migration) {
                 $migrationContent = file_get_contents($files[$migration]);
-                
+
                 if (str_contains($migrationContent, 'Schema::drop') ||
                     str_contains($migrationContent, 'Schema::dropIfExists') ||
                     str_contains($migrationContent, 'Schema::table') && str_contains($migrationContent, '->dropColumn')) {
@@ -182,7 +181,7 @@ class ZeroDowntimeDeployer
             }
 
             return ['status' => 'passed', 'message' => count($pending) . ' safe migrations pending'];
-            
+
         } catch (\Exception $e) {
             return ['status' => 'failed', 'message' => $e->getMessage()];
         }
@@ -222,7 +221,7 @@ class ZeroDowntimeDeployer
                 'free_space_gb' => round($freeSpace / 1024 / 1024 / 1024, 2),
                 'used_percent' => round($usedPercent, 2),
             ];
-            
+
         } catch (\Exception $e) {
             return ['status' => 'failed', 'message' => $e->getMessage()];
         }
@@ -245,7 +244,7 @@ class ZeroDowntimeDeployer
                 '--retry' => 60,
                 '--secret' => config('app.maintenance_secret', 'deploy-secret'),
             ]);
-            
+
             $result['message'] = 'Maintenance mode enabled';
         } catch (\Exception $e) {
             $result['status'] = 'failed';
@@ -270,7 +269,7 @@ class ZeroDowntimeDeployer
 
         try {
             Artisan::call('up');
-            
+
             $result['message'] = 'Maintenance mode disabled';
         } catch (\Exception $e) {
             $result['status'] = 'failed';
@@ -308,16 +307,16 @@ class ZeroDowntimeDeployer
             // Wait for queue to drain (with timeout)
             $timeout = 60; // seconds
             $start = time();
-            
+
             while (time() - $start < $timeout) {
                 $currentSize = app('queue')->size();
                 $result['queue_stats']['queue_sizes'][] = $currentSize;
-                
+
                 if ($currentSize === 0) {
                     $result['message'] = 'Queue drained successfully';
                     break;
                 }
-                
+
                 sleep(5);
             }
 
@@ -379,7 +378,7 @@ class ZeroDowntimeDeployer
 
         try {
             $output = new BufferedOutput();
-            
+
             $exitCode = Artisan::call('migrate', [
                 '--force' => true,
                 '--step' => true, // Run one batch at a time for safety
@@ -387,7 +386,7 @@ class ZeroDowntimeDeployer
 
             $result['migrations_run'] = explode("\n", $output->fetch());
             $result['message'] = 'Migrations completed';
-            
+
             if ($exitCode !== 0) {
                 $result['status'] = 'failed';
                 $result['error'] = 'Migration failed with exit code: ' . $exitCode;
@@ -434,7 +433,7 @@ class ZeroDowntimeDeployer
             }
 
             $result['message'] = 'All caches cleared';
-            
+
         } catch (\Exception $e) {
             $result['status'] = 'failed';
             $result['error'] = $e->getMessage();
@@ -466,7 +465,7 @@ class ZeroDowntimeDeployer
 
             $result['caches_warmed'] = ['config', 'route', 'view', 'optimize'];
             $result['message'] = 'Cache warmed up';
-            
+
         } catch (\Exception $e) {
             $result['status'] = 'failed';
             $result['error'] = $e->getMessage();
@@ -497,7 +496,7 @@ class ZeroDowntimeDeployer
 
                 // Create new symlink
                 symlink($this->releasePath, $this->currentPath);
-                
+
                 $result['message'] = 'Symlink switched to new release';
                 $result['from'] = $this->releasePath;
                 $result['to'] = $this->currentPath;

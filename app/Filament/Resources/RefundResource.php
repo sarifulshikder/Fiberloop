@@ -25,9 +25,9 @@ use Filament\Tables\Table;
 class RefundResource extends Resource
 {
     protected static ?string $model = Refund::class;
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-arrow-path';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
     protected static ?string $navigationLabel = 'Refunds';
-    protected static \UnitEnum|string|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
     protected static ?int $navigationSort = 40;
 
     public static function getPluralLabel(): string

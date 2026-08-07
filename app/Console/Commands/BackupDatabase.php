@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Encryption\Encrypter;
 use Symfony\Component\Process\Process;
 
 /**
@@ -49,7 +49,7 @@ class BackupDatabase extends Command
 
         // Get database configuration
         $config = config("database.connections.{$connection}");
-        
+
         if (!$config) {
             $this->error("Database connection '{$connection}' not found");
             return 1;
@@ -59,7 +59,7 @@ class BackupDatabase extends Command
 
         // Create backup directory
         $backupPath = $customPath ?: storage_path('app/backups');
-        
+
         if (!Storage::disk('local')->exists('backups')) {
             Storage::disk('local')->makeDirectory('backups');
         }
@@ -70,7 +70,7 @@ class BackupDatabase extends Command
         try {
             // Create the database dump
             $this->info("Creating database dump...");
-            
+
             $process = $this->createDumpProcess($config, $backupFile);
             $process->setTimeout(3600); // 1 hour timeout
             $process->run();
@@ -112,7 +112,7 @@ class BackupDatabase extends Command
             }
 
             $this->info("Backup completed successfully: {$finalBackupFile}");
-            
+
             // Output backup information
             $this->line("Backup file: " . realpath($finalBackupFile));
             $this->line("File size: " . $this->formatBytes(filesize($finalBackupFile)));
@@ -123,7 +123,7 @@ class BackupDatabase extends Command
 
         } catch (\Exception $e) {
             $this->error("Backup failed: " . $e->getMessage());
-            
+
             // Clean up partial files
             if (Storage::disk('local')->exists($backupFile)) {
                 Storage::disk('local')->delete($backupFile);

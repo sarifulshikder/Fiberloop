@@ -23,9 +23,9 @@ class NasResource extends Resource
 {
     protected static ?string $model = Nas::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-server-stack';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-server-stack';
     protected static ?string $navigationLabel = 'RADIUS NAS Clients';
-    protected static \UnitEnum|string|null $navigationGroup = 'Network';
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?int $navigationSort = 10;
 
     public static function getPluralLabel(): string

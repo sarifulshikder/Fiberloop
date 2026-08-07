@@ -15,7 +15,7 @@ class PenetrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
+
         // Create basic roles needed for tests without full seeder
         // to avoid issues with test environment
         if (!\Spatie\Permission\Models\Role::where('name', 'customer')->exists()) {
@@ -71,7 +71,7 @@ class PenetrationTest extends TestCase
             // The request should not cause a SQL error
             // It should either succeed (if the payload is treated as data) or fail with validation
             $response->assertStatus(422); // Should fail validation
-            
+
             // Make sure no database error is returned
             $response->assertJsonMissing(['error' => 'SQLSTATE']);
             $response->assertJsonMissing(['error' => 'syntax error']);
@@ -107,7 +107,7 @@ class PenetrationTest extends TestCase
         ])->get('/api/v1/customer/profile');
 
         $response->assertStatus(200);
-        
+
         // The XSS payload should be escaped or not present in the response
         $response->assertJsonFragment(['first_name' => '<script>alert("XSS")</script>']);
         // But it should not be executable - the response should be JSON, not HTML
@@ -129,7 +129,7 @@ class PenetrationTest extends TestCase
         // Create a customer with sensitive data
         $nidNumber = '12345678901234567';
         $nidPhoto = 'nid_photo_path.jpg';
-        
+
         $customer = Customer::factory()->create([
             'nid_number' => $nidNumber,
             'nid_front_photo' => $nidPhoto,
@@ -149,7 +149,7 @@ class PenetrationTest extends TestCase
         ])->get('/api/v1/customer/profile');
 
         $response->assertStatus(200);
-        
+
         // Sensitive data should not be in the response
         $response->assertJsonMissing(['nid_number']);
         $response->assertJsonMissing(['nid_front_photo']);
@@ -174,7 +174,7 @@ class PenetrationTest extends TestCase
         // Try to access a KYC endpoint (if it exists)
         // This is a hypothetical test - in reality, you'd have specific KYC endpoints
         // For now, we'll test that the middleware would block access
-        
+
         // Customers should not be able to access KYC endpoints
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $customerToken,
@@ -192,7 +192,7 @@ class PenetrationTest extends TestCase
     {
         // API endpoints should not require CSRF tokens
         // They should use Bearer token authentication instead
-        
+
         $user = User::factory()->create([
             'email' => 'test@example.com',
             'password' => Hash::make('password'),
@@ -207,7 +207,7 @@ class PenetrationTest extends TestCase
         ])->get('/api/v1/customer/profile');
 
         $response->assertStatus(200);
-        
+
         // This should fail without token
         $response = $this->withHeaders([
             'Accept' => 'application/json',
@@ -230,7 +230,7 @@ class PenetrationTest extends TestCase
 
         // Make multiple requests to trigger rate limiting
         $url = '/api/v1/customer/profile';
-        
+
         for ($i = 0; $i < 100; $i++) {
             $response = $this->withHeaders([
                 'Authorization' => 'Bearer ' . $token,
@@ -256,14 +256,14 @@ class PenetrationTest extends TestCase
     {
         // Try to access a non-existent endpoint
         $response = $this->get('/api/v1/nonexistent-endpoint');
-        
+
         $response->assertStatus(404);
-        
+
         // Error response should not contain sensitive information
         $response->assertJsonMissing(['path']);
         $response->assertJsonMissing(['exception']);
         $response->assertJsonMissing(['trace']);
-        
+
         // In production, detailed error messages should be disabled
         if (app()->environment('production')) {
             $response->assertJsonMissing(['message' => 'No query results for model']);
@@ -329,7 +329,7 @@ class PenetrationTest extends TestCase
 
         foreach ($injectionPayloads as $credentials) {
             $response = $this->postJson('/api/v1/login', $credentials);
-            
+
             // Should not authenticate successfully with injection
             $response->assertStatus(422); // Validation error
             $response->assertJsonMissing(['token']);

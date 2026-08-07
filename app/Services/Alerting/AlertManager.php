@@ -2,16 +2,16 @@
 
 namespace App\Services\Alerting;
 
+use App\Notifications\SystemAlertNotification;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\SystemAlertNotification;
 
 /**
  * Centralized alert management service for critical system events.
- * 
+ *
  * This service handles alert routing, severity levels, throttling, and escalation
  * policies to ensure that critical issues are properly communicated to the
  * appropriate teams without causing alert fatigue.
@@ -151,7 +151,7 @@ class AlertManager
         bool $force = false
     ): array {
         $alertId = $this->generateAlertId($title, $category);
-        
+
         // Check throttling
         if (!$force && $this->isThrottled($category, $alertId)) {
             return [
@@ -238,7 +238,7 @@ class AlertManager
     protected function sendToSlack(array $alertData, array $routing): bool
     {
         $webhookUrl = config('services.slack.webhook_url');
-        
+
         if (!$webhookUrl) {
             Log::warning('Slack webhook URL not configured');
             return false;
@@ -372,7 +372,7 @@ class AlertManager
     protected function sendToPagerDuty(array $alertData, array $routing): bool
     {
         $routingKey = config('services.pagerduty.routing_key');
-        
+
         if (!$routingKey) {
             Log::warning('PagerDuty routing key not configured');
             return false;
@@ -423,7 +423,7 @@ class AlertManager
     protected function logAlert(array $alertData): void
     {
         $logLevel = $this->severityToLogLevel($alertData['severity']);
-        
+
         Log::channel('alerts')->$logLevel($alertData['title'], [
             'alert_id' => $alertData['id'],
             'message' => $alertData['message'],
@@ -440,7 +440,7 @@ class AlertManager
     protected function isThrottled(string $component, string $alertId): bool
     {
         $key = "$component:$alertId";
-        
+
         if (!isset($this->throttleCache[$key])) {
             return false;
         }
@@ -465,7 +465,7 @@ class AlertManager
     protected function recordAlert(string $component, string $alertId): void
     {
         $key = "$component:$alertId";
-        
+
         if (!isset($this->throttleCache[$key])) {
             $this->throttleCache[$key] = [];
         }
@@ -518,7 +518,7 @@ class AlertManager
     {
         $severity = strtoupper($alertData['severity']);
         $timestamp = Carbon::parse($alertData['timestamp'])->format('Y-m-d H:i:s');
-        
+
         return "[$severity] {$alertData['title']}: {$alertData['message']} - $timestamp";
     }
 

@@ -14,8 +14,8 @@ class StockTransactionResource extends Resource
 {
     protected static ?string $model = StockTransaction::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-arrow-path';
-    protected static \UnitEnum|string|null $navigationGroup = 'Inventory';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
+    protected static string|\UnitEnum|null $navigationGroup = 'Inventory';
     protected static ?string $navigationLabel = 'Stock Transactions';
     protected static ?string $pluralModelLabel = 'Stock Transactions';
     protected static ?string $modelLabel = 'Stock Transaction';

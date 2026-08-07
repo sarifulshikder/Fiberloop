@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Models\Scopes\ResellerScope;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +15,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Payment extends Model
 {
     use HasFactory;
+    use HasUuids;
     use SoftDeletes;
+
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
@@ -125,5 +128,10 @@ class Payment extends Model
     public function scopeSplitFromPayment($query, $parentId)
     {
         return $query->where('split_from_payment_id', $parentId);
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

@@ -4,17 +4,15 @@ namespace App\Filament\Pages;
 
 use App\Models\Customer;
 use App\Models\Invoice;
-use BackedEnum;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
-use UnitEnum;
 
 class ReportsDashboard extends Page
 {
-    protected static BackedEnum|string|null $navigationIcon = 'heroicon-o-document-chart-bar';
-    protected static UnitEnum|string|null $navigationGroup = 'Reports & Analytics';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-chart-bar';
+    protected static string|\UnitEnum|null $navigationGroup = 'Reports & Analytics';
     protected static ?int $navigationSort = 1;
     protected string $view = 'filament.pages.reports-dashboard';
 

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\InventoryStatus;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class InventoryItem extends Model
 {
     use HasFactory;
+    use HasUuids;
+
 
     protected $fillable = [
         'tenant_id',
@@ -123,5 +126,10 @@ class InventoryItem extends Model
     {
         return $query->where('warranty_end', '<=', now()->addDays($days)->toDateString())
             ->where('warranty_end', '>=', now()->toDateString());
+    }
+
+    public function uniqueIds(): array
+    {
+        return ['uuid'];
     }
 }

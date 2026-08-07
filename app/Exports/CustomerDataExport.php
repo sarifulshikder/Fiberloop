@@ -93,7 +93,7 @@ class CustomerDataExport implements FromCollection, WithHeadings, ShouldQueue
     {
         // For CSV/Excel, we need to flatten the data
         $data = $this->generate();
-        
+
         // Flatten the nested structure for spreadsheet format
         $rows = [];
 

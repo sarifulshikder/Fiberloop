@@ -50,10 +50,10 @@ class CommissionServiceTest extends TestCase
 
         // Should be 10% of 100000 = 10000 poysha
         $expectedCommission = 10000;
-        
+
         // Verify ledger entry was created
         $ledger = ResellerCommissionLedger::where('reseller_id', $reseller->id)->first();
-        
+
         $this->assertNotNull($ledger);
         $this->assertEquals($expectedCommission, $ledger->amount);
         $this->assertEquals('earned', $ledger->type);
@@ -82,7 +82,7 @@ class CommissionServiceTest extends TestCase
 
         // Verify ledger entry
         $ledger = ResellerCommissionLedger::where('reseller_id', $reseller->id)->first();
-        
+
         $this->assertNotNull($ledger);
         $this->assertEquals(500, $ledger->amount);
         $this->assertEquals('earned', $ledger->type);
@@ -110,7 +110,7 @@ class CommissionServiceTest extends TestCase
 
         // Should use percentage (10% of 10000 = 1000) not flat amount (500)
         $ledger = ResellerCommissionLedger::where('reseller_id', $reseller->id)->first();
-        
+
         $this->assertEquals(1000, $ledger->amount);
     }
 
@@ -167,7 +167,7 @@ class CommissionServiceTest extends TestCase
 
         // Should find reseller via customer and calculate commission
         $ledger = ResellerCommissionLedger::where('reseller_id', $reseller->id)->first();
-        
+
         $this->assertNotNull($ledger);
         $this->assertEquals(10000, $ledger->amount);
     }
@@ -195,7 +195,7 @@ class CommissionServiceTest extends TestCase
         );
 
         $reseller->refresh();
-        
+
         $this->assertEquals(100000, $reseller->wallet_balance);
         $this->assertEquals(100000, $reseller->total_earnings);
     }
@@ -221,7 +221,7 @@ class CommissionServiceTest extends TestCase
         );
 
         $reseller->refresh();
-        
+
         $this->assertEquals(50000, $reseller->wallet_balance);
         $this->assertEquals(50000, $reseller->total_withdrawn);
     }
@@ -272,7 +272,7 @@ class CommissionServiceTest extends TestCase
         );
 
         $reseller->refresh();
-        
+
         $this->assertEquals(-10000, $reseller->wallet_balance);
     }
 
@@ -407,7 +407,7 @@ class CommissionServiceTest extends TestCase
         $this->service->creditCommission($payment);
 
         $ledger = ResellerCommissionLedger::where('reseller_id', $reseller->id)->first();
-        
+
         $this->assertNotNull($ledger);
         $this->assertEquals(0, $ledger->amount); // 10% of 1 = 0.1, rounded = 0
     }
@@ -429,7 +429,7 @@ class CommissionServiceTest extends TestCase
         $this->service->creditCommission($payment);
 
         $ledger = ResellerCommissionLedger::where('reseller_id', $reseller->id)->first();
-        
+
         $this->assertNotNull($ledger);
         $this->assertEquals(500000, $ledger->amount); // 5% of 10,000,000 = 500,000
     }
@@ -462,10 +462,10 @@ class CommissionServiceTest extends TestCase
         $this->service->creditCommission($payment2);
 
         $reseller->refresh();
-        
+
         // Should have 10% of 100000 + 10% of 200000 = 10000 + 20000 = 30000
         $this->assertEquals(30000, $reseller->wallet_balance);
-        
+
         // Should have 2 ledger entries
         $ledgerEntries = ResellerCommissionLedger::where('reseller_id', $reseller->id)->get();
         $this->assertCount(2, $ledgerEntries);

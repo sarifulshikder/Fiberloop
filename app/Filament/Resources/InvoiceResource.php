@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Enums\InvoiceStatus;
 use App\Filament\Resources\InvoiceResource\Pages;
+use App\Models\Customer;
 use App\Models\Invoice;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -24,14 +25,15 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Invoices';
-    protected static \UnitEnum|string|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
     protected static ?int $navigationSort = 10;
     protected static ?string $recordTitleAttribute = 'invoice_number';
 
@@ -101,12 +103,15 @@ class InvoiceResource extends Resource
                             ->schema([
                                 Select::make('customer_id')
                                     ->label('Customer')
-                                    ->required()
-                                    ->options(function () {
-                                        return \App\Models\Customer::all()->pluck('full_name', 'id');
-                                    })
-                                    ->searchable()
-                                    ->preload(),
+                                    ->relationship(
+                                        name: 'customer',
+                                        modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                                    )
+                                    ->getOptionLabelFromRecordUsing(
+                                        fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                                    )
+                                    ->searchable(['first_name', 'last_name', 'phone'])
+                                    ->required(),
                                 Select::make('subscription_id')
                                     ->label('Subscription')
                                     ->required()

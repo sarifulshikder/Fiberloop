@@ -28,7 +28,7 @@ class SecurityAudit extends Command
     public function handle(SecurityAuditService $auditService): int
     {
         $this->info('Starting security audit...');
-        
+
         if ($this->option('mass-assignment') || $this->option('full')) {
             $this->auditMassAssignment($auditService);
         }
@@ -56,14 +56,14 @@ class SecurityAudit extends Command
     protected function auditMassAssignment(SecurityAuditService $auditService): void
     {
         $this->info('\n=== Mass Assignment Audit ===');
-        
+
         $report = $auditService->auditMassAssignment();
 
         if (empty($report['vulnerable_models'])) {
             $this->info('No mass assignment vulnerabilities found.');
         } else {
             $this->error('Found ' . count($report['vulnerable_models']) . ' models with mass assignment vulnerabilities:');
-            
+
             foreach ($report['vulnerable_models'] as $vulnerability) {
                 $this->line('');
                 $this->error('Model: ' . $vulnerability['model']);
@@ -83,17 +83,17 @@ class SecurityAudit extends Command
     protected function auditQueries(SecurityAuditService $auditService): void
     {
         $this->info('\n=== Database Query Audit ===');
-        
+
         // Enable query logging
         config(['database.log_queries' => true]);
-        
+
         $report = $auditService->auditRawQueries();
 
         if (empty($report['raw_queries'])) {
             $this->info('No unsafe raw queries detected.');
         } else {
             $this->error('Found ' . count($report['raw_queries']) . ' potentially unsafe queries:');
-            
+
             foreach ($report['raw_queries'] as $query) {
                 $this->line('');
                 $this->error('Risk: ' . $query['risk']);
@@ -112,7 +112,7 @@ class SecurityAudit extends Command
     protected function auditModelsForReview(SecurityAuditService $auditService): void
     {
         $this->info('\n=== Models Needing Security Review ===');
-        
+
         $models = $auditService->getModelsNeedingReview();
 
         if (empty($models)) {
@@ -121,7 +121,7 @@ class SecurityAudit extends Command
         }
 
         $this->error('Found ' . count($models) . ' models that need security review:');
-        
+
         foreach ($models as $model) {
             $this->line('');
             $this->error('Model: ' . $model['model']);

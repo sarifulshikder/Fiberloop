@@ -8,7 +8,6 @@ use App\Filament\Resources\FieldJobs\Pages\ListFieldJobs;
 use App\Filament\Resources\FieldJobs\Schemas\FieldJobForm;
 use App\Filament\Resources\FieldJobs\Tables\FieldJobsTable;
 use App\Models\FieldJob;
-use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,7 +17,7 @@ class FieldJobResource extends Resource
 {
     protected static ?string $model = FieldJob::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     public static function form(Schema $schema): Schema
     {

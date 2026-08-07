@@ -23,14 +23,15 @@ use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class PackageChangeRequestResource extends Resource
 {
     protected static ?string $model = PackageChangeRequest::class;
 
-    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-arrow-path';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
     protected static ?string $navigationLabel = 'Package Change Requests';
-    protected static \UnitEnum|string|null $navigationGroup = 'CRM';
+    protected static string|\UnitEnum|null $navigationGroup = 'CRM';
     protected static ?int $navigationSort = 40;
 
     public static function getPluralLabel(): string
@@ -56,8 +57,14 @@ class PackageChangeRequestResource extends Resource
                     ->schema([
                         Select::make('customer_id')
                             ->label('Customer')
-                            ->options(Customer::query()->get()->pluck('full_name', 'id'))
-                            ->searchable()
+                            ->relationship(
+                                name: 'customer',
+                                modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                            )
+                            ->getOptionLabelFromRecordUsing(
+                                fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                            )
+                            ->searchable(['first_name', 'last_name', 'phone'])
                             ->required(),
                         Select::make('subscription_id')
                             ->label('Subscription')
@@ -188,9 +195,15 @@ class PackageChangeRequestResource extends Resource
                     ->multiple(),
                 SelectFilter::make('customer_id')
                     ->label('Customer')
-                    ->options(Customer::query()->get()->pluck('full_name', 'id'))
-                    ->multiple()
-                    ->searchable(),
+                    ->relationship(
+                        name: 'customer',
+                        modifyQueryUsing: fn (Builder $query) => $query->orderBy('first_name')->orderBy('last_name'),
+                    )
+                    ->getOptionLabelFromRecordUsing(
+                        fn (Customer $record) => "{$record->first_name} {$record->last_name}"
+                    )
+                    ->searchable(['first_name', 'last_name', 'phone'])
+                    ->multiple(),
             ])
             ->actions([
                 ViewAction::make(),

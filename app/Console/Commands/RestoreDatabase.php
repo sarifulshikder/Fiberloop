@@ -3,9 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Encryption\Encrypter;
 use Symfony\Component\Process\Process;
 
 /**
@@ -53,7 +53,7 @@ class RestoreDatabase extends Command
 
         // Resolve full path
         $filePath = $this->resolveFilePath($file);
-        
+
         if (!file_exists($filePath)) {
             $this->error("Cannot access backup file: {$filePath}");
             return 1;
@@ -63,7 +63,7 @@ class RestoreDatabase extends Command
 
         // Determine target database
         $targetDatabase = $this->determineTargetDatabase($connection, $testMode);
-        
+
         // Check if we need to decrypt
         if ($decrypt || $this->isEncrypted($filePath)) {
             $filePath = $this->handleDecryption($filePath);
@@ -76,7 +76,7 @@ class RestoreDatabase extends Command
 
         // Get database configuration
         $config = config("database.connections.{$connection}");
-        
+
         if (!$config) {
             $this->error("Database connection '{$connection}' not found");
             return 1;
@@ -103,7 +103,7 @@ class RestoreDatabase extends Command
             // Restore from backup
             $this->info("Restoring database...");
             $startTime = time();
-            
+
             $process = $this->createRestoreProcess($filePath, $targetDatabase, $config);
             $process->setTimeout($timeout);
             $process->run();
@@ -181,7 +181,7 @@ class RestoreDatabase extends Command
 
         // Try to read the file and see if it looks encrypted (base64)
         $content = file_get_contents($filePath, false, null, 0, 100);
-        
+
         if ($content === false) {
             return false;
         }

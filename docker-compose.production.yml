@@ -1,0 +1,669 @@
+# Production Environment Docker Compose Configuration
+# This configuration is for live production deployment
+
+version: '3.8'
+
+services:
+  # Nginx Web Server - Production
+  nginx:
+    image: nginx:alpine
+    container_name: fiberloop-nginx-production
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/conf.d/production.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - fiberloop-network
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+      - reverb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+
+  # PHP Application with Laravel Octane - Production (multiple replicas)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: production
+    container_name: fiberloop-app-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./docker/php/production.ini:/usr/local/etc/php/conf.d/production.ini
+    networks:
+      - fiberloop-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=https://fiberloop.com
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - RADIUS_DB_HOST=postgres
+      - RADIUS_DB_PORT=5432
+      - RADIUS_DB_DATABASE=fiberloop_radius
+      - RADIUS_DB_USERNAME=fiberloop_radius
+      - RADIUS_DB_PASSWORD=${PRODUCTION_RADIUS_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=redis
+      - SESSION_DRIVER=redis
+      - BROADCAST_CONNECTION=redis
+      - SESSION_DOMAIN=.fiberloop.com
+      - SANCTUM_STATEFUL_DOMAINS=fiberloop.com
+      - FILESYSTEM_DISK=s3
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+      - LOG_CHANNEL=stack
+      - LOG_LEVEL=error
+    expose:
+      - "9000"
+    deploy:
+      replicas: 4
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Laravel Reverb for WebSockets - Production
+  reverb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-reverb-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - redis
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080 --workers=2
+    environment:
+      - APP_ENV=production
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # PostgreSQL 18 - Production Primary
+  postgres:
+    image: postgres:18-alpine
+    container_name: fiberloop-postgres-production
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=fiberloop
+      - POSTGRES_USER=fiberloop
+      - POSTGRES_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --data-checksums
+    volumes:
+      - postgres_data_production:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/postgres/production:/docker-entrypoint-initdb.d/production
+    networks:
+      - fiberloop-network
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiberloop -d fiberloop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >-
+      postgres
+      -c max_connections=500
+      -c shared_buffers=4GB
+      -c effective_cache_size=12GB
+      -c maintenance_work_mem=256MB
+      -c work_mem=16MB
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c wal_level=logical
+      -c archive_mode=on
+      -c archive_command='test ! -f /var/lib/postgresql/wal_archive/%f'
+    volumes:
+      - pg_wal_archive:/var/lib/postgresql/wal_archive
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  # PostgreSQL 18 - Production Read Replica
+  postgres-replica:
+    image: postgres:18-alpine
+    container_name: fiberloop-postgres-replica-production
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=fiberloop
+      - POSTGRES_USER=fiberloop_replica
+      - POSTGRES_PASSWORD=${PRODUCTION_DB_REPLICA_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF8 --data-checksums
+    volumes:
+      - postgres_replica_data_production:/var/lib/postgresql
+    networks:
+      - fiberloop-network
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fiberloop_replica -d fiberloop"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: >-
+      postgres
+      -c hot_standby=on
+      -c max_connections=200
+      -c shared_buffers=2GB
+      -c effective_cache_size=4GB
+    depends_on:
+      - postgres
+
+  # Redis - Production
+  redis:
+    image: redis:7-alpine
+    container_name: fiberloop-redis-production
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 4gb --maxmemory-policy allkeys-lru --requirepass ${PRODUCTION_REDIS_PASSWORD}
+    volumes:
+      - redis_data_production:/data
+      - ./docker/redis/production.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - fiberloop-network
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${PRODUCTION_REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: '2.0'
+
+  # FreeRADIUS 3.2.x - Production
+  freeradius:
+    image: freeradius/freeradius-server:3.2.10
+    container_name: fiberloop-freeradius-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    ports:
+      - "1812:1812/udp"
+      - "1813:1813/udp"
+      - "18120:18120"
+    volumes:
+      - ./docker/freeradius:/etc/freeradius
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "freeradius -C || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    environment:
+      - FREERADIUS_SECRET=${PRODUCTION_RADIUS_SECRET}
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Queue worker (Horizon) - Production
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-horizon-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: php artisan horizon
+    environment:
+      - APP_ENV=production
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Queue workers - High priority
+  queue-high:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-queue-high-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: php artisan queue:work --queue=high --sleep=1 --tries=5 --timeout=120 --max-time=300
+    environment:
+      - APP_ENV=production
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Queue workers - Default
+  queue-default:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-queue-default-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: php artisan queue:work --queue=default --sleep=3 --tries=3 --timeout=300 --max-time=600
+    environment:
+      - APP_ENV=production
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+    deploy:
+      replicas: 4
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Queue workers - Low priority
+  queue-low:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-queue-low-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    networks:
+      - fiberloop-network
+    depends_on:
+      - app
+      - redis
+    command: php artisan queue:work --queue=low --sleep=10 --tries=2 --timeout=600 --max-time=1800
+    environment:
+      - APP_ENV=production
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+  # Python AI Service - Production
+  ai:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: fiberloop-ai-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    environment:
+      - APP_ENV=production
+      - DATABASE_URL=postgresql://fiberloop:${PRODUCTION_DB_PASSWORD}@postgres:5432/fiberloop
+      - PYTHONUNBUFFERED=1
+      - WORKERS=4
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  # Prometheus - Production
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: fiberloop-prometheus-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/prometheus/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data_production:/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=90d'
+      - '--storage.tsdb.retention.size=50GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '0.5'
+
+  # Grafana - Production
+  grafana:
+    image: grafana/grafana:latest
+    container_name: fiberloop-grafana-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    volumes:
+      - grafana_data_production:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_SECURITY_COOKIE_SECURE=true
+      - GF_SECURITY_COOKIE_SAMESITE=strict
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+      - GF_LOG_LEVEL=error
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Elasticsearch - Production
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: fiberloop-elasticsearch-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - xpack.security.authc.api_key.enabled=true
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - bootstrap.memory_lock=true
+      - indices.query.bool.max_clause_count=4096
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - elasticsearch_data_production:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    healthcheck:
+      test: ["CMD", "curl", "-u", "elastic:${ELASTICSEARCH_PASSWORD}", "-f", "http://localhost:9200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '2.0'
+
+  # Logstash - Production
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: fiberloop-logstash-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    volumes:
+      - ./docker/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "5044:5044"
+    environment:
+      - LS_JAVA_OPTS=-Xms512m -Xmx2g
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '1.0'
+
+  # Kibana - Production
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: fiberloop-kibana-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+      - KIBANA textoserVERBOSElOGGING=false
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '0.5'
+
+  # Sentry - Production (Optional - self-hosted)
+  sentry:
+    image: sentry:10
+    container_name: fiberloop-sentry-production
+    restart: unless-stopped
+    networks:
+      - fiberloop-network
+    ports:
+      - "9002:9000"
+    volumes:
+      - sentry_data_production:/var/lib/sentry/files
+    environment:
+      - SENTRY_SECRET_KEY=${SENTRY_SECRET_KEY}
+      - SENTRY_POSTGRES_PASSWORD=${SENTRY_DB_PASSWORD}
+      - SENTRY_DB_HOST=postgres
+      - SENTRY_DB_USER=sentry
+      - SENTRY_DB_PASSWORD=${SENTRY_DB_PASSWORD}
+      - SENTRY_DB_NAME=sentry
+      - SENTRY_REDIS_HOST=redis
+      - SENTRY_REDIS_PASSWORD=${PRODUCTION_REDIS_PASSWORD}
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  # Backup service - Production
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fiberloop-backup-production
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+      - ./storage/app/backups:/backups
+    networks:
+      - fiberloop-network
+    command: >-
+      sh -c "
+        while true; do
+          php artisan db:backup --encrypt --cloud --path=/backups;
+          sleep 86400;
+        done
+      "
+    environment:
+      - APP_ENV=production
+      - DB_HOST=postgres
+      - DB_DATABASE=fiberloop
+      - DB_USERNAME=fiberloop
+      - DB_PASSWORD=${PRODUCTION_DB_PASSWORD}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - AWS_BUCKET=${AWS_BUCKET}
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.25'
+
+networks:
+  fiberloop-network:
+    driver: bridge
+    attachable: true
+
+volumes:
+  postgres_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/postgres
+      o: bind
+  postgres_replica_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/postgres-replica
+      o: bind
+  redis_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/redis
+      o: bind
+  prometheus_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/prometheus
+      o: bind
+  grafana_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/grafana
+      o: bind
+  elasticsearch_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/elasticsearch
+      o: bind
+  sentry_data_production:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/sentry
+      o: bind
+  pg_wal_archive:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/lib/fiberloop/postgres/wal_archive
+      o: bind

@@ -7,7 +7,6 @@ use App\Http\Requests\Api\CustomerDataRequest;
 use App\Jobs\ProcessCustomerDataDeletion;
 use App\Jobs\ProcessCustomerDataExport;
 use App\Models\Customer;
-use App\Notifications\CustomerDataExportReady;
 use App\Notifications\CustomerDataDeletionConfirmation;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,7 +61,7 @@ class CustomerDataController extends Controller
     public function exportStatus(string $requestId): JsonResponse
     {
         $customer = Auth::guard('sanctum')->user();
-        
+
         if (!$customer) {
             return response()->json([
                 'success' => false,
@@ -103,7 +102,7 @@ class CustomerDataController extends Controller
     public function downloadExport(string $requestId): JsonResponse
     {
         $customer = Auth::guard('sanctum')->user();
-        
+
         if (!$customer) {
             return response()->json([
                 'success' => false,
@@ -131,7 +130,7 @@ class CustomerDataController extends Controller
 
         // Return the file for download
         $filePath = storage_path('app/exports/' . basename($exportRequest->download_url));
-        
+
         if (!file_exists($filePath)) {
             return response()->json([
                 'success' => false,
@@ -181,7 +180,7 @@ class CustomerDataController extends Controller
     public function confirmDeletion(string $requestId, string $confirmationToken): JsonResponse
     {
         $customer = Auth::guard('sanctum')->user();
-        
+
         if (!$customer) {
             return response()->json([
                 'success' => false,
@@ -242,7 +241,7 @@ class CustomerDataController extends Controller
     public function deletionStatus(string $requestId): JsonResponse
     {
         $customer = Auth::guard('sanctum')->user();
-        
+
         if (!$customer) {
             return response()->json([
                 'success' => false,
@@ -298,11 +297,11 @@ class CustomerDataController extends Controller
         // Generate and return export immediately
         $fileName = 'customer_' . $customer->uuid . '_' . now()->format('Ymd_His') . '.json';
         $filePath = 'exports/' . $fileName;
-        
+
         // Create the export
         $exportService = new CustomerDataExport($customer);
         $exportContent = $exportService->generate();
-        
+
         Storage::disk('local')->put('app/' . $filePath, json_encode($exportContent, JSON_PRETTY_PRINT));
 
         $exportRequest->update([
