@@ -9,9 +9,9 @@ class Index extends ListRecords
 {
     protected static string $resource = ProfileResource::class;
 
-    public function mount(): void
+    public function mount(int|string|null $record = null): void
     {
-        // Explicit mount method to prevent dependency resolution issues
+        // Accept optional record parameter to prevent dependency resolution issues
     }
 
     protected function getHeaderActions(): array
