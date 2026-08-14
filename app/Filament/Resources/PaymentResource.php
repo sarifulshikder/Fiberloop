@@ -29,7 +29,7 @@ class PaymentResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-banknotes';
     protected static ?string $navigationLabel = 'Payments';
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
     protected static ?int $navigationSort = 20;
 
     public static function getPluralLabel(): string

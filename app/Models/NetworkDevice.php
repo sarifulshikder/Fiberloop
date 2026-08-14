@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeviceVendor;
+use App\Enums\NetworkManagementProtocol;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,11 +26,13 @@ class NetworkDevice extends Model
         'serial_number',
         'ip_address',
         'hostname',
+        'management_protocol',
         'port',
         'username',
         'password',
         'snmp_community',
         'snmp_version',
+        'snmp_port',
         'location',
         'latitude',
         'longitude',
@@ -44,14 +47,15 @@ class NetworkDevice extends Model
 
     protected $casts = [
         'vendor' => DeviceVendor::class,
+        'management_protocol' => NetworkManagementProtocol::class,
         'port' => 'integer',
+        'snmp_port' => 'integer',
         'is_active' => 'boolean',
         'last_checked_at' => 'datetime',
         'is_reachable' => 'boolean',
         'capabilities' => 'array',
         'configuration' => 'array',
         'password' => 'encrypted',
-        'snmp_community' => 'encrypted',
     ];
 
     protected $hidden = [
@@ -100,6 +104,16 @@ class NetworkDevice extends Model
     public function ipPools(): HasMany
     {
         return $this->hasMany(IpPool::class);
+    }
+
+    public function snmpCommunities(): HasMany
+    {
+        return $this->hasMany(SnmpCommunity::class);
+    }
+
+    public function snmpTraps(): HasMany
+    {
+        return $this->hasMany(SnmpTrap::class);
     }
 
     public function scopeActive($query)

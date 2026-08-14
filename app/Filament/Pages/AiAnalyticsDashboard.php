@@ -11,7 +11,7 @@ class AiAnalyticsDashboard extends Page
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cpu-chip';
     protected string $view = 'filament.pages.ai-analytics-dashboard';
     protected static ?string $navigationLabel = 'AI Analytics';
-    protected static string|\UnitEnum|null $navigationGroup = 'Analytics';
+    protected static string|\UnitEnum|null $navigationGroup = 'AI Analytics';
     protected static ?int $navigationSort = 1;
     protected static ?string $title = 'AI & Analytics Dashboard';
 

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PackageZoneResource\Pages;
 use App\Models\PackageZone;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -17,6 +18,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BooleanColumn;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -28,7 +30,7 @@ class PackageZoneResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
     protected static ?string $navigationLabel = 'Package Zones';
-    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products';
     protected static ?int $navigationSort = 40;
 
     public static function getPluralLabel(): string
@@ -120,6 +122,9 @@ class PackageZoneResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('package.name')
                     ->label('Package')
                     ->searchable()
@@ -166,6 +171,7 @@ class PackageZoneResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

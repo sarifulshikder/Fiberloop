@@ -2,8 +2,8 @@
 
 namespace Tests\Feature\Billing;
 
-use App\Enums\BillingCycle;
 use App\Enums\InvoiceStatus;
+use App\Enums\PackageBillingCycle as BillingCycle;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Enums\SubscriptionStatus;
@@ -14,6 +14,7 @@ use App\Models\Package;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
+use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -25,6 +26,12 @@ use Tests\TestCase;
 class BillingJourneyTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(RolesAndPermissionsSeeder::class);
+    }
 
     /**
      * Test complete customer subscription and billing journey.

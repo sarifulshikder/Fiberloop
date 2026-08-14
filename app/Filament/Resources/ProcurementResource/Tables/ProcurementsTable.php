@@ -4,10 +4,12 @@ namespace App\Filament\Resources\ProcurementResource\Tables;
 
 use App\Enums\ProcurementStatus;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -18,6 +20,9 @@ class ProcurementsTable
     public static function columns(): array
     {
         return [
+            CheckboxColumn::make('id')
+                ->label('Select')
+                ->width(40),
             TextColumn::make('id')
                 ->label('ID')
                 ->sortable()
@@ -130,6 +135,7 @@ class ProcurementsTable
         return [
             ViewAction::make(),
             EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 

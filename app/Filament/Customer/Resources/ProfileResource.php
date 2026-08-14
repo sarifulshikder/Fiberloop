@@ -2,35 +2,26 @@
 
 namespace App\Filament\Customer\Resources;
 
-use App\Enums\ConnectionType;
-use App\Enums\CustomerStatus;
+use App\Filament\Customer\Resources\ProfileResource\Pages;
 use App\Models\Customer;
+use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use App\Filament\Customer\Resources\ProfileResource\Pages\{ViewProfile, EditProfile, Index};
 
 class ProfileResource extends Resource
 {
     protected static ?string $model = Customer::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user';
-
-    protected static ?string $navigationLabel = 'Profile';
-
-    protected static string|\UnitEnum|null $navigationGroup = null;
-
-    protected static ?int $navigationSort = null;
-
-    protected static ?string $recordTitleAttribute = 'first_name';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-user-circle';
+    protected static ?string $navigationLabel = 'My Profile';
+    protected static string|\UnitEnum|null $navigationGroup = 'Account';
+    protected static ?int $navigationSort = 1;
 
     public static function getGloballySearchableAttributes(): array
     {
@@ -49,7 +40,7 @@ class ProfileResource extends Resource
 
     public static function getDescription(): string
     {
-        return 'View and edit your profile';
+        return 'View and manage your profile information';
     }
 
     public static function form(Schema $form): Schema
@@ -66,60 +57,15 @@ class ProfileResource extends Resource
                             ->maxLength(255),
                         TextInput::make('email')
                             ->email()
-                            ->maxLength(255)
-                            ->readonly(), // email maybe not editable? We'll keep editable for now.
+                            ->maxLength(255),
                         TextInput::make('phone')
                             ->required()
                             ->maxLength(20),
                         TextInput::make('alternate_phone')
                             ->maxLength(20),
                         DatePicker::make('date_of_birth'),
-                        Select::make('gender')
-                            ->options([
-                                'male' => 'Male',
-                                'female' => 'Female',
-                                'other' => 'Other',
-                            ]),
-                    ])->columns(2),
-
-                Section::make('KYC Documents')
-                    ->schema([
-                        FileUpload::make('nid_front_photo')
-                            ->label('NID Front Photo')
-                            ->directory('kyc-documents')
-                            ->disk('encrypted')
-                            ->visibility('private')
-                            ->getUploadedFileNameForStorageUsing(fn ($component, $file) => $file->hashName())
-                            ->maxSize(5 * 1024)
-                            ->image()
-                            ->imagePreviewHeight('150')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
-
-                        FileUpload::make('nid_back_photo')
-                            ->label('NID Back Photo')
-                            ->directory('kyc-documents')
-                            ->disk('encrypted')
-                            ->visibility('private')
-                            ->getUploadedFileNameForStorageUsing(fn ($component, $file) => $file->hashName())
-                            ->maxSize(5 * 1024)
-                            ->image()
-                            ->imagePreviewHeight('150')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
-
-                        FileUpload::make('signature_photo')
-                            ->label('Signature')
-                            ->directory('kyc-documents')
-                            ->disk('encrypted')
-                            ->visibility('private')
-                            ->getUploadedFileNameForStorageUsing(fn ($component, $file) => $file->hashName())
-                            ->maxSize(2 * 1024)
-                            ->image()
-                            ->imagePreviewHeight('100')
-                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp']),
-
-                        TextInput::make('nid_number')
-                            ->label('NID Number')
-                            ->maxLength(50),
+                        TextInput::make('gender')
+                            ->maxLength(20),
                     ])->columns(2),
 
                 Section::make('Addresses')
@@ -127,61 +73,44 @@ class ProfileResource extends Resource
                         TextInput::make('service_address')
                             ->label('Service Address')
                             ->required()
-                            ->maxLength(500),
-                        TextInput::make('service_latitude')
-                            ->label('Service Latitude')
-                            ->maxLength(50),
-                        TextInput::make('service_longitude')
-                            ->label('Service Longitude')
-                            ->maxLength(50),
+                            ->maxLength(500)
+                            ->readOnly(),
                         TextInput::make('billing_address')
                             ->label('Billing Address')
                             ->maxLength(500),
                         TextInput::make('area')
-                            ->maxLength(100),
+                            ->maxLength(100)
+                            ->readOnly(),
                         TextInput::make('zone')
-                            ->maxLength(100),
-                    ])->columns(3),
+                            ->maxLength(100)
+                            ->readOnly(),
+                    ])->columns(2),
 
                 Section::make('Connection Details')
                     ->schema([
-                        Select::make('connection_type')
+                        TextInput::make('connection_type')
                             ->label('Connection Type')
-                            ->options(ConnectionType::class)
-                            ->default(ConnectionType::PPPOE->value)
-                            ->required(),
-                        TextInput::make('radius_username')
-                            ->maxLength(100),
-                        TextInput::make('radius_password')
-                            ->password()
-                            ->maxLength(100),
+                            ->readOnly(),
                         TextInput::make('static_ip')
-                            ->maxLength(45),
+                            ->label('Static IP')
+                            ->maxLength(45)
+                            ->readOnly(),
                         TextInput::make('mac_address')
-                            ->maxLength(17),
+                            ->label('MAC Address')
+                            ->maxLength(17)
+                            ->readOnly(),
                     ])->columns(2),
 
                 Section::make('Status')
                     ->schema([
-                        Select::make('status')
+                        TextInput::make('status')
                             ->label('Customer Status')
-                            ->options(CustomerStatus::class)
-                            ->default(CustomerStatus::PENDING->value)
-                            ->required(),
-                        DatePicker::make('activated_at'),
-                        DatePicker::make('suspended_at'),
-                        DatePicker::make('terminated_at'),
-                        TextInput::make('suspension_reason')
-                            ->maxLength(500),
-                        TextInput::make('termination_reason')
-                            ->maxLength(500),
+                            ->readOnly(),
+                        DatePicker::make('activated_at')
+                            ->readOnly(),
+                        DatePicker::make('suspended_at')
+                            ->readOnly(),
                     ])->columns(2),
-
-                Section::make('Notes')
-                    ->schema([
-                        MarkdownEditor::make('notes')
-                            ->columnSpanFull(),
-                    ]),
             ]);
     }
 
@@ -189,10 +118,6 @@ class ProfileResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable()
-                    ->searchable(),
                 TextColumn::make('full_name')
                     ->label('Name')
                     ->sortable()
@@ -203,19 +128,6 @@ class ProfileResource extends Resource
                 TextColumn::make('phone')
                     ->sortable()
                     ->searchable(),
-                TextColumn::make('nid_number')
-                    ->label('NID')
-                    ->sortable()
-                    ->searchable(),
-                SelectColumn::make('status')
-                    ->label('Status')
-                    ->options(CustomerStatus::class)
-                    ->sortable()
-                    ->searchable(),
-                SelectColumn::make('connection_type')
-                    ->label('Connection')
-                    ->options(ConnectionType::class)
-                    ->sortable(),
                 TextColumn::make('service_address')
                     ->label('Service Address')
                     ->limit(50)
@@ -226,45 +138,40 @@ class ProfileResource extends Resource
                 TextColumn::make('zone')
                     ->label('Zone')
                     ->searchable(),
-                TextColumn::make('activated_at')
-                    ->label('Activated')
-                    ->dateTime()
+                TextColumn::make('status')
+                    ->label('Status')
                     ->sortable(),
             ])
-            ->defaultSort('id', 'desc')
-            ->filters([
-                // No filters needed for single record
-            ])
             ->actions([
-                \Filament\Tables\Actions\ViewAction::make(),
-                \Filament\Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                // No bulk actions
+                ViewAction::make(),
+                EditAction::make(),
             ])
             ->emptyStateDescription('No profile found')
-            ->emptyStateIcon('heroicon-o-user');
+            ->emptyStateIcon('heroicon-o-user-circle');
     }
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            // Relation managers will be added here
+        ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Index::route('/'),
-            'view' => ViewProfile::route('/{record}'),
-            'edit' => EditProfile::route('/{record}/edit'),
+            'index' => Pages\ListProfiles::route('/'),
+            'view' => Pages\ViewProfile::route('/{record}'),
+            'edit' => Pages\EditProfile::route('/{record}/edit'),
         ];
     }
 
     /**
-     * Scope the query to only the currently authenticated customer.
+     * Scope the query to the authenticated customer only
      */
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        return parent::getEloquentQuery()->where('id', auth()->id());
+        return parent::getEloquentQuery()
+            ->where('id', auth('customer')->id());
     }
 }

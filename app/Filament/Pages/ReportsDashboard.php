@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 class ReportsDashboard extends Page
 {
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-chart-bar';
-    protected static string|\UnitEnum|null $navigationGroup = 'Reports & Analytics';
+    protected static string|\UnitEnum|null $navigationGroup = 'Reports';
     protected static ?int $navigationSort = 1;
     protected string $view = 'filament.pages.reports-dashboard';
 

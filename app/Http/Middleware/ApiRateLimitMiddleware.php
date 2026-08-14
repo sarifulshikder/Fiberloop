@@ -44,7 +44,7 @@ class ApiRateLimitMiddleware
         $key = $this->resolveKey($request);
 
         // Apply different rate limits based on user type
-        $limit = $this->getLimitForRequest($request, $maxAttempts, $decaySeconds);
+        $limit = $this->getLimitForRequest($request, $maxAttempts, $decaySeconds, $key);
 
         if ($this->limiter->tooManyAttempts($key, $limit->maxAttempts)) {
             return $this->buildResponse($key, $limit);
@@ -76,7 +76,7 @@ class ApiRateLimitMiddleware
     /**
      * Get the rate limit for the request.
      */
-    protected function getLimitForRequest(Request $request, string $maxAttempts, string $decaySeconds): Limit
+    protected function getLimitForRequest(Request $request, string $maxAttempts, string $decaySeconds, string $key): Limit
     {
         $user = $request->user();
 
@@ -134,8 +134,10 @@ class ApiRateLimitMiddleware
         $attempts = $this->limiter->attempts($key);
         $remaining = max(0, $limit->maxAttempts - $attempts);
 
-        return $response->headers->set('X-RateLimit-Limit', $limit->maxAttempts)
-            ->set('X-RateLimit-Remaining', $remaining)
-            ->set('X-RateLimit-Reset', time() + $limit->decaySeconds);
+        $response->headers->set('X-RateLimit-Limit', $limit->maxAttempts);
+        $response->headers->set('X-RateLimit-Remaining', $remaining);
+        $response->headers->set('X-RateLimit-Reset', time() + $limit->decaySeconds);
+
+        return $response;
     }
 }

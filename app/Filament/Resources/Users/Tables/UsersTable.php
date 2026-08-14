@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -19,6 +21,9 @@ class UsersTable
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('name')
                     ->label('Name')
                     ->searchable()
@@ -88,6 +93,7 @@ class UsersTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

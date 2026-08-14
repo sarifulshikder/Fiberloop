@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\NasResource\Pages;
 use App\Models\Nas;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -15,6 +16,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -105,6 +107,9 @@ class NasResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('nasname')
                     ->label('IP / Host')
                     ->searchable()
@@ -150,6 +155,7 @@ class NasResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

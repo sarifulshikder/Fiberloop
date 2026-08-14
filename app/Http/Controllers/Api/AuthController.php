@@ -145,9 +145,12 @@ class AuthController extends Controller
         $key = 'login_attempts:' . $email . ':' . $request->ip();
 
         // Allow 5 attempts per minute
-        if (app('rate_limiter')->tooManyAttempts($key, 5)) {
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($key, 5)) {
             return true;
         }
+
+        // Increment the attempt count
+        \Illuminate\Support\Facades\RateLimiter::hit($key, 60);
 
         return false;
     }

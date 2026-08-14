@@ -18,6 +18,8 @@ class FieldJobResource extends Resource
     protected static ?string $model = FieldJob::class;
 
     protected static string|\BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|\UnitEnum|null $navigationGroup = 'Network';
+    protected static ?int $navigationSort = 50;
 
     public static function form(Schema $schema): Schema
     {

@@ -11,7 +11,7 @@ class TotalCustomersWidget extends BaseWidget
     protected function getStats(): array
     {
         return [
-            Stat::make('Total Customers', Customer::query()->count())
+            Stat::make('Total Customers', number_format(Customer::query()->count()))
                 ->description('All customers in the system')
                 ->descriptionIcon('heroicon-o-users')
                 ->chart([7, 2, 10, 3, 15, 4, 17])
@@ -19,5 +19,5 @@ class TotalCustomersWidget extends BaseWidget
         ];
     }
 
-    protected int|string|array $columnSpan = '1';
+    protected int|string|array $columnSpan = 1;
 }

@@ -23,7 +23,6 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->default()
             ->id('admin')
             ->path('admin')
             ->login()
@@ -33,6 +32,17 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->navigationGroups([
+                'CRM',
+                'Products',
+                'Billing',
+                'Network',
+                'Resellers',
+                'Inventory',
+                'Reports',
+                'AI Analytics',
+                'Administration',
+            ])
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,

@@ -32,7 +32,7 @@ class PackageChangeRequestResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
     protected static ?string $navigationLabel = 'Package Change Requests';
     protected static string|\UnitEnum|null $navigationGroup = 'CRM';
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 45;
 
     public static function getPluralLabel(): string
     {

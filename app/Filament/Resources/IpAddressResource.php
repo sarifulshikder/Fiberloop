@@ -9,10 +9,12 @@ use App\Models\Customer;
 use App\Models\IpAddress;
 use App\Models\IpPool;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -75,6 +77,9 @@ class IpAddressResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('ip_address')
                     ->label('IP Address')
                     ->searchable()
@@ -120,6 +125,7 @@ class IpAddressResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

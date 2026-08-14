@@ -6,10 +6,12 @@ use App\Enums\StockTransactionReason;
 use App\Enums\StockTransactionType;
 use App\Models\Customer;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -20,6 +22,9 @@ class StockTransactionsTable
     public static function columns(): array
     {
         return [
+            CheckboxColumn::make('id')
+                ->label('Select')
+                ->width(40),
             TextColumn::make('id')
                 ->label('ID')
                 ->sortable()
@@ -125,6 +130,7 @@ class StockTransactionsTable
         return [
             ViewAction::make(),
             EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 

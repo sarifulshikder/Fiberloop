@@ -9,10 +9,12 @@ use App\Models\Incident;
 use App\Models\NetworkDevice;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -71,6 +73,9 @@ class IncidentResource extends Resource
         return $table
             ->defaultSort('started_at', 'desc')
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('title')
                     ->searchable()
                     ->sortable()
@@ -120,6 +125,7 @@ class IncidentResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

@@ -7,6 +7,7 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\Customer;
 use App\Models\Invoice;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -20,6 +21,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BooleanColumn;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -33,7 +35,7 @@ class InvoiceResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationLabel = 'Invoices';
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
     protected static ?int $navigationSort = 10;
     protected static ?string $recordTitleAttribute = 'invoice_number';
 
@@ -218,6 +220,9 @@ class InvoiceResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('invoice_number')
                     ->label('Invoice #')
                     ->searchable()
@@ -289,6 +294,7 @@ class InvoiceResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

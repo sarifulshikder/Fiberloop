@@ -29,6 +29,7 @@ class NetworkDeviceFactory extends Factory
             'password' => 'password',
             'snmp_community' => 'public',
             'snmp_version' => 'v2c',
+            'snmp_port' => 161,
             'location' => fake()->city(),
             'latitude' => fake()->latitude(),
             'longitude' => fake()->longitude(),

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Tickets\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Table;
@@ -13,6 +14,9 @@ class TicketsTable
     {
         return $table
             ->columns([
+                \Filament\Tables\Columns\CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 //
             ])
             ->filters([
@@ -20,6 +24,7 @@ class TicketsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

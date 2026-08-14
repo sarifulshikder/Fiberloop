@@ -9,7 +9,7 @@ class NocDashboard extends Page
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-server';
     protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $title = 'NOC Dashboard';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = -1;
     protected string $view = 'filament.pages.noc-dashboard';
 
     public static function canAccess(): bool

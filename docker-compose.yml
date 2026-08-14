@@ -17,14 +17,6 @@ services:
       redis:
         condition: service_healthy
     environment:
-      - APP_ENV=local
-      - APP_DEBUG=true
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_DATABASE=fiberloop
-      - DB_USERNAME=fiberloop
-      - DB_PASSWORD=fiberloop_secret
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - CACHE_STORE=redis
@@ -315,7 +307,7 @@ services:
 
   # Sentry for error tracking (self-hosted)
   sentry:
-    image: sentry:10
+    image: getsentry/sentry:24.8.0
     container_name: fiberloop-sentry
     restart: unless-stopped
     networks:

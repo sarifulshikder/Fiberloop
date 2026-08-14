@@ -13,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Excel;
 
 /**
  * Controller for handling customer data export and deletion requests.
@@ -21,10 +20,6 @@ use Maatwebsite\Excel\Excel;
  */
 class CustomerDataController extends Controller
 {
-    public function __construct(private Excel $excel)
-    {
-    }
-
     /**
      * Request export of customer's personal data.
      * This initiates an asynchronous job to compile and export all customer data.

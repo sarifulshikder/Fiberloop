@@ -71,6 +71,11 @@ class Olt extends Model
         return $this->hasMany(Onu::class);
     }
 
+    public function ports(): HasMany
+    {
+        return $this->hasMany(OltPort::class);
+    }
+
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);

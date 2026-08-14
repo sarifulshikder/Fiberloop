@@ -89,7 +89,24 @@ class OnuResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('rx_power_db', 'asc')
             ->columns([
+                TextColumn::make('customer_name')
+                    ->label('ONU Description')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('—')
+                    ->wrap(),
+                TextColumn::make('ONU_type')
+                    ->label('ONU Type')
+                    ->searchable()
+                    ->placeholder('—'),
+                TextColumn::make('rx_power_db')
+                    ->label('Rx Power (dBm)')
+                    ->numeric(2)
+                    ->sortable()
+                    ->color(fn ($state) => $state === null ? null : ($state < -27 ? 'danger' : ($state < -24 ? 'warning' : 'success')))
+                    ->placeholder('—'),
                 TextColumn::make('serial_number')
                     ->searchable()
                     ->sortable(),
@@ -106,11 +123,6 @@ class OnuResource extends Resource
                     ->label('Customer')
                     ->searchable()
                     ->getStateUsing(fn ($record) => $record->customer?->full_name ?? '—'),
-                TextColumn::make('optical_signal_db')
-                    ->label('Rx Power (dBm)')
-                    ->numeric(2)
-                    ->sortable()
-                    ->color(fn ($state) => $state === null ? null : ($state < -27 ? 'danger' : ($state < -24 ? 'warning' : 'success'))),
                 TextColumn::make('operational_state')
                     ->label('State')
                     ->badge()

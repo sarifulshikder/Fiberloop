@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Convert all monetary columns from integer (poysha) to decimal(12,2) (BDT 1 = 1 taka)
      * This migration changes the storage format for all money-related fields

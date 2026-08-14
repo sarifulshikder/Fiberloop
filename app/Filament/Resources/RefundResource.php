@@ -6,6 +6,7 @@ use App\Enums\RefundStatus;
 use App\Filament\Resources\RefundResource\Pages;
 use App\Models\Refund;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -17,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -27,7 +29,7 @@ class RefundResource extends Resource
     protected static ?string $model = Refund::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-arrow-path';
     protected static ?string $navigationLabel = 'Refunds';
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
     protected static ?int $navigationSort = 40;
 
     public static function getPluralLabel(): string
@@ -75,6 +77,9 @@ class RefundResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
+            CheckboxColumn::make('id')
+                ->label('Select')
+                ->width(40),
             TextColumn::make('refund_number')->label('Refund #')->searchable()->sortable(),
             TextColumn::make('customer.full_name')->label('Customer')->searchable()->sortable(),
             TextColumn::make('amount')->label('Amount (BDT)')->state(fn ($r) => number_format($r->amount / 100, 2))->sortable(),
@@ -83,7 +88,7 @@ class RefundResource extends Resource
             TextColumn::make('created_at')->label('Created')->dateTime()->sortable()->toggleable(true),
         ])->filters([
             SelectFilter::make('status')->label('Status')->options(RefundStatus::class)->multiple(),
-        ])->actions([ViewAction::make(), EditAction::make()])->bulkActions([
+        ])->actions([ViewAction::make(), EditAction::make(), DeleteAction::make()])->bulkActions([
             BulkActionGroup::make([DeleteBulkAction::make(), ExportBulkAction::make()]),
         ])->defaultSort('created_at', 'desc');
     }

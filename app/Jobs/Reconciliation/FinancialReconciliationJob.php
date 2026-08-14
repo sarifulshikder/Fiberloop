@@ -112,12 +112,9 @@ class FinancialReconciliationJob implements ShouldQueue
     {
         $discrepancies = [];
 
-        // This is a simplified check - in a real implementation, you'd need to
-        // calculate the expected balance from all transactions
-        // For now, we just check that wallet transactions have valid data
-
+        // Check for wallet transactions with invalid/zero amounts
         $invalidTransactions = WalletTransaction::query()
-            ->whereNull('wallet_id')
+            ->whereNull('customer_id')
             ->orWhere('amount', 0)
             ->get();
 
@@ -126,7 +123,7 @@ class FinancialReconciliationJob implements ShouldQueue
                 'type' => 'invalid_wallet_transaction',
                 'severity' => 'warning',
                 'transaction_id' => $transaction->id,
-                'issue' => empty($transaction->wallet_id) ? 'missing_wallet_id' : 'zero_amount',
+                'issue' => empty($transaction->customer_id) ? 'missing_customer_id' : 'zero_amount',
             ];
         }
 
@@ -140,9 +137,9 @@ class FinancialReconciliationJob implements ShouldQueue
     {
         $discrepancies = [];
 
+        // Find payments whose invoice has been hard-deleted (shouldn't happen due to soft deletes,
+        // but this catches any data corruption where the link is broken)
         $payments = Payment::query()
-            ->whereNull('invoice_id')
-            ->whereNull('subscription_id')
             ->doesntHave('invoice')
             ->get();
 

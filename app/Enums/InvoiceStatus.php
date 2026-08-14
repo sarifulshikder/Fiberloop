@@ -10,6 +10,7 @@ enum InvoiceStatus: string
     case PARTIAL = 'partial';
     case OVERDUE = 'overdue';
     case VOID = 'void';
+    case UNPAID = 'unpaid';
 
     public static function values(): array
     {
@@ -25,6 +26,7 @@ enum InvoiceStatus: string
             self::PARTIAL->value => self::PARTIAL->label(),
             self::OVERDUE->value => self::OVERDUE->label(),
             self::VOID->value => self::VOID->label(),
+            self::UNPAID->value => self::UNPAID->label(),
         ];
     }
 
@@ -37,6 +39,7 @@ enum InvoiceStatus: string
             self::PARTIAL => 'Partial',
             self::OVERDUE => 'Overdue',
             self::VOID => 'Void',
+            self::UNPAID => 'Unpaid',
         };
     }
 
@@ -49,6 +52,7 @@ enum InvoiceStatus: string
             self::PARTIAL => 'warning',
             self::OVERDUE => 'danger',
             self::VOID => 'dark',
+            self::UNPAID => 'warning',
         };
     }
 
@@ -64,6 +68,6 @@ enum InvoiceStatus: string
 
     public function isUnpaid(): bool
     {
-        return !$this->isPaid();
+        return $this === self::UNPAID || $this === self::OVERDUE || $this === self::PARTIAL || $this === self::DRAFT || $this === self::SENT;
     }
 }

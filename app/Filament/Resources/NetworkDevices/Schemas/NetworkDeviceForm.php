@@ -3,12 +3,14 @@
 namespace App\Filament\Resources\NetworkDevices\Schemas;
 
 use App\Enums\DeviceVendor;
+use App\Enums\NetworkManagementProtocol;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 class NetworkDeviceForm
@@ -51,8 +53,8 @@ class NetworkDeviceForm
                             ->label('IP Address')
                             ->required()
                             ->ip()
-                            ->unique(ignoreRecord: true)
-                            ->placeholder('e.g. 192.168.88.1'),
+                            ->placeholder('e.g. 192.168.88.1')
+                            ->hint('Multiple devices may share an IP when using port forwarding.'),
 
                         TextInput::make('hostname')
                             ->label('Hostname')
@@ -71,7 +73,13 @@ class NetworkDeviceForm
                         ->default(true),
                 ]),
 
-                Section::make('Authentication & SNMP Settings')->schema([
+                Section::make('Authentication & Management Settings')->schema([
+                    Select::make('management_protocol')
+                        ->label('Management Protocol')
+                        ->options(NetworkManagementProtocol::options())
+                        ->default(NetworkManagementProtocol::SNMP->value)
+                        ->helperText('SSH CLI reads ONU optical power/descriptions on every OLT brand; SNMP works when the vendor MIB is available.')
+                        ->live(),
                     Grid::make(2)->schema([
                         TextInput::make('username')
                             ->label('API/SSH Username')
@@ -84,12 +92,13 @@ class NetworkDeviceForm
                             ->revealable()
                             ->maxLength(255),
                     ]),
-                    Grid::make(2)->schema([
+                    Grid::make(3)->schema([
                         TextInput::make('snmp_community')
                             ->label('SNMP Community')
                             ->maxLength(255)
                             ->default('public')
-                            ->placeholder('e.g. public'),
+                            ->placeholder('e.g. public')
+                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
 
                         Select::make('snmp_version')
                             ->label('SNMP Version')
@@ -99,7 +108,26 @@ class NetworkDeviceForm
                                 'v3' => 'v3',
                             ])
                             ->default('v2c')
-                            ->required(),
+                            ->required()
+                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
+
+                        TextInput::make('snmp_port')
+                            ->label('SNMP Port')
+                            ->numeric()
+                            ->default(161)
+                            ->required()
+                            ->placeholder('e.g. 161')
+                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
+                    ]),
+                    Grid::make(2)->schema([
+                        TextInput::make('configuration.telnet_port')
+                            ->label('Telnet CLI Port')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(65535)
+                            ->placeholder('e.g. 223')
+                            ->helperText('Port for the vendor telnet CLI (VSOL). Leave blank for SSH-only OLTs.')
+                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SNMP->value),
                     ]),
                 ]),
 

@@ -28,7 +28,7 @@ class CreditNoteResource extends Resource
     protected static ?string $model = CreditNote::class;
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-minus';
     protected static ?string $navigationLabel = 'Credit Notes';
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
     protected static ?int $navigationSort = 30;
 
     public static function getPluralLabel(): string

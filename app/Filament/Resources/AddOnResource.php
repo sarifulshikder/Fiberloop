@@ -29,8 +29,8 @@ class AddOnResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-plus-circle';
     protected static ?string $navigationLabel = 'Add-Ons';
-    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
-    protected static ?int $navigationSort = 30;
+    protected static string|\UnitEnum|null $navigationGroup = 'Products';
+    protected static ?int $navigationSort = 20;
 
     public static function getPluralLabel(): string
     {

@@ -78,7 +78,8 @@ class PollDeviceMetricsJob implements ShouldQueue
                 $snmp = new SnmpService(
                     $this->device->ip_address,
                     $this->device->snmp_community,
-                    $this->device->snmp_version ?? '2c'
+                    $this->device->snmp_version ?? '2c',
+                    $this->device->snmp_port ?? 161
                 );
                 // sysUpTime OID — returns centiseconds
                 $sysUptime = $snmp->get('1.3.6.1.2.1.1.3.0');

@@ -9,12 +9,40 @@ class SnmpService
     protected string $host;
     protected string $community;
     protected string $version;
+    protected int $port;
 
-    public function __construct(string $host, string $community, string $version = '2c')
+    public function __construct(string $host, string $community, string $version = '2c', int $port = 161)
     {
         $this->host = $host;
         $this->community = $community;
         $this->version = $version;
+        $this->port = $port;
+    }
+
+    /**
+     * Normalize SNMP version for command line tools.
+     * Converts 'v1' to '1', 'v2c' to '2c', 'v3' to '3'
+     */
+    protected function normalizeVersion(): string
+    {
+        return match ($this->version) {
+            'v1' => '1',
+            'v2c' => '2c',
+            'v3' => '3',
+            default => $this->version,
+        };
+    }
+
+    /**
+     * Get the host with port for SNMP commands.
+     * Newer net-snmp versions use HOST:PORT instead of -p flag.
+     */
+    protected function getHostWithPort(): string
+    {
+        if ($this->port === 161) {
+            return $this->host;
+        }
+        return $this->host . ':' . $this->port;
     }
 
     /**
@@ -23,14 +51,30 @@ class SnmpService
     public function get(string $oid): ?string
     {
         $command = sprintf(
-            'snmpget -v %s -c %s -Oqv %s %s 2>&1',
-            escapeshellarg($this->version),
+            'snmpget -v %s -c %s %s %s 2>&1',
+            escapeshellarg($this->normalizeVersion()),
             escapeshellarg($this->community),
-            escapeshellarg($this->host),
+            escapeshellarg($this->getHostWithPort()),
             escapeshellarg($this->formatOid($oid))
         );
 
-        return $this->execute($command);
+        $raw = $this->execute($command);
+        if ($raw === null) {
+            return null;
+        }
+
+        // Parse the output to extract the value
+        // Format: OID = TYPE: value
+        if (preg_match('/= [A-Z]+: (.+)$/m', $raw, $matches)) {
+            return trim($matches[1]);
+        }
+
+        // If the above doesn't match, try simpler formats
+        if (preg_match('/= (.+)$/m', $raw, $matches)) {
+            return trim($matches[1]);
+        }
+
+        return $raw;
     }
 
     /**
@@ -40,10 +84,10 @@ class SnmpService
     public function walk(string $oid): array
     {
         $command = sprintf(
-            'snmpwalk -v %s -c %s -Oqn %s %s 2>&1',
-            escapeshellarg($this->version),
+            'snmpwalk -v %s -c %s %s %s -Oqn 2>&1',
+            escapeshellarg($this->normalizeVersion()),
             escapeshellarg($this->community),
-            escapeshellarg($this->host),
+            escapeshellarg($this->getHostWithPort()),
             escapeshellarg($this->formatOid($oid))
         );
 
@@ -59,6 +103,18 @@ class SnmpService
             if (count($parts) === 2) {
                 $oidPath = trim($parts[0]);
                 $value = trim($parts[1]);
+
+                // Remove type prefixes like "= INTEGER: 1", "Hex-STRING: 00 11 22", "INTEGER: 1", etc.
+                // First remove leading "=" if present
+                if (str_starts_with($value, '=')) {
+                    $value = ltrim(substr($value, 1));
+                }
+                // Then remove type prefix like "INTEGER: ", "Hex-STRING: ", etc. (case-insensitive)
+                if (preg_match('/^[A-Z][A-Za-z0-9-]*:\s*/', $value, $matches)) {
+                    $prefix = $matches[0];
+                    $value = substr($value, strlen($prefix));
+                }
+
                 // Remove quotes
                 if (preg_match('/^"(.*)"$/', $value, $matches)) {
                     $value = $matches[1];

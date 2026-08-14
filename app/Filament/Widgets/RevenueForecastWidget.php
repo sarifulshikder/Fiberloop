@@ -8,7 +8,7 @@ use Filament\Widgets\ChartWidget;
 class RevenueForecastWidget extends ChartWidget
 {
     protected ?string $heading = 'Revenue Forecast (Next 6 Months)';
-    protected static ?int $sort = 5;
+    protected int|string|array $columnSpan = 'full';
 
     protected function getData(): array
     {

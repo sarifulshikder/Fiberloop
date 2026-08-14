@@ -4,10 +4,12 @@ namespace App\Filament\Resources\InventoryItemResource\Tables;
 
 use App\Enums\InventoryStatus;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
@@ -17,6 +19,9 @@ class InventoryItemsTable
     public static function columns(): array
     {
         return [
+            CheckboxColumn::make('id')
+                ->label('Select')
+                ->width(40),
             TextColumn::make('id')
                 ->label('ID')
                 ->sortable()
@@ -150,6 +155,7 @@ class InventoryItemsTable
         return [
             ViewAction::make(),
             EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 

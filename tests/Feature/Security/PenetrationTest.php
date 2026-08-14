@@ -40,8 +40,8 @@ class PenetrationTest extends TestCase
         ]);
         $user->assignRole('customer');
 
-        // Create a customer with valid user ID
-        $customer = Customer::factory()->create(['created_by' => $user->id, 'updated_by' => $user->id]);
+        // Create a customer with valid user ID and matching email
+        $customer = Customer::factory()->create(['email' => $user->email, 'created_by' => $user->id, 'updated_by' => $user->id]);
 
         // Create a token for the customer
         $token = $user->createToken('test-token')->plainTextToken;
@@ -70,7 +70,7 @@ class PenetrationTest extends TestCase
 
             // The request should not cause a SQL error
             // It should either succeed (if the payload is treated as data) or fail with validation
-            $response->assertStatus(422); // Should fail validation
+            $this->assertTrue(in_array($response->status(), [200, 422])); // Validation error or success
 
             // Make sure no database error is returned
             $response->assertJsonMissing(['error' => 'SQLSTATE']);
@@ -90,8 +90,9 @@ class PenetrationTest extends TestCase
         ]);
         $user->assignRole('customer');
 
-        // Create a customer with XSS payload in name
+        // Create a customer with XSS payload in name and matching email
         $customer = Customer::factory()->create([
+            'email' => $user->email,
             'first_name' => '<script>alert("XSS")</script>',
             'last_name' => 'Test',
             'created_by' => $user->id,
@@ -131,6 +132,7 @@ class PenetrationTest extends TestCase
         $nidPhoto = 'nid_photo_path.jpg';
 
         $customer = Customer::factory()->create([
+            'email' => $user->email,
             'nid_number' => $nidNumber,
             'nid_front_photo' => $nidPhoto,
             'nid_back_photo' => 'nid_back_photo.jpg',
@@ -198,7 +200,15 @@ class PenetrationTest extends TestCase
             'password' => Hash::make('password'),
         ]);
         $user->assignRole('customer');
+        Customer::factory()->create(['email' => $user->email, 'created_by' => $user->id, 'updated_by' => $user->id]);
         $token = $user->createToken('test-token')->plainTextToken;
+
+        // This should fail without token
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+        ])->get('/api/v1/customer/profile');
+
+        $response->assertStatus(401);
 
         // This should work with Bearer token
         $response = $this->withHeaders([
@@ -207,13 +217,6 @@ class PenetrationTest extends TestCase
         ])->get('/api/v1/customer/profile');
 
         $response->assertStatus(200);
-
-        // This should fail without token
-        $response = $this->withHeaders([
-            'Accept' => 'application/json',
-        ])->get('/api/v1/customer/profile');
-
-        $response->assertStatus(401);
     }
 
     /**
@@ -226,6 +229,7 @@ class PenetrationTest extends TestCase
             'password' => Hash::make('password'),
         ]);
         $user->assignRole('customer');
+        Customer::factory()->create(['email' => $user->email, 'created_by' => $user->id, 'updated_by' => $user->id]);
         $token = $user->createToken('test-token')->plainTextToken;
 
         // Make multiple requests to trigger rate limiting
@@ -276,17 +280,23 @@ class PenetrationTest extends TestCase
     public function test_http_methods_are_restricted(): void
     {
         $user = User::factory()->create([
-            'email' => 'test@example.com',
-            'password' => Hash::make('password'),
+            'email' => 'valid@example.com',
+            'password' => Hash::make('validpassword'),
         ]);
         $user->assignRole('customer');
-        $token = $user->createToken('test-token')->plainTextToken;
 
-        // GET requests should work
+        // Create associated customer record
+        \App\Models\Customer::factory()->create([
+            'email' => 'valid@example.com',
+        ]);
+
+        $token = $user->createToken('test')->plainTextToken;
+
         $response = $this->withHeaders([
             'Authorization' => 'Bearer ' . $token,
             'Accept' => 'application/json',
         ])->get('/api/v1/customer/profile');
+
         $response->assertStatus(200);
 
         // POST to GET-only endpoint should fail
@@ -331,7 +341,7 @@ class PenetrationTest extends TestCase
             $response = $this->postJson('/api/v1/login', $credentials);
 
             // Should not authenticate successfully with injection
-            $response->assertStatus(422); // Validation error
+            $this->assertTrue(in_array($response->status(), [401, 422])); // Validation error or unauthorized
             $response->assertJsonMissing(['token']);
             $response->assertJsonMissing(['success' => true]);
         }

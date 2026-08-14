@@ -7,9 +7,13 @@ use App\Filament\Resources\OltResource\Pages\EditOlt;
 use App\Filament\Resources\OltResource\Pages\ListOlts;
 use App\Models\NetworkDevice;
 use App\Models\Olt;
+use App\Services\Network\OltPortPollService;
+use App\Services\Network\OltSyncService;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -95,6 +99,7 @@ class OltResource extends Resource
                     ->dateTime()
                     ->sortable(),
             ])
+            ->query(Olt::query()->with('networkDevice'))
             ->filters([
                 SelectFilter::make('is_active')
                     ->label('Status')
@@ -104,10 +109,89 @@ class OltResource extends Resource
                     ]),
             ])
             ->actions([
+                Action::make('syncNow')
+                    ->label('Sync Now')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('primary')
+                    ->tooltip('Discover ONUs and refresh optical signals from this OLT')
+                    ->action(function (Olt $record, $livewire): void {
+                        // Increase PHP execution time for this operation
+                        set_time_limit(120);
+
+                        $result = app(OltSyncService::class)->sync($record);
+
+                        if (!$result['reachable']) {
+                            Notification::make()
+                                ->title("{$record->name} is unreachable")
+                                ->body('The OLT did not respond to discovery. Check the network device and try again.')
+                                ->danger()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title("{$record->name} synced")
+                                ->body(
+                                    "Discovered {$result['discovered']} ONU(s) — "
+                                    . "{$result['created']} created, {$result['updated']} updated. "
+                                    . "Signal read for {$result['signal_ok']} ONU(s)."
+                                )
+                                ->success()
+                                ->send();
+                        }
+
+                        $livewire->resetTable();
+                    }),
+                Action::make('pollPorts')
+                    ->label('Poll Ports')
+                    ->icon('heroicon-o-device-phone-mobile')
+                    ->color('info')
+                    ->tooltip('Poll SFP/port details (DOM, status, counters) from this OLT')
+                    ->action(function (Olt $record, $livewire): void {
+                        set_time_limit(120);
+
+                        $result = app(OltPortPollService::class)->poll($record);
+
+                        if (!$result['reachable']) {
+                            Notification::make()
+                                ->title("{$record->name} is unreachable")
+                                ->body('The OLT did not respond to port polling. Check the network device and try again.')
+                                ->danger()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title("{$record->name} ports polled")
+                                ->body(
+                                    "Polled {$result['polled']} port(s) — "
+                                    . "{$result['created']} created, {$result['updated']} updated."
+                                )
+                                ->success()
+                                ->send();
+                        }
+
+                        $livewire->resetTable();
+                    }),
                 EditAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    \Filament\Actions\BulkAction::make('syncSelected')
+                        ->label('Sync Selected')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('primary')
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records): void {
+                            set_time_limit(180); // 3 minutes for bulk sync
+                            $successCount = 0;
+                            foreach ($records as $record) {
+                                $result = app(OltSyncService::class)->sync($record);
+                                if ($result['reachable'] ?? false) {
+                                    $successCount++;
+                                }
+                            }
+                            Notification::make()
+                                ->title("Synced $successCount OLT(s)")
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make(),
                 ]),
             ]);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RadAcct extends Model
 {
@@ -51,4 +52,9 @@ class RadAcct extends Model
         'acctinputoctets' => 'integer',
         'acctoutputoctets' => 'integer',
     ];
+
+    public function radiusCustomer(): BelongsTo
+    {
+        return $this->belongsTo(RadiusCustomer::class, 'username', 'radius_username');
+    }
 }

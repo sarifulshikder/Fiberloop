@@ -49,7 +49,27 @@ class NetworkDeviceInfolist
                             ->placeholder('N/A'),
 
                         TextEntry::make('port')
-                            ->label('Port'),
+                            ->label('API/SSH Port'),
+
+                        TextEntry::make('management_protocol')
+                            ->label('Protocol')
+                            ->badge()
+                            ->color(fn ($state) => match ($state?->value ?? $state) {
+                                'ssh' => 'success',
+                                default => 'info',
+                            }),
+
+                        TextEntry::make('snmp_version')
+                            ->label('SNMP Version')
+                            ->placeholder('N/A'),
+
+                        TextEntry::make('snmp_port')
+                            ->label('SNMP Port')
+                            ->placeholder('N/A'),
+
+                        TextEntry::make('snmp_community')
+                            ->label('SNMP Community')
+                            ->placeholder('N/A'),
                     ]),
                     Grid::make(3)->schema([
                         IconEntry::make('is_active')

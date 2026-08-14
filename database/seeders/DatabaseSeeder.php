@@ -2,24 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Enums\InvoiceStatus;
-use App\Enums\PaymentMethod;
-use App\Enums\PaymentStatus;
-use App\Enums\SubscriptionStatus;
-use App\Models\Customer;
-use App\Models\InventoryItem;
-use App\Models\Invoice;
-use App\Models\InvoiceItem;
-use App\Models\NetworkDevice;
-use App\Models\NotificationLog;
-use App\Models\Olt;
-use App\Models\Onu;
-use App\Models\Package;
-use App\Models\Payment;
-use App\Models\RadiusCustomer;
-use App\Models\Reseller;
-use App\Models\Subscription;
-use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -34,41 +16,71 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call(RolesAndPermissionsSeeder::class);
 
-        // Create admin user
-        $adminUser = User::factory()->create([
-            'name' => 'Super Admin',
-            'email' => 'admin@fiberloop.com',
-            'password' => Hash::make('password'),
-            'phone' => '+8801700000000',
-            'is_super_admin' => true,
-            'is_active' => true,
-        ]);
+        // Check if users already exist to avoid overwriting existing data
+        $adminEmail = 'admin@fiberloop.com';
+        $billingEmail = 'billing@fiberloop.com';
+        $nocEmail = 'noc@fiberloop.com';
 
-        // Create billing agent
-        $billingAgent = User::factory()->create([
-            'name' => 'Billing Agent',
-            'email' => 'billing@fiberloop.com',
-            'password' => Hash::make('password'),
-            'phone' => '+8801700000001',
-            'is_super_admin' => false,
-            'is_active' => true,
-        ]);
+        $adminUser = User::where('email', $adminEmail)->first();
+        $billingAgent = User::where('email', $billingEmail)->first();
+        $nocEngineer = User::where('email', $nocEmail)->first();
 
-        // Create NOC engineer
-        $nocEngineer = User::factory()->create([
-            'name' => 'NOC Engineer',
-            'email' => 'noc@fiberloop.com',
-            'password' => Hash::make('password'),
-            'phone' => '+8801700000002',
-            'is_super_admin' => false,
-            'is_active' => true,
-        ]);
+        // Create admin user only if doesn't exist
+        if (!$adminUser) {
+            $adminUser = User::factory()->create([
+                'name' => 'Super Admin',
+                'email' => $adminEmail,
+                'password' => Hash::make('password'),
+                'phone' => '+8801700000000',
+                'is_super_admin' => true,
+                'is_active' => true,
+            ]);
+            echo "Created admin user\n";
+        }
 
-        $adminUser->syncRoles(['super_admin', 'admin']);
-        $billingAgent->syncRoles(['billing_agent']);
-        $nocEngineer->syncRoles(['noc_engineer']);
-        echo "Created users\n";
+        // Create billing agent only if doesn't exist
+        if (!$billingAgent) {
+            $billingAgent = User::factory()->create([
+                'name' => 'Billing Agent',
+                'email' => $billingEmail,
+                'password' => Hash::make('password'),
+                'phone' => '+8801700000001',
+                'is_super_admin' => false,
+                'is_active' => true,
+            ]);
+            echo "Created billing agent\n";
+        }
 
-        echo "Database seeding complete!\n";
+        // Create NOC engineer only if doesn't exist
+        if (!$nocEngineer) {
+            $nocEngineer = User::factory()->create([
+                'name' => 'NOC Engineer',
+                'email' => $nocEmail,
+                'password' => Hash::make('password'),
+                'phone' => '+8801700000002',
+                'is_super_admin' => false,
+                'is_active' => true,
+            ]);
+            echo "Created NOC engineer\n";
+        }
+
+        // Sync roles only if users were created or if roles don't exist
+        if ($adminUser) {
+            if (!$adminUser->hasRole('super_admin')) {
+                $adminUser->syncRoles(['super_admin', 'admin']);
+            }
+        }
+        if ($billingAgent) {
+            if (!$billingAgent->hasRole('billing_agent')) {
+                $billingAgent->syncRoles(['billing_agent']);
+            }
+        }
+        if ($nocEngineer) {
+            if (!$nocEngineer->hasRole('noc_engineer')) {
+                $nocEngineer->syncRoles(['noc_engineer']);
+            }
+        }
+
+        echo "Database seeding complete! Existing data preserved.\n";
     }
 }

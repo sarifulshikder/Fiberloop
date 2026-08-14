@@ -5,21 +5,29 @@ namespace App\Models;
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
 use App\Models\Scopes\ResellerScope;
+use Filament\Models\Contracts\HasName;
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
-class Customer extends Model
+class Customer extends Model implements AuthenticatableContract, AuthorizableContract, HasName
 {
     use Notifiable;
-
+    use Authenticatable;
     use HasFactory;
     use HasUuids;
     use SoftDeletes;
+    use HasRoles;
+    use Authorizable;
 
     protected static function booted(): void
     {
@@ -52,6 +60,7 @@ class Customer extends Model
         'connection_type',
         'radius_username',
         'radius_password',
+        'password',
         'static_ip',
         'mac_address',
         'status',
@@ -91,15 +100,34 @@ class Customer extends Model
         'nid_back_photo',
         'signature_photo',
         'radius_password',
+        'password',
     ];
 
     protected $appends = [
         'full_name',
     ];
 
+
+
     public function getFullNameAttribute(): string
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    /**
+     * Get the Filament user name for display in the UI.
+     */
+    public function getFilamentName(): string
+    {
+        return $this->full_name;
+    }
+
+    /**
+     * Get the Filament user avatar URL.
+     */
+    public function getFilamentAvatarUrl(): ?string
+    {
+        return null; // No avatar for customers by default
     }
 
     public function tenant(): BelongsTo

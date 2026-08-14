@@ -7,6 +7,7 @@ use App\Enums\PackageBillingCycle;
 use App\Filament\Resources\PackageResource\Pages;
 use App\Models\Package;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -20,6 +21,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BooleanColumn;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -32,7 +34,7 @@ class PackageResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
     protected static ?string $navigationLabel = 'Packages';
-    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
+    protected static string|\UnitEnum|null $navigationGroup = 'Products';
     protected static ?int $navigationSort = 10;
 
     public static function getPluralLabel(): string
@@ -187,6 +189,9 @@ class PackageResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('name')
                     ->label('Package Name')
                     ->searchable()
@@ -259,6 +264,7 @@ class PackageResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

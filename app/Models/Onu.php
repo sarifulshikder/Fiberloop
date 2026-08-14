@@ -42,6 +42,7 @@ class Onu extends Model
         'distance_meters',
         'configuration',
         'notes',
+        'customer_name',
     ];
 
     protected $casts = [

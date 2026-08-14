@@ -46,6 +46,7 @@ class PollOnuOpticalSignalJob implements ShouldQueue
             $this->onu->update([
                 'optical_signal_db' => $rxPower,
                 'tx_power_db' => $txPower,
+                'rx_power_db' => $rxPower,
                 'operational_state' => $isOnline ? 'online' : 'offline',
                 'last_signal_check_at' => now(),
             ]);

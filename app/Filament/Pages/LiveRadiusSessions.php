@@ -16,7 +16,7 @@ class LiveRadiusSessions extends Page implements HasTable
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-signal';
     protected static string|\UnitEnum|null $navigationGroup = 'Network';
     protected static ?string $navigationLabel = 'Live RADIUS Sessions';
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 100;
     protected string $view = 'filament.pages.live-radius-sessions';
 
     public static function getNavigationBadge(): ?string

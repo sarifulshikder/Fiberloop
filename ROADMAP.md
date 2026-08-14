@@ -87,7 +87,7 @@ This is the complete, phase-by-phase build plan for Fiberloop — from an empty 
 **Depends on:** Phase 0.
 
 ### Architecture Decisions (apply throughout the whole project, not just this phase)
-- **Money:** every amount column is `bigint`, storing the smallest currency unit (poysha, i.e. BDT × 100). Never `decimal`/`float` for money.
+- **Money:** every amount column is `decimal(12,2)`, storing currency values directly (BDT 1 = 1 taka). Use decimal for all monetary amounts.
 - **Multi-tenant scoping:** every business table gets a `tenant_id` (nullable FK to a `tenants`/`isps` table) — even in a single-ISP deployment, this keeps Phase 9 (reseller/franchise) and any future multi-ISP SaaS work cheap instead of a rewrite.
 - **Primary keys:** `bigint` auto-increment for internal FKs (performance); expose a separate `uuid` public-facing identifier on customer-facing models (customers, invoices) so sequential IDs are never leaked externally.
 - **Soft deletes** on: customers, invoices, payments, subscriptions.

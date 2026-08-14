@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\AdminDashboardStats;
 use App\Filament\Widgets\CustomerStatusStatsWidget;
 use App\Filament\Widgets\LeadsInPipelineWidget;
 use App\Filament\Widgets\TotalCustomersWidget;
@@ -20,6 +21,7 @@ class Dashboard extends BaseDashboard
     public function getWidgets(): array
     {
         return [
+            AdminDashboardStats::class,
             TotalCustomersWidget::class,
             CustomerStatusStatsWidget::class,
             LeadsInPipelineWidget::class,

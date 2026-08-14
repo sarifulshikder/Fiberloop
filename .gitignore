@@ -3,6 +3,7 @@
 .env
 .env.backup
 .env.production
+.env.testing
 .phpactor.json
 .phpunit.result.cache
 /.codex
@@ -31,3 +32,17 @@ supervisord.pid
 **/caddy
 frankenphp
 frankenphp-worker.php
+
+# One-off scripts, session cookies and backups — never commit these
+*.backup
+/auth_cookie.txt
+/cookie.txt
+/cookies.txt
+/customer_cookies.txt
+/login_headers.txt
+/add_olt.php
+/test.php
+/test_olt_ssh.php
+/test_vsol.php
+/verify.sh
+/audit.md

@@ -8,10 +8,12 @@ use App\Filament\Resources\IpPoolResource\Pages\ListIpPools;
 use App\Models\IpPool;
 use App\Models\NetworkDevice;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -75,6 +77,9 @@ class IpPoolResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('name')
                     ->searchable()
                     ->sortable(),
@@ -122,6 +127,7 @@ class IpPoolResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

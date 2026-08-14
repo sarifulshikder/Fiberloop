@@ -28,7 +28,7 @@ Fiberloop is an AI-assisted ISP billing and subscriber management platform for a
 
 ## Non-Negotiable Architecture Decisions
 1. **One database engine.** PostgreSQL only, including the FreeRADIUS schema. Never install MySQL/MariaDB "because a tutorial used it."
-2. **Money is integers.** Store all currency amounts in the smallest unit (poysha, i.e. BDT × 100) as `bigint`. Never `float`/`double` for money.
+2. **Money is decimal.** Store all currency amounts as `decimal(12,2)` with BDT 1 = 1 taka. Use decimal type for all monetary values.
 3. **Multi-tenancy from day one**, even if only one ISP uses it initially — every tenant-scoped table gets a `tenant_id` column and a global scope. Retrofitting this later is far more expensive than building it in now.
 4. **Soft deletes** on customer, invoice, subscription, and payment tables — this is financial data, never hard-delete it.
 5. **All money-moving and network-provisioning actions run as queued jobs**, not inline in HTTP requests — billing runs, RADIUS sync, SMS sends.

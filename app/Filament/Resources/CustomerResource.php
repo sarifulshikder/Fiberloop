@@ -8,6 +8,7 @@ use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
 use App\Models\Package;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -20,6 +21,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -73,6 +75,15 @@ class CustomerResource extends Resource
                         TextInput::make('phone')
                             ->required()
                             ->maxLength(20),
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->minLength(8)
+                            ->maxLength(255)
+                            ->revealable()
+                            ->dehydrateStateUsing(fn ($state) => filled($state) ? bcrypt($state) : null)
+                            ->dehydrated(fn ($state) => filled($state))
+                            ->required(fn (string $context): bool => $context === 'create'),
                         TextInput::make('alternate_phone')
                             ->maxLength(20),
                         DatePicker::make('date_of_birth'),
@@ -88,7 +99,6 @@ class CustomerResource extends Resource
                             ->searchable()
                             ->nullable(),
                     ])->columns(2),
-
                 Section::make('KYC Documents')
                     ->schema([
                         FileUpload::make('nid_front_photo')
@@ -128,7 +138,6 @@ class CustomerResource extends Resource
                             ->label('NID Number')
                             ->maxLength(50),
                     ])->columns(2),
-
                 Section::make('Addresses')
                     ->schema([
                         TextInput::make('service_address')
@@ -149,7 +158,6 @@ class CustomerResource extends Resource
                         TextInput::make('zone')
                             ->maxLength(100),
                     ])->columns(3),
-
                 Section::make('Connection Details')
                     ->schema([
                         Select::make('connection_type')
@@ -167,7 +175,6 @@ class CustomerResource extends Resource
                         TextInput::make('mac_address')
                             ->maxLength(17),
                     ])->columns(2),
-
                 Section::make('Status')
                     ->schema([
                         Select::make('status')
@@ -183,7 +190,6 @@ class CustomerResource extends Resource
                         TextInput::make('termination_reason')
                             ->maxLength(500),
                     ])->columns(2),
-
                 Section::make('Notes')
                     ->schema([
                         MarkdownEditor::make('notes')
@@ -207,6 +213,9 @@ class CustomerResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('id')
                     ->label('ID')
                     ->sortable()
@@ -289,6 +298,7 @@ class CustomerResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([

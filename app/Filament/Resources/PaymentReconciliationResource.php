@@ -33,8 +33,8 @@ class PaymentReconciliationResource extends Resource
     protected static ?string $model = PaymentReconciliation::class;
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-clipboard-document-check';
-    protected static string|\UnitEnum|null $navigationGroup = 'Billing & Payments';
-    protected static ?int $navigationSort = 4;
+    protected static string|\UnitEnum|null $navigationGroup = 'Billing';
+    protected static ?int $navigationSort = 50;
 
     public static function getModelLabel(): string
     {

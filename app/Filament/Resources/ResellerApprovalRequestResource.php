@@ -5,11 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ResellerApprovalRequestResource\Pages;
 use App\Models\ResellerApprovalRequest;
 use Filament\Actions\Action;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -45,6 +49,9 @@ class ResellerApprovalRequestResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('reseller.name')->label('Reseller')->searchable()->sortable(),
                 TextColumn::make('type')
                     ->badge()
@@ -78,6 +85,7 @@ class ResellerApprovalRequestResource extends Resource
             ])
             ->actions([
                 ViewAction::make(),
+                DeleteAction::make(),
                 Action::make('approve')
                     ->label('Approve')
                     ->icon('heroicon-o-check-circle')
@@ -114,6 +122,11 @@ class ResellerApprovalRequestResource extends Resource
                         activity()->performedOn($record)->log('Approval request rejected: ' . $data['rejection_reason']);
                         Notification::make()->title('Request rejected')->danger()->send();
                     }),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ])
             ->defaultSort('created_at', 'desc');
     }

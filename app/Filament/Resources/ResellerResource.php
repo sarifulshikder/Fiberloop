@@ -7,6 +7,7 @@ use App\Filament\Resources\ResellerResource\Pages;
 use App\Models\Reseller;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
@@ -19,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -96,6 +98,9 @@ class ResellerResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('name')->searchable()->sortable(),
                 TextColumn::make('code')->searchable()->badge()->color('gray'),
                 TextColumn::make('phone')->searchable(),
@@ -136,6 +141,7 @@ class ResellerResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
                 Action::make('suspend')
                     ->label('Suspend')
                     ->icon('heroicon-o-pause-circle')

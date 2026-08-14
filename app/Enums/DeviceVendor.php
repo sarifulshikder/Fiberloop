@@ -9,6 +9,8 @@ enum DeviceVendor: string
     case ZTE = 'zte';
     case NOKIA = 'nokia';
     case CISCO = 'cisco';
+    case VSOL = 'vsol';
+    case BDCOM = 'bdcom';
     case OTHER = 'other';
 
     public static function values(): array
@@ -24,6 +26,8 @@ enum DeviceVendor: string
             self::ZTE->value => self::ZTE->label(),
             self::NOKIA->value => self::NOKIA->label(),
             self::CISCO->value => self::CISCO->label(),
+            self::VSOL->value => self::VSOL->label(),
+            self::BDCOM->value => self::BDCOM->label(),
             self::OTHER->value => self::OTHER->label(),
         ];
     }
@@ -36,6 +40,8 @@ enum DeviceVendor: string
             self::ZTE => 'ZTE',
             self::NOKIA => 'Nokia',
             self::CISCO => 'Cisco',
+            self::VSOL => 'VSOL',
+            self::BDCOM => 'BDCOM',
             self::OTHER => 'Other',
         };
     }

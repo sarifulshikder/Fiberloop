@@ -16,12 +16,20 @@ class ResellerScope implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
-        // Only apply when a reseller user is authenticated
-        if (! auth()->check()) {
+        // Only apply for web guard (staff/reseller users), not for customer guard
+        // This prevents the scope from interfering with customer panel queries
+        $guard = app('auth')->guard();
+
+        if ($guard->getName() !== 'web') {
             return;
         }
 
-        $user = auth()->user();
+        // Only apply when a reseller user is authenticated
+        if (! $guard->check()) {
+            return;
+        }
+
+        $user = $guard->user();
 
         if (! $user->hasRole('reseller')) {
             return;

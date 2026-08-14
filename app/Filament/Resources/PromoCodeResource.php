@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PromoCodeResource\Pages;
 use App\Models\PromoCode;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ExportBulkAction;
@@ -18,6 +19,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\BooleanColumn;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -30,8 +32,8 @@ class PromoCodeResource extends Resource
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-gift';
     protected static ?string $navigationLabel = 'Promo Codes';
-    protected static string|\UnitEnum|null $navigationGroup = 'Products & Pricing';
-    protected static ?int $navigationSort = 20;
+    protected static string|\UnitEnum|null $navigationGroup = 'Products';
+    protected static ?int $navigationSort = 30;
 
     public static function getPluralLabel(): string
     {
@@ -162,6 +164,9 @@ class PromoCodeResource extends Resource
     {
         return $table
             ->columns([
+                CheckboxColumn::make('id')
+                    ->label('Select')
+                    ->width(40),
                 TextColumn::make('code')
                     ->label('Code')
                     ->searchable()
@@ -225,6 +230,7 @@ class PromoCodeResource extends Resource
             ->actions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
