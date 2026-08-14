@@ -32,7 +32,7 @@ class CliTransport
 
         try {
             $host = $this->device->ip_address;
-            $port = (int) ($this->device->port ?: 22);
+            $port = (int) ($this->device->ssh_port ?: $this->device->port ?: 22);
             $username = $this->device->username;
             $password = $this->device->password;
             $timeout = (int) config('olt.ssh_timeout', 10);

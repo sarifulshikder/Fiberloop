@@ -34,7 +34,7 @@ class VsolCliDriver extends CliOltDriver implements SupportsCliPortPoll
 
         return new TelnetTransport(
             $device,
-            port: (int) ($device->configuration['telnet_port'] ?? config('olt.telnet_port', 23)),
+            port: (int) ($device->telnet_port ?? config('olt.telnet_port', 23)),
         );
     }
 

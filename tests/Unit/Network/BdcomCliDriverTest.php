@@ -34,7 +34,7 @@ describe('BdcomCliDriver', function () {
             'management_protocol' => NetworkManagementProtocol::SSH,
             'ip_address' => '10.0.0.9',
             'username' => 'Sariful',
-            'configuration' => ['telnet_port' => 225],
+            'telnet_port' => 225,
         ]);
 
         $this->olt = Olt::factory()->forNetworkDevice($this->device)->create([

@@ -53,7 +53,7 @@ describe('VsolCliDriver', function () {
             'management_protocol' => NetworkManagementProtocol::SSH,
             'ip_address' => '10.0.0.1',
             'username' => 'admin',
-            'configuration' => ['telnet_port' => 223],
+            'telnet_port' => 223,
         ]);
 
         $this->olt = Olt::factory()->forNetworkDevice($this->device)->create([

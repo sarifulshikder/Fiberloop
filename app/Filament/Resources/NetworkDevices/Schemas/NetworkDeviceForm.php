@@ -48,7 +48,7 @@ class NetworkDeviceForm
                 ]),
 
                 Section::make('Network Connectivity')->schema([
-                    Grid::make(3)->schema([
+                    Grid::make(2)->schema([
                         TextInput::make('ip_address')
                             ->label('IP Address')
                             ->required()
@@ -60,20 +60,50 @@ class NetworkDeviceForm
                             ->label('Hostname')
                             ->maxLength(255)
                             ->placeholder('e.g. router.fiberloop.net'),
+                    ]),
+                    Grid::make(2)->schema([
+                        TextInput::make('username')
+                            ->label('Username')
+                            ->maxLength(255)
+                            ->placeholder('e.g. admin'),
 
+                        TextInput::make('password')
+                            ->label('Password')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(255),
+                    ]),
+                    Grid::make(3)->schema([
                         TextInput::make('port')
-                            ->label('API/SSH Port')
+                            ->label('API Port')
                             ->numeric()
-                            ->default(8728)
-                            ->required()
+                            ->minValue(1)
+                            ->maxValue(65535)
+                            ->helperText('MikroTik RouterOS API port. Leave blank unless needed.')
                             ->placeholder('e.g. 8728'),
+
+                        TextInput::make('ssh_port')
+                            ->label('SSH Port')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(65535)
+                            ->helperText('SSH CLI port for CLI-managed OLTs. Leave blank unless needed.')
+                            ->placeholder('e.g. 22'),
+
+                        TextInput::make('telnet_port')
+                            ->label('Telnet Port')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(65535)
+                            ->placeholder('e.g. 23')
+                            ->helperText('Telnet CLI port for VSOL/BDCOM OLTs. Leave blank unless needed.'),
                     ]),
                     Toggle::make('is_active')
                         ->label('Active')
                         ->default(true),
                 ]),
 
-                Section::make('Authentication & Management Settings')->schema([
+                Section::make('Management Protocol')->schema([
                     Select::make('management_protocol')
                         ->label('Management Protocol')
                         ->options(NetworkManagementProtocol::options())
@@ -81,18 +111,6 @@ class NetworkDeviceForm
                         ->helperText('SSH CLI reads ONU optical power/descriptions on every OLT brand; SNMP works when the vendor MIB is available.')
                         ->live(),
                     Grid::make(2)->schema([
-                        TextInput::make('username')
-                            ->label('API/SSH Username')
-                            ->maxLength(255)
-                            ->placeholder('e.g. admin'),
-
-                        TextInput::make('password')
-                            ->label('API/SSH Password')
-                            ->password()
-                            ->revealable()
-                            ->maxLength(255),
-                    ]),
-                    Grid::make(3)->schema([
                         TextInput::make('snmp_community')
                             ->label('SNMP Community')
                             ->maxLength(255)
@@ -110,24 +128,15 @@ class NetworkDeviceForm
                             ->default('v2c')
                             ->required()
                             ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
-
+                    ]),
+                    Grid::make(2)->schema([
                         TextInput::make('snmp_port')
                             ->label('SNMP Port')
                             ->numeric()
-                            ->default(161)
-                            ->required()
-                            ->placeholder('e.g. 161')
-                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
-                    ]),
-                    Grid::make(2)->schema([
-                        TextInput::make('configuration.telnet_port')
-                            ->label('Telnet CLI Port')
-                            ->numeric()
                             ->minValue(1)
                             ->maxValue(65535)
-                            ->placeholder('e.g. 223')
-                            ->helperText('Port for the vendor telnet CLI (VSOL). Leave blank for SSH-only OLTs.')
-                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SNMP->value),
+                            ->placeholder('e.g. 161')
+                            ->helperText('Leave blank unless the device is SNMP-managed.'),
                     ]),
                 ]),
 

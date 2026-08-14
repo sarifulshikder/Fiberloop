@@ -1,6 +1,8 @@
 <?php
 
+use App\Enums\DeviceVendor;
 use App\Enums\NetworkManagementProtocol;
+use App\Filament\Resources\NetworkDevices\Pages\CreateNetworkDevice;
 use App\Filament\Resources\NetworkDevices\Pages\EditNetworkDevice;
 use App\Models\NetworkDevice;
 use App\Models\User;
@@ -20,41 +22,98 @@ it('shows the telnet cli port field for ssh-managed devices', function () {
 
     $device = NetworkDevice::factory()->create([
         'management_protocol' => NetworkManagementProtocol::SSH,
-        'configuration' => ['telnet_port' => 223],
+        'telnet_port' => 223,
     ]);
 
     Livewire::test(EditNetworkDevice::class, ['record' => $device->getKey()])
-        ->assertFormFieldExists('configuration.telnet_port')
-        ->assertFormFieldIsVisible('configuration.telnet_port');
+        ->assertFormFieldExists('telnet_port')
+        ->assertFormFieldIsVisible('telnet_port');
 });
 
-it('prefills the telnet cli port from the device configuration', function () {
+it('prefills the telnet cli port from the device', function () {
     $user = User::factory()->create()->assignRole('super_admin');
     $this->actingAs($user);
 
     $device = NetworkDevice::factory()->create([
         'management_protocol' => NetworkManagementProtocol::SSH,
-        'configuration' => ['telnet_port' => 223],
+        'telnet_port' => 223,
     ]);
 
     Livewire::test(EditNetworkDevice::class, ['record' => $device->getKey()])
         ->assertFormSet([
-            'configuration' => [
-                'telnet_port' => 223,
-            ],
+            'telnet_port' => 223,
         ]);
 });
 
-it('hides the telnet cli port field for snmp-only devices', function () {
+it('keeps the telnet cli port editable for snmp-only devices too', function () {
     $user = User::factory()->create()->assignRole('super_admin');
     $this->actingAs($user);
 
     $device = NetworkDevice::factory()->create([
         'management_protocol' => NetworkManagementProtocol::SNMP,
-        'configuration' => null,
     ]);
 
     Livewire::test(EditNetworkDevice::class, ['record' => $device->getKey()])
-        ->assertFormFieldExists('configuration.telnet_port')
-        ->assertFormFieldIsHidden('configuration.telnet_port');
+        ->assertFormFieldExists('telnet_port')
+        ->assertFormFieldIsVisible('telnet_port')
+        ->assertFormFieldExists('snmp_port')
+        ->assertFormFieldIsVisible('snmp_port');
+});
+
+it('exposes api, ssh, telnet and snmp ports in the network connectivity section', function () {
+    $user = User::factory()->create()->assignRole('super_admin');
+    $this->actingAs($user);
+
+    $device = NetworkDevice::factory()->create([
+        'management_protocol' => NetworkManagementProtocol::SSH,
+        'port' => 8728,
+        'ssh_port' => 22,
+        'telnet_port' => 223,
+        'snmp_port' => 161,
+    ]);
+
+    Livewire::test(EditNetworkDevice::class, ['record' => $device->getKey()])
+        ->assertFormFieldExists('ip_address')
+        ->assertFormFieldExists('hostname')
+        ->assertFormFieldExists('username')
+        ->assertFormFieldExists('password')
+        ->assertFormFieldExists('port')
+        ->assertFormFieldExists('ssh_port')
+        ->assertFormFieldExists('telnet_port')
+        ->assertFormFieldExists('snmp_port')
+        ->assertFormSet([
+            'port' => 8728,
+            'ssh_port' => 22,
+            'telnet_port' => 223,
+            'snmp_port' => 161,
+        ]);
+});
+
+it('creates a device with all port fields left blank', function () {
+    $user = User::factory()->create()->assignRole('super_admin');
+    $this->actingAs($user);
+
+    Livewire::test(CreateNetworkDevice::class)
+        ->fillForm([
+            'name' => 'Blank Port Router',
+            'vendor' => DeviceVendor::MIKROTIK->value,
+            'model' => 'CCR2004',
+            'serial_number' => 'SN-BLANK-0001',
+            'ip_address' => '10.99.99.99',
+            'management_protocol' => NetworkManagementProtocol::SNMP->value,
+            'snmp_version' => 'v2c',
+            'port' => null,
+            'ssh_port' => null,
+            'telnet_port' => null,
+            'snmp_port' => null,
+        ])
+        ->call('create');
+
+    $device = NetworkDevice::where('serial_number', 'SN-BLANK-0001')->first();
+
+    expect($device)->not->toBeNull()
+        ->and($device->port)->toBeNull()
+        ->and($device->ssh_port)->toBeNull()
+        ->and($device->telnet_port)->toBeNull()
+        ->and($device->snmp_port)->toBeNull();
 });
