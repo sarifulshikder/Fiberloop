@@ -117,3 +117,44 @@ it('creates a device with all port fields left blank', function () {
         ->and($device->telnet_port)->toBeNull()
         ->and($device->snmp_port)->toBeNull();
 });
+
+it('offers the routeros api protocol and hides snmp fields for api devices', function () {
+    $user = User::factory()->create()->assignRole('super_admin');
+    $this->actingAs($user);
+
+    Livewire::test(CreateNetworkDevice::class)
+        ->fillForm([
+            'management_protocol' => NetworkManagementProtocol::API->value,
+        ])
+        ->assertFormSet(['management_protocol' => NetworkManagementProtocol::API->value])
+        ->assertFormFieldExists('port')
+        ->assertFormFieldIsVisible('port')
+        ->assertFormFieldIsHidden('snmp_community')
+        ->assertFormFieldIsHidden('snmp_version')
+        ->assertFormFieldIsHidden('snmp_port');
+});
+
+it('creates a mikrotik device managed over the routeros api', function () {
+    $user = User::factory()->create()->assignRole('super_admin');
+    $this->actingAs($user);
+
+    Livewire::test(CreateNetworkDevice::class)
+        ->fillForm([
+            'name' => 'API Router',
+            'vendor' => DeviceVendor::MIKROTIK->value,
+            'model' => 'CCR2004',
+            'serial_number' => 'SN-API-0001',
+            'ip_address' => '10.99.99.98',
+            'username' => 'admin',
+            'password' => 'secret',
+            'management_protocol' => NetworkManagementProtocol::API->value,
+            'port' => 8728,
+        ])
+        ->call('create');
+
+    $device = NetworkDevice::where('serial_number', 'SN-API-0001')->first();
+
+    expect($device)->not->toBeNull()
+        ->and($device->management_protocol)->toBe(NetworkManagementProtocol::API)
+        ->and($device->port)->toBe(8728);
+});

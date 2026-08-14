@@ -108,7 +108,7 @@ class NetworkDeviceForm
                         ->label('Management Protocol')
                         ->options(NetworkManagementProtocol::options())
                         ->default(NetworkManagementProtocol::SNMP->value)
-                        ->helperText('SSH CLI reads ONU optical power/descriptions on every OLT brand; SNMP works when the vendor MIB is available.')
+                        ->helperText('API (RouterOS) talks to MikroTik on the API port; SSH CLI reads ONU optical power/descriptions on every OLT brand; SNMP works when the vendor MIB is available.')
                         ->live(),
                     Grid::make(2)->schema([
                         TextInput::make('snmp_community')
@@ -116,7 +116,7 @@ class NetworkDeviceForm
                             ->maxLength(255)
                             ->default('public')
                             ->placeholder('e.g. public')
-                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
+                            ->hidden(fn (Get $get) => $get('management_protocol') !== NetworkManagementProtocol::SNMP->value),
 
                         Select::make('snmp_version')
                             ->label('SNMP Version')
@@ -127,7 +127,7 @@ class NetworkDeviceForm
                             ])
                             ->default('v2c')
                             ->required()
-                            ->hidden(fn (Get $get) => $get('management_protocol') === NetworkManagementProtocol::SSH->value),
+                            ->hidden(fn (Get $get) => $get('management_protocol') !== NetworkManagementProtocol::SNMP->value),
                     ]),
                     Grid::make(2)->schema([
                         TextInput::make('snmp_port')
@@ -136,7 +136,8 @@ class NetworkDeviceForm
                             ->minValue(1)
                             ->maxValue(65535)
                             ->placeholder('e.g. 161')
-                            ->helperText('Leave blank unless the device is SNMP-managed.'),
+                            ->helperText('Leave blank unless the device is SNMP-managed.')
+                            ->hidden(fn (Get $get) => $get('management_protocol') !== NetworkManagementProtocol::SNMP->value),
                     ]),
                 ]),
 

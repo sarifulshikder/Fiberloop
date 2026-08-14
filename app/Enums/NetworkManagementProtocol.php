@@ -6,6 +6,7 @@ enum NetworkManagementProtocol: string
 {
     case SNMP = 'snmp';
     case SSH = 'ssh';
+    case API = 'api';
 
     public static function values(): array
     {
@@ -17,6 +18,7 @@ enum NetworkManagementProtocol: string
         return [
             self::SNMP->value => self::SNMP->label(),
             self::SSH->value => self::SSH->label(),
+            self::API->value => self::API->label(),
         ];
     }
 
@@ -25,6 +27,7 @@ enum NetworkManagementProtocol: string
         return match ($this) {
             self::SNMP => 'SNMP',
             self::SSH => 'SSH CLI',
+            self::API => 'API (RouterOS)',
         };
     }
 }

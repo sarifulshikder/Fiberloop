@@ -31,10 +31,14 @@ class OltDriverFactory
             };
         }
 
-        return match ($vendor) {
-            'vsol' => new VsolDriver($olt),
-            'bdcom' => new BdcomDriver($olt),
-            default => throw new InvalidArgumentException("No OLT driver found for vendor: {$vendor}"),
-        };
+        if ($protocol === NetworkManagementProtocol::SNMP->value) {
+            return match ($vendor) {
+                'vsol' => new VsolDriver($olt),
+                'bdcom' => new BdcomDriver($olt),
+                default => throw new InvalidArgumentException("No SNMP OLT driver found for vendor: {$vendor}"),
+            };
+        }
+
+        throw new InvalidArgumentException("Protocol '{$protocol}' is not an OLT management protocol; use SSH or SNMP.");
     }
 }

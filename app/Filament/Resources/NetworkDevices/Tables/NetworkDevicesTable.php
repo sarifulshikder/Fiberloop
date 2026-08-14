@@ -60,6 +60,7 @@ class NetworkDevicesTable
                     ->badge()
                     ->color(fn ($state) => match ($state?->value ?? $state) {
                         'ssh' => 'success',
+                        'api' => 'warning',
                         default => 'info',
                     })
                     ->sortable(),
