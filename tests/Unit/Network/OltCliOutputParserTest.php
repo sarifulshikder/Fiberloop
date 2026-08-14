@@ -293,3 +293,140 @@ TXT;
         ->and($info['description'])->toBeNull()
         ->and($info['high_speed'])->toBe(10000);
 });
+
+it('parses the real BDCOM `show epon onu-information` table', function () {
+    $output = <<<TXT
+Interface EPON0/1 has registered 18 ONUs:
+IntfName VendorID ModelID MAC Address Description BindType Status Dereg Reason
+EPON0/1:1 VSOL V601 6c68.a46f.6b18 Anis static auto-configured N/A
+EPON0/1:2 VSOL V601 6c68.a46f.6c3a Shahanara static auto-configured N/A
+EPON0/1:5 VSOL V601 6c68.a46f.6a15 Delower static auto-configured Power Off
+Interface EPON0/3 has registered 5 ONUs:
+IntfName VendorID ModelID MAC Address Description BindType Status Dereg Reason
+EPON0/3:1 VSOL V601 6c68.a46f.7001 Bappa static auto-configured N/A
+TXT;
+
+    $onus = OltCliOutputParser::parseOnuTable($output, '1');
+
+    expect($onus)->toHaveCount(4)
+        ->and($onus[0]->ponPort)->toBe(1)
+        ->and($onus[0]->ponPortName)->toBe('0/1')
+        ->and($onus[0]->onuId)->toBe('1')
+        // Dotted MACs are normalized to the AA:BB:CC:DD:EE:FF form.
+        ->and($onus[0]->macAddress)->toBe('6C:68:A4:6F:6B:18')
+        ->and($onus[0]->serialNumber)->toBe('6C:68:A4:6F:6B:18')
+        ->and($onus[0]->isOnline)->toBeTrue()
+        ->and($onus[0]->isRegistered)->toBeTrue()
+        ->and($onus[1]->macAddress)->toBe('6C:68:A4:6F:6C:3A')
+        // "Power Off" is a dereg reason, not a serial.
+        ->and($onus[2]->serialNumber)->toBe('6C:68:A4:6F:6A:15')
+        // Section header "Interface EPON0/3 has registered 5 ONUs:" must not
+        // be parsed as a phantom ONU with serial "INTERFACE".
+        ->and($onus[3]->ponPort)->toBe(3)
+        ->and($onus[3]->ponPortName)->toBe('0/3')
+        ->and($onus[3]->macAddress)->toBe('6C:68:A4:6F:70:01');
+});
+
+it('parses the real BDCOM optical transceiver diagnosis table', function () {
+    $output = <<<TXT
+IntfName Temp(degree) Volt(V) Bias(mA) TxPow(dBm) RxPow(dBm)
+epon0/1:1 57.9 3.4 18.8 2.2 -16.2
+epon0/1:2 56.1 3.3 17.4 2.1 -21.8
+TXT;
+
+    $rows = OltCliOutputParser::parseOpticalTable($output, '1');
+
+    expect($rows)->toHaveCount(2)
+        ->and($rows['1|1']['temperature_c'])->toBe(57.9)
+        ->and($rows['1|1']['voltage_v'])->toBe(3.4)
+        ->and($rows['1|1']['tx_bias_ma'])->toBe(18.8)
+        ->and($rows['1|1']['tx_power_dbm'])->toBe(2.2)
+        ->and($rows['1|1']['rx_power_dbm'])->toBe(-16.2)
+        ->and($rows['1|2']['rx_power_dbm'])->toBe(-21.8);
+});
+
+it('parses BDCOM onu descriptions from the running config', function () {
+    $output = <<<TXT
+Current configuration:
+!
+hostname Switch
+!
+interface EPON0/1
+ description Ashraful_Sarak-Rail_Bridge
+ epon bind-onu mac 6c68.a46f.6b18 1
+ epon bind-onu mac 6c68.a46f.6c3a 2
+!
+interface EPON0/1:1
+ description Anis
+ epon onu description Anis
+!
+interface EPON0/1:2
+ epon onu description Shahanara
+!
+interface EPON0/3:1
+ description Bappa
+ epon onu description Bappa
+TXT;
+
+    $rows = OltCliOutputParser::parseBdcomDescriptionsTable($output);
+
+    expect($rows)->toHaveCount(3)
+        ->and($rows['1|1'])->toBe('Anis')
+        ->and($rows['1|2'])->toBe('Shahanara')
+        ->and($rows['3|1'])->toBe('Bappa')
+        // The PON port's own description must not leak into the ONU map.
+        ->and($rows)->not->toHaveKey('0|0')
+        ->and($rows)->not->toHaveKey('1|');
+});
+
+it('parses a live BDCOM pon interface block', function () {
+    $output = <<<TXT
+EPON0/1 is up, line protocol is up
+Description: Ashraful_Sarak-Rail_Bridge
+Hardware is Giga-PON, address is 00:e0:50:48:5c:24
+Internet Address is 192.168.1.1/24, IP MTU is 1500 bytes
+MTU 1500 bytes, BW 1000000 kbit, DLY 2000 usec
+TXT;
+
+    $info = OltCliOutputParser::parseBdcomInterfaceInfo($output);
+
+    expect($info['state'])->toBe(1)
+        ->and($info['admin_status'])->toBe(1)
+        ->and($info['description'])->toBe('Ashraful_Sarak-Rail_Bridge')
+        ->and($info['hardware_type'])->toBe('Giga-PON')
+        ->and($info['mtu'])->toBe(1500);
+});
+
+it('parses a live BDCOM gigabitethernet interface block', function () {
+    $output = <<<TXT
+GigaEthernet0/1 is up, line protocol is up
+Description: From_VSOL_olt
+Hardware is Giga-TX, address is 00:e0:50:48:5c:22
+Internet Address is 192.168.1.3/24, IP MTU is 1500 bytes
+MTU 1500 bytes, BW 1000000 kbit, DLY 2000 usec
+Auto-Duplex(Full), Auto-Speed(1000Mb/s), BW 1000000 kbit
+TXT;
+
+    $info = OltCliOutputParser::parseBdcomInterfaceInfo($output);
+
+    expect($info['state'])->toBe(1)
+        ->and($info['admin_status'])->toBe(1)
+        ->and($info['description'])->toBe('From_VSOL_olt')
+        ->and($info['hardware_type'])->toBe('Giga-TX')
+        ->and($info['high_speed'])->toBe(1000)
+        ->and($info['mtu'])->toBe(1500);
+});
+
+it('parses a down BDCOM interface block', function () {
+    $output = <<<TXT
+GigaEthernet0/4 is down, line protocol is down
+Hardware is Giga-TX, address is 00:e0:50:48:5c:22
+MTU 1500 bytes, BW 1000000 kbit, DLY 2000 usec
+TXT;
+
+    $info = OltCliOutputParser::parseBdcomInterfaceInfo($output);
+
+    expect($info['state'])->toBe(2)
+        ->and($info['admin_status'])->toBe(2)
+        ->and($info['description'])->toBeNull();
+});

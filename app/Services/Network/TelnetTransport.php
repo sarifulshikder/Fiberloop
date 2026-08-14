@@ -19,17 +19,30 @@ use Throwable;
  */
 class TelnetTransport
 {
+    /**
+     * Default prompt pattern (VSOL): "epon-olt>", "epon-olt#", including the
+     * privileged/config modes ("epon-olt(config)#"). Vendors with a different
+     * CLI (e.g. BDCOM "Switch>") pass their own pattern.
+     */
     private const PROMPT = 'epon-olt(?:\(config(?:-[^)]*)?\))?[#>]';
 
     /** @var resource|null */
     private $socket = null;
+
+    private string $promptPattern;
+
+    private string $loginPromptPattern;
 
     public function __construct(
         protected NetworkDevice $device,
         protected ?int $port = null,
         protected ?string $enablePassword = null,
         protected float $timeout = 10.0,
+        ?string $promptPattern = null,
+        ?string $loginPromptPattern = null,
     ) {
+        $this->promptPattern = $promptPattern ?? self::PROMPT;
+        $this->loginPromptPattern = $loginPromptPattern ?? '/login:\s*$/i';
     }
 
     /**
@@ -60,20 +73,27 @@ class TelnetTransport
         $this->socket = $socket;
 
         try {
-            $this->readUntil('/login:\s*$/i');
+            $this->readUntil($this->loginPromptPattern);
             $this->writeLine((string) $this->device->username);
             $this->readUntil('/password:\s*$/i');
             $this->writeLine((string) $this->device->password);
             $this->readUntilPrompt();
 
             $this->writeLine('enable');
-            $matched = $this->readUntil(['/password:\s*$/i', '/^.*' . self::PROMPT . '\s*$/m']);
+            $matched = $this->readUntil(['/password:\s*$/i', '/^.*' . $this->promptPattern . '\s*$/m']);
             if ($matched === 0) {
                 $this->writeLine($this->enablePassword ?? (string) $this->device->password);
                 $this->readUntilPrompt();
             }
 
             $this->writeLine('terminal length 0');
+            $this->readUntilPrompt();
+
+            // Some OLTs (BDCOM) wrap table rows at the default 80-column
+            // width, which would corrupt multi-column parsing; disable it.
+            // Unsupported commands on other vendors just echo an error and
+            // return to the prompt, so this is safe to send unconditionally.
+            $this->writeLine('terminal width 0');
             $this->readUntilPrompt();
         } catch (Throwable $e) {
             $this->disconnect();
@@ -174,7 +194,7 @@ class TelnetTransport
 
     private function readUntilPrompt(): string
     {
-        $pattern = '/^.*' . self::PROMPT . '\s*$/m';
+        $pattern = '/^.*' . $this->promptPattern . '\s*$/m';
 
         $this->readUntil($pattern);
 
@@ -248,7 +268,7 @@ class TelnetTransport
 
     private function stripOutput(string $buffer, string $command): string
     {
-        $out = preg_replace('/\s*' . self::PROMPT . '\s*$/s', '', $buffer);
+        $out = preg_replace('/\s*' . $this->promptPattern . '\s*$/s', '', $buffer);
         $out = preg_replace('/^\s*' . preg_quote(trim($command), '/') . '(?:\r\n|\r|\n)?/', '', (string) $out);
 
         return trim((string) $out);

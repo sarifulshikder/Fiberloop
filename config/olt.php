@@ -52,11 +52,22 @@ return [
             'gigabit_info' => 'show interface gigabitethernet %s',
         ],
         'bdcom' => [
-            // BDCOM P33xx / GPON-ONU style CLI (Cisco-like syntax).
-            'onu_info' => 'show epon onu info',
-            'onu_optical' => 'show epon onu optical-info',
+            // BDCOM P33xx EPON OLT (Cisco-like CLI). Verified against a live
+            // P3310C on 2026-08-14. %s = PON port number ("1".."4"), used as
+            // the `epon0/%s` interface suffix.
+            'onu_info' => 'show epon onu-information interface epon0/%s',
+            'onu_optical' => 'show epon onu-ctc-optical-transceiver-diagnosis interface epon0/%s',
             'onu_gpon_info' => 'show gpon onu info',
             'onu_gpon_optical' => 'show gpon onu optical-info',
+            // ONU descriptions live in the running config under each per-ONU
+            // interface (`interface EPON0/1:1` ... `description <name>` /
+            // `epon onu description <name>`).
+            'onu_descriptions' => 'show running-config',
+            // Port status for the "Poll Ports" action. The BDCOM OLT exposes
+            // no SNMP service on its management IP (the SNMP service there
+            // belongs to the upstream VSOL), so ports are polled over CLI.
+            'pon_info' => 'show interface epon0/%s',
+            'gigabit_info' => 'show interface GigaEthernet0/%s',
         ],
         'huawei' => [
             // Huawei MA5600/MA5800. %s = F/S/P (e.g. 0/1/0).

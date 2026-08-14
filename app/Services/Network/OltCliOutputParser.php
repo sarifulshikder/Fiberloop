@@ -14,6 +14,7 @@ final class OltCliOutputParser
         'online', 'offline', 'registered', 'unregistered', 'active', 'unknown',
         'working', 'configuring', 'autofind', 'auto-find', 'auto_find', 'los',
         'losi', 'fail', 'deactive', 'inactive', 'normal', 'pending',
+        'auto-configured', 'auto-configuring',
     ];
 
     /**
@@ -188,6 +189,117 @@ final class OltCliOutputParser
     }
 
     /**
+     * Parse BDCOM ONU descriptions out of `show running-config`.
+     *
+     * The BDCOM running config gives every ONU its own interface block:
+     *   interface EPON0/1:1
+     *    description Anis
+     *    epon onu description Anis
+     *
+     * Returns rows keyed by "{port}|{onu_id}".
+     */
+    public static function parseBdcomDescriptionsTable(string $output): array
+    {
+        $rows = [];
+        $currentKey = null;
+
+        foreach (preg_split('/\r\n|\r|\n/', $output) as $raw) {
+            $line = trim($raw);
+
+            if ($line === '') {
+                continue;
+            }
+
+            if (preg_match('/^interface\s+EPON\s*(\d+)\/(\d+):(\d+)$/i', $line, $m)) {
+                $currentKey = self::portInt($m[1] . '/' . $m[2]) . '|' . (int) $m[3];
+
+                continue;
+            }
+
+            if ($currentKey === null) {
+                continue;
+            }
+
+            if (preg_match('/^(?:epon\s+onu\s+)?description\s+(.+)$/i', $line, $m)) {
+                $description = trim($m[1], " \t\"'");
+
+                if ($description !== '') {
+                    $rows[$currentKey] = $description;
+                    // Both `description` and `epon onu description` are emitted
+                    // for the same ONU; the block ends after the first capture.
+                    $currentKey = null;
+                }
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Parse a BDCOM "show interface epon0/X" / "show interface GigaEthernet0/X"
+     * block (Cisco-like layout).
+     *
+     * Sample:
+     *   EPON0/1 is up, line protocol is up
+     *   Description: Ashraful_Sarak-Rail_Bridge
+     *   Hardware is Giga-PON, address is 00:e0:50:xx:xx:xx
+     *   MTU 1500 bytes, BW 1000000 kbit, DLY 2000 usec
+     *
+     *   GigaEthernet0/1 is up, line protocol is up
+     *   Description: From_VSOL_olt
+     *   Hardware is Giga-TX, address is ...
+     *   MTU 1500 bytes, BW 1000000 kbit, DLY 2000 usec
+     *   Auto-Duplex(Full), Auto-Speed(1000Mb/s)
+     */
+    public static function parseBdcomInterfaceInfo(string $output): array
+    {
+        $info = [
+            'admin_status' => null,
+            'state' => null,
+            'description' => null,
+            'hardware_type' => null,
+            'high_speed' => null,
+            'mtu' => null,
+        ];
+
+        foreach (preg_split('/\r\n|\r|\n/', $output) as $raw) {
+            $line = trim($raw);
+
+            if (preg_match('/^.+?\s+is\s+(up|down|administratively\s+down|disabled)\s*,?\s+line\s+protocol\s+is\s+(up|down)/i', $line, $m)) {
+                $isUp = strtolower($m[1]) === 'up';
+                $info['state'] = $isUp ? 1 : 2;
+                $info['admin_status'] = $isUp ? 1 : 2;
+
+                continue;
+            }
+
+            if (preg_match('/^Description\s*:\s*(.+)$/i', $line, $m)) {
+                $info['description'] = trim($m[1]);
+
+                continue;
+            }
+
+            if (preg_match('/^Hardware\s+is\s+(.+?),\s*address/i', $line, $m)) {
+                $info['hardware_type'] = trim($m[1]);
+
+                continue;
+            }
+
+            if (preg_match('/^MTU\s+(\d+)\s+bytes/i', $line, $m)) {
+                $info['mtu'] = (int) $m[1];
+
+                continue;
+            }
+
+            if (preg_match('/Auto-Speed\((\d+)[Mm]b\/s\)/', $line, $m)) {
+                $info['high_speed'] = (int) $m[1];
+            }
+        }
+
+        return $info;
+    }
+
+    /**
      * Parse a VSOL "show pon info" block for one PON port.
      */
     public static function parsePonInfo(string $output): array
@@ -272,6 +384,13 @@ final class OltCliOutputParser
                 continue;
             }
 
+            // BDCOM `show epon onu-information` prints one section header per
+            // PON port ("Interface EPON0/1 has registered 18 ONUs:") which
+            // must not be parsed as an ONU row.
+            if (preg_match('/^interface\s+\S+\s+has\s+registered\s+\d+\s+onus?:/i', $line)) {
+                continue;
+            }
+
             $lines[] = $line;
         }
 
@@ -342,7 +461,10 @@ final class OltCliOutputParser
                 continue;
             }
 
-            if ($mac === null && preg_match('/^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$/', $clean)) {
+            if ($mac === null
+                && preg_match('/^[0-9A-Fa-f][0-9A-Fa-f.:-]*$/', $clean)
+                && strlen(preg_replace('/[^0-9A-Fa-f]/', '', $clean)) === 12
+                && substr_count($clean, '.') + substr_count($clean, ':') + substr_count($clean, '-') >= 2) {
                 $mac = self::normalizeMac($clean);
 
                 continue;
@@ -572,7 +694,7 @@ final class OltCliOutputParser
 
         return !in_array($state, [
             'unregistered', 'autofind', 'auto-find', 'auto_find',
-            'configuring', 'pending', 'fail', 'los', 'losi', 'unknown',
+            'configuring', 'auto-configuring', 'pending', 'fail', 'los', 'losi', 'unknown',
         ], true);
     }
 
@@ -582,6 +704,6 @@ final class OltCliOutputParser
             return true;
         }
 
-        return in_array($state, ['online', 'active', 'working', 'normal', 'registered'], true);
+        return in_array($state, ['online', 'active', 'working', 'normal', 'registered', 'auto-configured'], true);
     }
 }

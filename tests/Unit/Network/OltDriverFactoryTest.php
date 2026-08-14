@@ -6,6 +6,7 @@ use App\Enums\DeviceVendor;
 use App\Enums\NetworkManagementProtocol;
 use App\Models\NetworkDevice;
 use App\Models\Olt;
+use App\Services\Network\OltDrivers\BdcomCliDriver;
 use App\Services\Network\OltDrivers\BdcomDriver;
 use App\Services\Network\OltDrivers\HuaweiCliDriver;
 use App\Services\Network\OltDrivers\OltDriverFactory;
@@ -54,6 +55,17 @@ describe('OltDriverFactory', function () {
         $driver = OltDriverFactory::make($this->olt->refresh());
 
         expect($driver)->toBeInstanceOf(VsolCliDriver::class);
+    });
+
+    it('picks the bdcom cli driver for ssh', function () {
+        $this->device->update([
+            'vendor' => DeviceVendor::BDCOM,
+            'management_protocol' => NetworkManagementProtocol::SSH,
+        ]);
+
+        $driver = OltDriverFactory::make($this->olt->refresh());
+
+        expect($driver)->toBeInstanceOf(BdcomCliDriver::class);
     });
 
     it('maps ssh protocol to huawei and zte cli drivers', function () {
