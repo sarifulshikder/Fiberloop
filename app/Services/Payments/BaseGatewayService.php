@@ -2,6 +2,7 @@
 
 namespace App\Services\Payments;
 
+use App\Models\PaymentGatewaySetting;
 use Exception;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -29,10 +30,12 @@ abstract class BaseGatewayService
 
     /**
      * Get the gateway configuration.
+     * DB-stored settings (payment_gateway_settings) override static config
+     * values, so credentials can be managed from the admin panel.
      */
     protected function config(): array
     {
-        return config("payment-gateways.{$this->gatewayName}", []);
+        return PaymentGatewaySetting::mergedConfig($this->gatewayName);
     }
 
     /**
