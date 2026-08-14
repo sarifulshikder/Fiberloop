@@ -150,6 +150,146 @@ class MikroTikServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_set_ppp_secret_add(): void
+    {
+        $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);
+        $mockClient = $this->createMockClient();
+
+        $mockClient->shouldReceive('connect')->andReturn(true);
+        // Secret does not exist yet
+        $mockClient->shouldReceive('write')->with('/ppp/secret/print', false)->once();
+        $mockClient->shouldReceive('write')->with('?name=user1')->once();
+        $mockClient->shouldReceive('read')->with(false)->once()->andReturn(['raw']);
+        $mockClient->shouldReceive('parseResponse')->with(['raw'])->once()->andReturn([]);
+        // Add it
+        $mockClient->shouldReceive('write')->with('/ppp/secret/add', false)->once();
+        $mockClient->shouldReceive('write')->with('=name=user1', false)->once();
+        $mockClient->shouldReceive('write')->with('=password=pass123', false)->once();
+        $mockClient->shouldReceive('write')->with('=service=pppoe', false)->once();
+        $mockClient->shouldReceive('write')->with('=disabled=no', false)->once();
+        $mockClient->shouldReceive('write')->with('=profile=fiberloop-20M-10M', false)->once();
+        $mockClient->shouldReceive('write')->with('=remote-address=192.168.1.10')->once();
+        $mockClient->shouldReceive('read')->with(false)->once();
+
+        $service = new MikroTikService($device, $mockClient);
+        $result = $service->setPppSecret('user1', 'pass123', 'fiberloop-20M-10M', '192.168.1.10', false);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_set_ppp_secret_update(): void
+    {
+        $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);
+        $mockClient = $this->createMockClient();
+
+        $mockClient->shouldReceive('connect')->andReturn(true);
+        // Secret already exists
+        $mockClient->shouldReceive('write')->with('/ppp/secret/print', false)->once();
+        $mockClient->shouldReceive('write')->with('?name=user1')->once();
+        $mockClient->shouldReceive('read')->with(false)->once()->andReturn(['raw']);
+        $mockClient->shouldReceive('parseResponse')->with(['raw'])->once()->andReturn([
+            ['.id' => '*1', 'name' => 'user1'],
+        ]);
+        // Update it
+        $mockClient->shouldReceive('write')->with('/ppp/secret/set', false)->once();
+        $mockClient->shouldReceive('write')->with('=.id=*1', false)->once();
+        $mockClient->shouldReceive('write')->with('=name=user1', false)->once();
+        $mockClient->shouldReceive('write')->with('=password=pass123', false)->once();
+        $mockClient->shouldReceive('write')->with('=service=pppoe', false)->once();
+        $mockClient->shouldReceive('write')->with('=disabled=no')->once();
+        $mockClient->shouldReceive('read')->with(false)->once();
+
+        $service = new MikroTikService($device, $mockClient);
+        $result = $service->setPppSecret('user1', 'pass123');
+
+        $this->assertTrue($result);
+    }
+
+    public function test_set_ppp_secret_enabled_disables_secret(): void
+    {
+        $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);
+        $mockClient = $this->createMockClient();
+
+        $mockClient->shouldReceive('connect')->andReturn(true);
+        $mockClient->shouldReceive('write')->with('/ppp/secret/print', false)->once();
+        $mockClient->shouldReceive('write')->with('?name=user1')->once();
+        $mockClient->shouldReceive('read')->with(false)->once()->andReturn(['raw']);
+        $mockClient->shouldReceive('parseResponse')->with(['raw'])->once()->andReturn([
+            ['.id' => '*1'],
+        ]);
+        $mockClient->shouldReceive('write')->with('/ppp/secret/set', false)->once();
+        $mockClient->shouldReceive('write')->with('=.id=*1', false)->once();
+        $mockClient->shouldReceive('write')->with('=disabled=yes')->once();
+        $mockClient->shouldReceive('read')->with(false)->once();
+
+        $service = new MikroTikService($device, $mockClient);
+        $result = $service->setPppSecretEnabled('user1', false);
+
+        $this->assertTrue($result);
+    }
+
+    public function test_remove_ppp_secret(): void
+    {
+        $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);
+        $mockClient = $this->createMockClient();
+
+        $mockClient->shouldReceive('connect')->andReturn(true);
+        $mockClient->shouldReceive('write')->with('/ppp/secret/print', false)->once();
+        $mockClient->shouldReceive('write')->with('?name=user1')->once();
+        $mockClient->shouldReceive('read')->with(false)->once()->andReturn(['raw']);
+        $mockClient->shouldReceive('parseResponse')->with(['raw'])->once()->andReturn([
+            ['.id' => '*1'],
+        ]);
+        $mockClient->shouldReceive('write')->with('/ppp/secret/remove', false)->once();
+        $mockClient->shouldReceive('write')->with('=.id=*1')->once();
+        $mockClient->shouldReceive('read')->with(false)->once();
+
+        $service = new MikroTikService($device, $mockClient);
+        $result = $service->removePppSecret('user1');
+
+        $this->assertTrue($result);
+    }
+
+    public function test_ensure_ppp_profile_adds_missing_profile(): void
+    {
+        $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);
+        $mockClient = $this->createMockClient();
+
+        $mockClient->shouldReceive('connect')->andReturn(true);
+        $mockClient->shouldReceive('write')->with('/ppp/profile/print', false)->once();
+        $mockClient->shouldReceive('write')->with('?name=fiberloop-20M-10M')->once();
+        $mockClient->shouldReceive('read')->with(false)->once()->andReturn(['raw']);
+        $mockClient->shouldReceive('parseResponse')->with(['raw'])->once()->andReturn([]);
+        $mockClient->shouldReceive('write')->with('/ppp/profile/add', false)->once();
+        $mockClient->shouldReceive('write')->with('=name=fiberloop-20M-10M', false)->once();
+        $mockClient->shouldReceive('write')->with('=rate-limit=10M/20M')->once();
+        $mockClient->shouldReceive('read')->with(false)->once();
+
+        $service = new MikroTikService($device, $mockClient);
+        $profile = $service->ensurePppProfile(20, 10);
+
+        $this->assertEquals('fiberloop-20M-10M', $profile);
+    }
+
+    public function test_ensure_ppp_profile_returns_existing(): void
+    {
+        $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);
+        $mockClient = $this->createMockClient();
+
+        $mockClient->shouldReceive('connect')->andReturn(true);
+        $mockClient->shouldReceive('write')->with('/ppp/profile/print', false)->once();
+        $mockClient->shouldReceive('write')->with('?name=fiberloop-20M-10M')->once();
+        $mockClient->shouldReceive('read')->with(false)->once()->andReturn(['raw']);
+        $mockClient->shouldReceive('parseResponse')->with(['raw'])->once()->andReturn([
+            ['.id' => '*1', 'name' => 'fiberloop-20M-10M'],
+        ]);
+
+        $service = new MikroTikService($device, $mockClient);
+        $profile = $service->ensurePppProfile(20, 10);
+
+        $this->assertEquals('fiberloop-20M-10M', $profile);
+    }
+
     public function test_reboot(): void
     {
         $device = new NetworkDevice(['ip_address' => '192.168.88.1', 'username' => 'admin']);

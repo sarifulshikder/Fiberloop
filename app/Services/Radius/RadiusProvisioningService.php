@@ -12,19 +12,31 @@ use Illuminate\Support\Str;
 class RadiusProvisioningService
 {
     /**
-     * Provision or sync a customer's RADIUS user credentials and network attributes.
+     * Create or update the central RadiusCustomer mapping record.
+     * Kept separate from the RADIUS-table writes so the MikroTik API
+     * provisioning path can reuse it without writing radcheck/radreply.
      */
-    public function provisionUser(Customer $customer, ?Subscription $subscription = null, array $attributes = []): RadiusCustomer
+    public function syncRadiusCustomer(Customer $customer, ?Subscription $subscription = null, array $attributes = []): RadiusCustomer
     {
-        $subscription = $subscription ?? $customer->activeSubscription;
+        $subscription = $subscription ?? $customer->getActiveSubscription();
         $package = $subscription?->package;
 
-        $username = $attributes['radius_username'] ?? $customer->phone ?? 'user_'.$customer->id;
-        $password = $attributes['radius_password'] ?? Str::random(10);
-        $connectionType = $attributes['connection_type'] ?? $customer->connection_type ?? 'pppoe';
+        $existing = RadiusCustomer::where('customer_id', $customer->id)->first();
 
-        // 1. Central mapping record
-        $radiusCustomer = RadiusCustomer::updateOrCreate(
+        $username = $attributes['radius_username']
+            ?? $existing?->radius_username
+            ?? $customer->radius_username
+            ?? $customer->phone
+            ?? 'user_' . $customer->id;
+
+        $password = $attributes['radius_password']
+            ?? $customer->radius_password
+            ?? $existing?->radius_password
+            ?? Str::random(10);
+
+        $connectionType = $attributes['connection_type'] ?? $customer->connection_type?->value ?? 'pppoe';
+
+        return RadiusCustomer::updateOrCreate(
             [
                 'customer_id' => $customer->id,
             ],
@@ -40,8 +52,19 @@ class RadiusProvisioningService
                 'is_active' => true,
             ]
         );
+    }
 
-        // 2. FreeRADIUS radcheck entries (Auth)
+    /**
+     * Provision or sync a customer's RADIUS user credentials and network attributes.
+     */
+    public function provisionUser(Customer $customer, ?Subscription $subscription = null, array $attributes = []): RadiusCustomer
+    {
+        $radiusCustomer = $this->syncRadiusCustomer($customer, $subscription, $attributes);
+
+        $username = $radiusCustomer->radius_username;
+        $password = $radiusCustomer->radius_password;
+        $package = $subscription?->package ?? $customer->getActiveSubscription()?->package;
+        $connectionType = $radiusCustomer->connection_type;
         RadCheck::updateOrCreate(
             [
                 'username' => $username,
@@ -58,7 +81,7 @@ class RadiusProvisioningService
             ->where('attribute', 'Auth-Type')
             ->delete();
 
-        // 3. FreeRADIUS radreply entries (Bandwidth & Protocol)
+        // 2. FreeRADIUS radreply entries (Bandwidth & Protocol)
         if ($package && ($package->download_speed || $package->upload_speed)) {
             $rateLimit = $this->formatRateLimit(
                 $package->upload_speed ?? $package->download_speed,
@@ -184,12 +207,20 @@ class RadiusProvisioningService
 
         $username = $radiusCustomer->radius_username;
 
-        RadCheck::where('username', $username)->delete();
-        RadReply::where('username', $username)->delete();
+        $this->removeRadiusCredentials($username);
 
         $radiusCustomer->update([
             'is_active' => false,
         ]);
+    }
+
+    /**
+     * Remove all radcheck/radreply rows for a username.
+     */
+    public function removeRadiusCredentials(string $username): void
+    {
+        RadCheck::where('username', $username)->delete();
+        RadReply::where('username', $username)->delete();
     }
 
     /**
@@ -232,5 +263,25 @@ class RadiusProvisioningService
         $tx = $downloadSpeed >= 1000 ? ($downloadSpeed / 1000).'M' : $downloadSpeed.'M';
 
         return "{$rx}/{$tx}";
+    }
+
+    /**
+     * Flip the central mapping record to active without touching RADIUS tables.
+     * Used by the MikroTik API provisioning path.
+     */
+    public function markActive(Customer $customer): void
+    {
+        RadiusCustomer::where('customer_id', $customer->id)
+            ->update(['is_active' => true]);
+    }
+
+    /**
+     * Flip the central mapping record to inactive without touching RADIUS tables.
+     * Used by the MikroTik API provisioning path.
+     */
+    public function markInactive(Customer $customer): void
+    {
+        RadiusCustomer::where('customer_id', $customer->id)
+            ->update(['is_active' => false]);
     }
 }

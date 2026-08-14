@@ -4,8 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
+use App\Enums\DeviceVendor;
+use App\Enums\ProvisioningMethod;
 use App\Filament\Resources\CustomerResource\Pages;
 use App\Models\Customer;
+use App\Models\NetworkDevice;
 use App\Models\Package;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -20,6 +23,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\SelectColumn;
@@ -175,6 +179,29 @@ class CustomerResource extends Resource
                         TextInput::make('mac_address')
                             ->maxLength(17),
                     ])->columns(2),
+                Section::make('Network Provisioning')
+                    ->description('Choose how this customer is provisioned. RADIUS stores credentials in FreeRADIUS; MikroTik API creates a local PPPoE secret on the selected router.')
+                    ->schema([
+                        Select::make('provisioning_method')
+                            ->label('Provisioning Method')
+                            ->options(ProvisioningMethod::options())
+                            ->default(ProvisioningMethod::RADIUS->value)
+                            ->live()
+                            ->required(),
+                        Select::make('network_device_id')
+                            ->label('MikroTik Router')
+                            ->helperText('Required when provisioning method is MikroTik API')
+                            ->options(NetworkDevice::query()
+                                ->where('vendor', DeviceVendor::MIKROTIK)
+                                ->orderBy('name')
+                                ->get()
+                                ->mapWithKeys(fn (NetworkDevice $device) => [
+                                    $device->id => trim($device->name . ' (' . $device->ip_address . ')'),
+                                ]))
+                            ->searchable()
+                            ->preload()
+                            ->visible(fn (Get $get): bool => $get('provisioning_method') === ProvisioningMethod::API->value),
+                    ])->columns(2),
                 Section::make('Status')
                     ->schema([
                         Select::make('status')
@@ -243,6 +270,19 @@ class CustomerResource extends Resource
                     ->label('Connection')
                     ->options(ConnectionType::class)
                     ->sortable(),
+                TextColumn::make('provisioning_method')
+                    ->label('Provisioning')
+                    ->badge()
+                    ->formatStateUsing(fn (?ProvisioningMethod $state): string => $state?->label() ?? 'RADIUS')
+                    ->color(fn (?ProvisioningMethod $state): string => $state === ProvisioningMethod::API ? 'warning' : 'success')
+                    ->sortable(),
+                TextColumn::make('networkDevice.name')
+                    ->label('Router')
+                    ->placeholder('—')
+                    ->sortable()
+                    ->formatStateUsing(fn ($state, $record): ?string => $record->networkDevice
+                        ? trim($record->networkDevice->name . ' (' . $record->networkDevice->ip_address . ')')
+                        : null),
                 TextColumn::make('service_address')
                     ->label('Service Address')
                     ->limit(50)

@@ -12,6 +12,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\RadiusCustomer;
 use App\Models\User;
+use App\Services\Network\SubscriberProvisioningService;
 use App\Services\Radius\RadiusCoaService;
 use App\Services\Radius\RadiusProvisioningService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -32,6 +33,11 @@ class RadiusEventListenerTest extends TestCase
         $this->coaService = new RadiusCoaService();
     }
 
+    private function provisioning(): SubscriberProvisioningService
+    {
+        return new SubscriberProvisioningService($this->provisioningService);
+    }
+
     public function test_suspended_event_listener_disables_radius_user(): void
     {
         $customer = Customer::factory()->create(['phone' => '01800000001']);
@@ -40,7 +46,7 @@ class RadiusEventListenerTest extends TestCase
         $invoice = Invoice::factory()->create(['customer_id' => $customer->id]);
         $event = new SubscriptionSuspended($customer, $invoice, 'Overdue payment');
 
-        $listener = new HandleSubscriptionSuspended($this->provisioningService, $this->coaService);
+        $listener = new HandleSubscriptionSuspended($this->provisioning(), $this->coaService);
         $listener->handle($event);
 
         $this->assertDatabaseHas('radcheck', [
@@ -61,7 +67,7 @@ class RadiusEventListenerTest extends TestCase
 
         $event = new SubscriptionReactivated($customer, null, 'Payment received');
 
-        $listener = new HandleSubscriptionReactivated($this->provisioningService);
+        $listener = new HandleSubscriptionReactivated($this->provisioning());
         $listener->handle($event);
 
         $this->assertDatabaseMissing('radcheck', [
@@ -81,7 +87,7 @@ class RadiusEventListenerTest extends TestCase
 
         $event = new SubscriptionTerminated($customer, 'Contract ended');
 
-        $listener = new HandleSubscriptionTerminated($this->provisioningService, $this->coaService);
+        $listener = new HandleSubscriptionTerminated($this->provisioning(), $this->coaService);
         $listener->handle($event);
 
         $this->assertDatabaseMissing('radcheck', ['username' => '01800000003'], 'radius');

@@ -3,7 +3,7 @@
 namespace App\Listeners\Radius;
 
 use App\Events\Billing\SubscriptionReactivated;
-use App\Services\Radius\RadiusProvisioningService;
+use App\Services\Network\SubscriberProvisioningService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +13,7 @@ class HandleSubscriptionReactivated implements ShouldQueue
     use InteractsWithQueue;
 
     public function __construct(
-        protected RadiusProvisioningService $provisioningService
+        protected SubscriberProvisioningService $provisioningService
     ) {
     }
 
@@ -23,9 +23,9 @@ class HandleSubscriptionReactivated implements ShouldQueue
     public function handle(SubscriptionReactivated $event): void
     {
         $customer = $event->customer;
-        Log::info("Handling RADIUS reactivation for customer #{$customer->id}", ['reason' => $event->reason]);
+        Log::info("Handling subscription reactivation for customer #{$customer->id}", ['reason' => $event->reason]);
 
-        // Restore RADIUS authentication state in DB
-        $this->provisioningService->reactivateUser($customer);
+        // Restore provisioning state (RADIUS auth, or re-enable the MikroTik PPP secret).
+        $this->provisioningService->reactivate($customer);
     }
 }

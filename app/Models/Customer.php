@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\ConnectionType;
 use App\Enums\CustomerStatus;
+use App\Enums\ProvisioningMethod;
+use App\Enums\SubscriptionStatus;
 use App\Models\Scopes\ResellerScope;
 use Filament\Models\Contracts\HasName;
 use Illuminate\Auth\Authenticatable;
@@ -58,6 +60,8 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
         'area',
         'zone',
         'connection_type',
+        'provisioning_method',
+        'network_device_id',
         'radius_username',
         'radius_password',
         'password',
@@ -79,6 +83,7 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
     protected $casts = [
         'date_of_birth' => 'date',
         'connection_type' => ConnectionType::class,
+        'provisioning_method' => ProvisioningMethod::class,
         'status' => CustomerStatus::class,
         'wallet_balance' => 'integer',
         'activated_at' => 'datetime',
@@ -178,6 +183,19 @@ class Customer extends Model implements AuthenticatableContract, AuthorizableCon
     public function radiusCustomer(): HasMany
     {
         return $this->hasMany(RadiusCustomer::class);
+    }
+
+    public function networkDevice(): BelongsTo
+    {
+        return $this->belongsTo(NetworkDevice::class);
+    }
+
+    public function getActiveSubscription(): ?Subscription
+    {
+        return $this->subscriptions()
+            ->where('status', SubscriptionStatus::ACTIVE)
+            ->latest('id')
+            ->first();
     }
 
     public function onus(): HasMany
