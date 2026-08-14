@@ -204,13 +204,15 @@ class OltPortResource extends Resource
                     ->sortable()
                     ->color(fn ($state) => $state === null ? null : ($state < -27 ? 'danger' : ($state < -24 ? 'warning' : 'success')))
                     ->placeholder('—')
-                    ->copyable(),
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('sfp_tx_power_dbm')
                     ->label('Tx Power (dBm)')
                     ->numeric(2)
                     ->sortable()
                     ->color(fn ($state) => $state === null ? null : ($state > 3 || $state < -10 ? 'danger' : ($state > 2 || $state < -8 ? 'warning' : 'success')))
-                    ->placeholder('—'),
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 // Temperature & Voltage
                 TextColumn::make('sfp_temperature_c')
@@ -219,14 +221,16 @@ class OltPortResource extends Resource
                     ->sortable()
                     ->color(fn ($state) => $state === null ? null : ($state > 75 ? 'danger' : ($state > 65 ? 'warning' : 'success')))
                     ->placeholder('—')
-                    ->suffix('°C'),
+                    ->suffix('°C')
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('sfp_voltage_v')
                     ->label('Voltage (V)')
                     ->numeric(3)
                     ->sortable()
                     ->color(fn ($state) => $state === null ? null : ($state < 3.0 || $state > 3.6 ? 'danger' : ($state < 3.1 || $state > 3.5 ? 'warning' : 'success')))
                     ->placeholder('—')
-                    ->suffix('V'),
+                    ->suffix('V')
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 // Tx Bias
                 TextColumn::make('sfp_tx_bias_ma')

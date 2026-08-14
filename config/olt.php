@@ -17,6 +17,7 @@ return [
     'telnet_timeout' => (int) env('OLT_TELNET_TIMEOUT', 15),
     'telnet_port' => (int) env('OLT_TELNET_PORT', 23),
     'default_pon_ports' => (int) env('OLT_DEFAULT_PON_PORTS', 4),
+    'default_gigabit_ports' => (int) env('OLT_DEFAULT_GIGABIT_PORTS', 8),
 
     /*
     |--------------------------------------------------------------------------
@@ -46,6 +47,9 @@ return [
             'onu_descriptions' => 'show running-config',
             // PON port status for the "Poll Ports" action (VSOL has no reachable SNMP).
             'pon_info' => "configure terminal\ninterface epon %s\nshow pon info\nexit\nexit",
+            // Gigabit/uplink port status for the "Poll Ports" action. The VSOL
+            // shows one block per `gigabitethernet 0/X` port.
+            'gigabit_info' => 'show interface gigabitethernet %s',
         ],
         'bdcom' => [
             // BDCOM P33xx / GPON-ONU style CLI (Cisco-like syntax).

@@ -111,11 +111,6 @@ class NetworkDevice extends Model
         return $this->hasMany(SnmpCommunity::class);
     }
 
-    public function snmpTraps(): HasMany
-    {
-        return $this->hasMany(SnmpTrap::class);
-    }
-
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

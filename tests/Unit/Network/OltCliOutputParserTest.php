@@ -256,3 +256,40 @@ TXT;
     expect($info['admin_status'])->toBe(1)
         ->and($info['oper_status'])->toBe(2);
 });
+
+it('parses a live VSOL gigabitethernet interface block', function () {
+    $output = <<<TXT
+Interface gigabitEthernet0/1's information.
+    GigabitEthernet0/1 current state : Up
+    Description: UpR-Link
+    Hardware Type is 10 Gigabit Ethernet, Hardware address is 0:0:0:0:0:0
+    The Maximum Transmit Unit is 1500
+    Media type is twisted pair, loopback not set
+    Port hardware type is 10 Gigabit,SFP+
+    Current link speed: 10000Mbps,  Current link mode: full-duplex
+TXT;
+
+    $info = OltCliOutputParser::parseGigabitethernetInfo($output);
+
+    expect($info['state'])->toBe(1)
+        ->and($info['description'])->toBe('UpR-Link')
+        ->and($info['hardware_type'])->toBe('10 Gigabit Ethernet')
+        ->and($info['high_speed'])->toBe(10000)
+        ->and($info['mtu'])->toBe(1500);
+});
+
+it('parses a down gigabitethernet port without a description', function () {
+    $output = <<<TXT
+Interface gigabitEthernet0/4's information.
+    GigabitEthernet0/4 current state : Down
+    Hardware Type is 10 Gigabit Ethernet, Hardware address is 0:0:0:0:0:0
+    The Maximum Transmit Unit is 1500
+    Current link speed: 10000Mbps,  Current link mode: full-duplex
+TXT;
+
+    $info = OltCliOutputParser::parseGigabitethernetInfo($output);
+
+    expect($info['state'])->toBe(2)
+        ->and($info['description'])->toBeNull()
+        ->and($info['high_speed'])->toBe(10000);
+});

@@ -212,6 +212,46 @@ final class OltCliOutputParser
     }
 
     /**
+     * Parse a VSOL "show interface gigabitethernet 0/X" block.
+     *
+     * Sample:
+     *   Interface gigabitEthernet0/1's information.
+     *     GigabitEthernet0/1 current state : Up
+     *     Description: UpR-Link
+     *     Hardware Type is 10 Gigabit Ethernet, Hardware address is 0:0:0:0:0:0
+     *     The Maximum Transmit Unit is 1500
+     *     Current link speed: 10000Mbps,  Current link mode: full-duplex
+     */
+    public static function parseGigabitethernetInfo(string $output): array
+    {
+        $info = [
+            'state' => null,
+            'description' => null,
+            'hardware_type' => null,
+            'high_speed' => null,
+            'mtu' => null,
+        ];
+
+        foreach (preg_split('/\r\n|\r|\n/', $output) as $raw) {
+            $line = trim($raw);
+
+            if (preg_match('/current\s+state\s*:\s*(\w+)/i', $line, $m)) {
+                $info['state'] = strtolower($m[1]) === 'up' ? 1 : 2;
+            } elseif (preg_match('/^Description\s*:\s*(.+)$/i', $line, $m)) {
+                $info['description'] = trim($m[1]);
+            } elseif (preg_match('/(?<!Port\s)Hardware\s+Type\s+is\s+(.+?),/i', $line, $m)) {
+                $info['hardware_type'] = trim($m[1]);
+            } elseif (preg_match('/Current\s+link\s+speed\s*:\s*(\d+)Mbps/i', $line, $m)) {
+                $info['high_speed'] = (int) $m[1];
+            } elseif (preg_match('/Maximum\s+Transmit\s+Unit\s+is\s+(\d+)/i', $line, $m)) {
+                $info['mtu'] = (int) $m[1];
+            }
+        }
+
+        return $info;
+    }
+
+    /**
      * Extract the trailing integer from an F/S/P identifier ("0/1/7" -> 7).
      */
     public static function portInt(string $fsp): int

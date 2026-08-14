@@ -5,6 +5,7 @@ namespace App\Services\Network\OltDrivers;
 use App\Models\OltPort;
 use App\Services\Network\OltCliOutputParser;
 use App\Services\Network\TelnetTransport;
+use Illuminate\Support\Collection;
 
 /**
  * VSOL OLT (V1600D EPON / V2600G GPON) driver.
@@ -57,7 +58,8 @@ class VsolCliDriver extends CliOltDriver implements SupportsCliPortPoll
 
     /**
      * The VSOL OLT has no reachable SNMP service, so "Poll Ports" reads PON
-     * port status over the telnet CLI instead of IF-MIB walks.
+     * and gigabit/uplink port status over the telnet CLI instead of IF-MIB
+     * walks.
      */
     public function pollPorts(): array
     {
@@ -72,9 +74,10 @@ class VsolCliDriver extends CliOltDriver implements SupportsCliPortPoll
             ];
         }
 
-        $command = config("olt.commands.{$this->vendorKey()}.pon_info");
+        $ponCommand = config("olt.commands.{$this->vendorKey()}.pon_info");
+        $gigabitCommand = config("olt.commands.{$this->vendorKey()}.gigabit_info");
 
-        if ($command === null) {
+        if ($ponCommand === null && $gigabitCommand === null) {
             return [
                 'polled' => 0,
                 'created' => 0,
@@ -88,42 +91,80 @@ class VsolCliDriver extends CliOltDriver implements SupportsCliPortPoll
         $updated = 0;
         $polled = 0;
 
-        foreach ($this->ponPortIdentifiers() as $port) {
-            $output = $this->runCommand(sprintf($command, $port));
+        if ($ponCommand !== null) {
+            foreach ($this->ponPortIdentifiers() as $port) {
+                $output = $this->runCommand(sprintf($ponCommand, $port));
 
-            if ($output === '') {
-                continue;
+                if ($output === '') {
+                    continue;
+                }
+
+                $status = OltCliOutputParser::parsePonInfo($output);
+                $ifIndex = OltCliOutputParser::portInt((string) $port);
+
+                [$portCreated, $portUpdated] = $this->upsertPort($existingPorts, [
+                    'olt_id' => $this->olt->id,
+                    'tenant_id' => $this->olt->tenant_id,
+                    'network_device_id' => $device->id,
+                    'if_index' => $ifIndex,
+                    'name' => 'EPON' . $port,
+                    'type_label' => 'pon',
+                    'is_pon' => true,
+                    'is_uplink' => false,
+                    'is_active' => true,
+                    'admin_status' => $status['admin_status'],
+                    'oper_status' => $status['oper_status'],
+                    'last_polled_at' => now(),
+                    'poll_error' => false,
+                    'poll_error_message' => null,
+                ]);
+                $created += $portCreated;
+                $updated += $portUpdated;
+
+                $polled++;
             }
+        }
 
-            $status = OltCliOutputParser::parsePonInfo($output);
-            $ifIndex = OltCliOutputParser::portInt((string) $port);
+        if ($gigabitCommand !== null) {
+            foreach ($this->gigabitPortIdentifiers() as $port) {
+                $output = $this->runCommand(sprintf($gigabitCommand, $port));
 
-            $attributes = [
-                'olt_id' => $this->olt->id,
-                'tenant_id' => $this->olt->tenant_id,
-                'network_device_id' => $device->id,
-                'if_index' => $ifIndex,
-                'name' => 'EPON' . $port,
-                'type_label' => 'pon',
-                'is_pon' => true,
-                'is_uplink' => false,
-                'is_active' => true,
-                'admin_status' => $status['admin_status'],
-                'oper_status' => $status['oper_status'],
-                'last_polled_at' => now(),
-                'poll_error' => false,
-                'poll_error_message' => null,
-            ];
+                if ($output === '') {
+                    continue;
+                }
 
-            if (isset($existingPorts[$ifIndex])) {
-                $existingPorts[$ifIndex]->update($attributes);
-                $updated++;
-            } else {
-                OltPort::create($attributes);
-                $created++;
+                $info = OltCliOutputParser::parseGigabitethernetInfo($output);
+                $portNumber = OltCliOutputParser::portInt((string) $port);
+                $description = $info['description'];
+                $isUplink = $description !== null && stripos($description, 'link') !== false;
+
+                [$portCreated, $portUpdated] = $this->upsertPort($existingPorts, [
+                    'olt_id' => $this->olt->id,
+                    'tenant_id' => $this->olt->tenant_id,
+                    'network_device_id' => $device->id,
+                    // GE ports get an offset ifIndex (100+) so they never clash
+                    // with the PON ports (1-4).
+                    'if_index' => 100 + $portNumber,
+                    'name' => 'GE' . $port,
+                    'alias' => $description,
+                    'type_label' => $isUplink ? 'uplink' : ($info['state'] === 1 ? 'access' : 'other'),
+                    'is_pon' => false,
+                    'is_uplink' => $isUplink,
+                    'is_active' => true,
+                    'admin_status' => 1,
+                    'oper_status' => $info['state'],
+                    'speed' => $info['high_speed'] !== null ? $info['high_speed'] * 1_000_000 : null,
+                    'high_speed' => $info['high_speed'],
+                    'mtu' => $info['mtu'],
+                    'last_polled_at' => now(),
+                    'poll_error' => false,
+                    'poll_error_message' => null,
+                ]);
+                $created += $portCreated;
+                $updated += $portUpdated;
+
+                $polled++;
             }
-
-            $polled++;
         }
 
         return [
@@ -132,5 +173,33 @@ class VsolCliDriver extends CliOltDriver implements SupportsCliPortPoll
             'updated' => $updated,
             'reachable' => true,
         ];
+    }
+
+    protected function gigabitPortIdentifiers(): array
+    {
+        $ports = $this->olt->configuration['gigabit_ports'] ?? null;
+
+        if (is_array($ports) && $ports !== []) {
+            return $ports;
+        }
+
+        $total = (int) ($this->olt->total_gigabit_ports ?? config('olt.default_gigabit_ports', 8));
+
+        return array_map(fn (int $i) => '0/' . $i, range(1, $total));
+    }
+
+    private function upsertPort(Collection $existingPorts, array $attributes): array
+    {
+        $ifIndex = $attributes['if_index'];
+
+        if (isset($existingPorts[$ifIndex])) {
+            $existingPorts[$ifIndex]->update($attributes);
+
+            return [0, 1];
+        }
+
+        OltPort::create($attributes);
+
+        return [1, 0];
     }
 }
