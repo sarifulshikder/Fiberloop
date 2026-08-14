@@ -190,7 +190,7 @@ class FinancialReconciliationJob implements ShouldQueue
         $duplicates = Invoice::query()
             ->selectRaw('invoice_number, COUNT(*) as count')
             ->groupBy('invoice_number')
-            ->having('count', '>', 1)
+            ->havingRaw('COUNT(*) > 1')
             ->get();
 
         foreach ($duplicates as $duplicate) {

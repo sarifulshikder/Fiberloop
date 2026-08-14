@@ -182,8 +182,8 @@ class CustomerDataExport implements FromCollection, WithHeadings, ShouldQueue
                 'start_date' => $subscription->start_date->toDateString(),
                 'end_date' => $subscription->end_date?->toDateString(),
                 'status' => $subscription->status?->value,
-                'billing_cycle' => $subscription->billing_cycle,
-                'price' => $subscription->price / 100, // Convert from poysha to BDT
+                'billing_cycle' => $subscription->package?->billing_cycle?->value,
+                'price' => $subscription->final_price / 100, // Convert from poysha to BDT
                 'created_at' => $subscription->created_at->toDateTimeString(),
                 'updated_at' => $subscription->updated_at->toDateTimeString(),
             ];

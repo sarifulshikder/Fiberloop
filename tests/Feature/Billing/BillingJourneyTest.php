@@ -61,8 +61,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $package->id,
-            'price' => $package->price,
-            'billing_cycle' => $package->billing_cycle,
+            'monthly_price' => $package->price,
+            'final_price' => $package->price,
             'start_date' => now()->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -73,16 +73,14 @@ class BillingJourneyTest extends TestCase
         $invoice = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-001',
             'total' => $package->price,
             'tax_amount' => 0,
             'outstanding_amount' => $package->price,
             'due_date' => now()->addDays(15)->toDateString(),
             'status' => InvoiceStatus::SENT,
-            'billing_cycle' => $package->billing_cycle,
-            'billing_start' => now()->toDateString(),
-            'billing_end' => now()->addMonth()->toDateString(),
+            'period_start' => now()->toDateString(),
+            'period_end' => now()->addMonth()->toDateString(),
         ]);
 
         // Verify invoice was created correctly
@@ -99,10 +97,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice->id,
             'amount' => $package->price,
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now(),
-            'transaction_reference' => 'REF-001',
+            'gateway_reference' => 'REF-001',
         ]);
 
         // 6. Update invoice status to paid
@@ -165,8 +163,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $package->id,
-            'price' => $package->price,
-            'billing_cycle' => $package->billing_cycle,
+            'monthly_price' => $package->price,
+            'final_price' => $package->price,
             'start_date' => now()->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -177,7 +175,6 @@ class BillingJourneyTest extends TestCase
         $invoice = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-002',
             'total' => 100000,
             'tax_amount' => 0,
@@ -191,10 +188,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice->id,
             'amount' => 50000, // 500 BDT
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now(),
-            'transaction_reference' => 'REF-002-A',
+            'gateway_reference' => 'REF-002-A',
         ]);
 
         // Update invoice to show partial payment
@@ -215,10 +212,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice->id,
             'amount' => 50000, // 500 BDT
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now()->addHours(1),
-            'transaction_reference' => 'REF-002-B',
+            'gateway_reference' => 'REF-002-B',
         ]);
 
         // Update invoice to paid
@@ -239,13 +236,13 @@ class BillingJourneyTest extends TestCase
         $this->assertDatabaseHas('payments', [
             'invoice_id' => $invoice->id,
             'amount' => 50000,
-            'transaction_reference' => 'REF-002-A',
+            'gateway_reference' => 'REF-002-A',
         ]);
 
         $this->assertDatabaseHas('payments', [
             'invoice_id' => $invoice->id,
             'amount' => 50000,
-            'transaction_reference' => 'REF-002-B',
+            'gateway_reference' => 'REF-002-B',
         ]);
     }
 
@@ -273,8 +270,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $package->id,
-            'price' => $package->price,
-            'billing_cycle' => $package->billing_cycle,
+            'monthly_price' => $package->price,
+            'final_price' => $package->price,
             'start_date' => now()->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -285,7 +282,6 @@ class BillingJourneyTest extends TestCase
         $invoice = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-003',
             'total' => 100000,
             'tax_amount' => 0,
@@ -340,8 +336,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $package->id,
-            'price' => $package->price,
-            'billing_cycle' => $package->billing_cycle,
+            'monthly_price' => $package->price,
+            'final_price' => $package->price,
             'start_date' => now()->subDays(30)->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -352,7 +348,6 @@ class BillingJourneyTest extends TestCase
         $invoice = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-004',
             'total' => 100000,
             'tax_amount' => 0,
@@ -391,10 +386,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice->id,
             'amount' => 100000,
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now(),
-            'transaction_reference' => 'REF-004',
+            'gateway_reference' => 'REF-004',
         ]);
 
         $invoice->update([
@@ -459,8 +454,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $oldPackage->id,
-            'price' => $oldPackage->price,
-            'billing_cycle' => $oldPackage->billing_cycle,
+            'monthly_price' => $oldPackage->price,
+            'final_price' => $oldPackage->price,
             'start_date' => now()->subDays(15)->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -470,7 +465,8 @@ class BillingJourneyTest extends TestCase
         // Upgrade subscription
         $subscription->update([
             'package_id' => $newPackage->id,
-            'price' => $newPackage->price,
+            'monthly_price' => $newPackage->price,
+            'final_price' => $newPackage->price,
             'updated_at' => now(),
         ]);
 
@@ -479,14 +475,13 @@ class BillingJourneyTest extends TestCase
         $invoice = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $newPackage->id,
             'invoice_number' => 'INV-005',
             'total' => $proratedAmount,
             'tax_amount' => 0,
             'outstanding_amount' => $proratedAmount,
             'due_date' => now()->addDays(15)->toDateString(),
             'status' => InvoiceStatus::SENT,
-            'description' => 'Prorated charge for package upgrade',
+            'notes' => 'Prorated charge for package upgrade',
         ]);
 
         // Pay the prorated amount
@@ -494,10 +489,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice->id,
             'amount' => $proratedAmount,
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now(),
-            'transaction_reference' => 'REF-005',
+            'gateway_reference' => 'REF-005',
         ]);
 
         // Update invoice to paid
@@ -511,7 +506,7 @@ class BillingJourneyTest extends TestCase
         $this->assertDatabaseHas('subscriptions', [
             'id' => $subscription->id,
             'package_id' => $newPackage->id,
-            'price' => $newPackage->price,
+            'monthly_price' => $newPackage->price,
         ]);
 
         $this->assertDatabaseHas('invoices', [
@@ -545,8 +540,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $package->id,
-            'price' => $package->price,
-            'billing_cycle' => $package->billing_cycle,
+            'monthly_price' => $package->price,
+            'final_price' => $package->price,
             'start_date' => now()->subDays(45)->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -557,43 +552,40 @@ class BillingJourneyTest extends TestCase
         $invoice1 = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-006-A',
             'total' => 100000,
             'tax_amount' => 0,
             'outstanding_amount' => 100000,
             'due_date' => now()->subDays(30)->toDateString(),
             'status' => InvoiceStatus::PAID,
-            'billing_start' => now()->subDays(45)->toDateString(),
-            'billing_end' => now()->subDays(30)->toDateString(),
+            'period_start' => now()->subDays(45)->toDateString(),
+            'period_end' => now()->subDays(30)->toDateString(),
         ]);
 
         $invoice2 = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-006-B',
             'total' => 100000,
             'tax_amount' => 0,
             'outstanding_amount' => 100000,
             'due_date' => now()->subDays(15)->toDateString(),
             'status' => InvoiceStatus::PAID,
-            'billing_start' => now()->subDays(30)->toDateString(),
-            'billing_end' => now()->subDays(15)->toDateString(),
+            'period_start' => now()->subDays(30)->toDateString(),
+            'period_end' => now()->subDays(15)->toDateString(),
         ]);
 
         $invoice3 = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-006-C',
             'total' => 100000,
             'tax_amount' => 0,
             'outstanding_amount' => 100000,
             'due_date' => now()->addDays(15)->toDateString(),
             'status' => InvoiceStatus::SENT,
-            'billing_start' => now()->subDays(15)->toDateString(),
-            'billing_end' => now()->addDays(15)->toDateString(),
+            'period_start' => now()->subDays(15)->toDateString(),
+            'period_end' => now()->addDays(15)->toDateString(),
         ]);
 
         // Pay invoice 3
@@ -601,10 +593,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice3->id,
             'amount' => 100000,
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now(),
-            'transaction_reference' => 'REF-006-C',
+            'gateway_reference' => 'REF-006-C',
         ]);
 
         $invoice3->update([
@@ -663,8 +655,8 @@ class BillingJourneyTest extends TestCase
         $subscription = Subscription::factory()->create([
             'customer_id' => $customer->id,
             'package_id' => $package->id,
-            'price' => $package->price,
-            'billing_cycle' => $package->billing_cycle,
+            'monthly_price' => $package->price,
+            'final_price' => $package->price,
             'start_date' => now()->toDateString(),
             'status' => SubscriptionStatus::ACTIVE,
             'created_by' => $user->id,
@@ -674,7 +666,6 @@ class BillingJourneyTest extends TestCase
         $invoice = Invoice::factory()->create([
             'customer_id' => $customer->id,
             'subscription_id' => $subscription->id,
-            'package_id' => $package->id,
             'invoice_number' => 'INV-007',
             'total' => 50000,
             'tax_amount' => 0,
@@ -688,10 +679,10 @@ class BillingJourneyTest extends TestCase
             'customer_id' => $customer->id,
             'invoice_id' => $invoice->id,
             'amount' => 50000,
-            'method' => PaymentMethod::MANUAL,
+            'method' => PaymentMethod::CASH,
             'status' => PaymentStatus::COMPLETED,
             'paid_at' => now(),
-            'transaction_reference' => 'REF-007',
+            'gateway_reference' => 'REF-007',
         ]);
 
         $invoice->update([
@@ -705,8 +696,8 @@ class BillingJourneyTest extends TestCase
         $payment->update([
             'amount' => $refundAmount,
             'status' => PaymentStatus::REFUNDED,
-            'refunded_at' => now(),
-            'refund_reference' => 'REFUND-007',
+            'gateway_reference' => 'REFUND-007',
+            'notes' => 'Refund issued',
         ]);
 
         // Update invoice for refund
@@ -719,7 +710,7 @@ class BillingJourneyTest extends TestCase
         $this->assertDatabaseHas('payments', [
             'id' => $payment->id,
             'status' => PaymentStatus::REFUNDED,
-            'refund_reference' => 'REFUND-007',
+            'gateway_reference' => 'REFUND-007',
         ]);
 
         $this->assertDatabaseHas('invoices', [
