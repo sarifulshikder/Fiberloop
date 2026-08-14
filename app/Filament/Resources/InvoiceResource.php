@@ -16,6 +16,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\MarkdownEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -69,9 +70,9 @@ class InvoiceResource extends Resource
                             ->schema([
                                 TextInput::make('invoice_number')
                                     ->label('Invoice Number')
-                                    ->required()
                                     ->maxLength(50)
-                                    ->readOnly(),
+                                    ->readOnly()
+                                    ->helperText('Auto-generated on save'),
                                 Select::make('status')
                                     ->label('Status')
                                     ->required()
@@ -149,7 +150,8 @@ class InvoiceResource extends Resource
                                     ->label('Tax Rate (%)')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->maxValue(100),
+                                    ->maxValue(100)
+                                    ->default(0),
                                 TextInput::make('discount_amount')
                                     ->label('Discount (poysha)')
                                     ->numeric()
@@ -182,12 +184,8 @@ class InvoiceResource extends Resource
                     ->schema([
                         Grid::make(2)
                             ->schema([
-                                Select::make('is_prorated')
+                                Toggle::make('is_prorated')
                                     ->label('Is Prorated')
-                                    ->options([
-                                        true => 'Yes',
-                                        false => 'No',
-                                    ])
                                     ->default(false),
                                 TextInput::make('proration_amount')
                                     ->label('Proration Amount (poysha)')
@@ -209,8 +207,9 @@ class InvoiceResource extends Resource
                                     ->label('PDF Path')
                                     ->nullable()
                                     ->maxLength(255),
-                                BooleanColumn::make('pdf_generated')
-                                    ->label('PDF Generated'),
+                                Toggle::make('pdf_generated')
+                                    ->label('PDF Generated')
+                                    ->default(false),
                             ]),
                     ]),
             ]);

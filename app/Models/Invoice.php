@@ -20,6 +20,13 @@ class Invoice extends Model
     protected static function booted(): void
     {
         static::addGlobalScope(new ResellerScope());
+
+        static::creating(function (Invoice $invoice) {
+            if (empty($invoice->invoice_number)) {
+                $invoice->invoice_number = app(\App\Services\Billing\InvoiceNumberGenerator::class)
+                    ->generateInvoiceNumber((int) ($invoice->tenant_id ?? 1));
+            }
+        });
     }
 
 
